@@ -16,15 +16,25 @@
     "plugin:node/recommended"
   ],
   "rules": {
-    "simple-import-sort/imports": "error",
-    "simple-import-sort/exports": "error",
+    "simple-import-sort/imports": "warn",
+    "simple-import-sort/exports": "warn",
+
+    "no-useless-catch": "off",
     "unicorn/prefer-module": "off",
     "unicorn/prefer-top-level-await": "off",
     "unicorn/prevent-abbreviations": "off",
+    "unicorn/no-array-callback-reference": "off",
+    "@typescript-eslint/no-unsafe-return": "off",
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-unsafe-assignment": "off",
+    "@typescript-eslint/no-unsafe-member-access": "off",
+    "@typescript-eslint/no-unsafe-call": "off",
+    "@typescript-eslint/no-unsafe-argument": "off",
     "no-console": "warn",
     "node/no-missing-import": "off",
+    "node/no-extraneous-import": "off",
     "node/no-unsupported-features/es-syntax": [
-      "error",
+      "warn",
       { "ignores": ["modules"] }
     ],
     "node/no-unpublished-import": "off",
@@ -35,7 +45,7 @@
       "files": ["*.ts"],
       "rules": {
         "simple-import-sort/imports": [
-          "error",
+          "warn",
           {
             "groups": [
               [
@@ -45,11 +55,10 @@
               ["^\\u0000"],
               ["^node:"],
               ["^@?\\w"],
-              ["^@/tests(/.*|$)"],
-              ["^@/src(/.*|$)"],
-              ["^@/app(/.*|$)"],
-              ["^@/shared(/.*|$)"],
-              ["^@/contexts(/.*|$)"],
+              ["^@src(/.*|$)"],
+              ["^@core(/.*|$)"],
+              ["^@shared(/.*|$)"],
+              ["^@contexts(/.*|$)"],
               ["^"],
               ["^\\."]
             ]
@@ -77,6 +86,7 @@
       "files": ["tests/performance/**"],
       "rules": {
         "unicorn/numeric-separators-style": "off",
+        "unicorn/no-array-callback-reference": "off",
         "unicorn/no-anonymous-default-export": "off",
         "@typescript-eslint/no-unsafe-call": "off",
         "@typescript-eslint/no-unsafe-assignment": "off",

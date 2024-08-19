@@ -17,7 +17,7 @@ RUN echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ".npmrc" && \
 COPY tsconfig*.json .
 COPY .swcrc .
 COPY nest-cli.json .
-COPY src src
+COPY x src
 
 EXPOSE $PORT
 CMD ["npm", "run", "dev"]
@@ -34,7 +34,7 @@ RUN echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ".npmrc" && \
 COPY tsconfig*.json .
 COPY .swcrc .
 COPY nest-cli.json .
-COPY src src
+COPY x src
 
 RUN npm run build && \
     npm prune --production

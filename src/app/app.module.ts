@@ -1,18 +1,59 @@
-import { Module } from "@nestjs/common";
-import { ConfigModule } from "@nestjs/config";
+import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { MongooseModule } from "@nestjs/mongoose";
+import { LoggerModule } from "nestjs-pino";
 
+import { CorrelationIdMiddleware } from "@/app/config/correlation-id/correlation-id.middleware";
 import { HealthModule } from "@/app/health/health.module";
-
-import { LoggerModule } from "@/shared/logger/logger.module";
-
-import { UserModule } from "@/contexts/users/user.module";
+import { ProductsModule } from "@/src/context/products/products.module";
+import { UserModule } from "@/src/context/users/user.module";
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, cache: true }),
-    LoggerModule,
+    LoggerModule.forRoot({
+      pinoHttp: {
+        transport: {
+          target: "pino-pretty",
+          options: {
+            messageKey: "message",
+          },
+        },
+        messageKey: "message",
+        customProps: (req: any) => {
+          return {
+            correlationId: req["X-Correlation-Id"],
+          };
+        },
+        autoLogging: false,
+        serializers: {
+          req: () => {
+            return;
+          },
+          res: () => {
+            return;
+          },
+        },
+      },
+    }),
     HealthModule,
     UserModule,
+    ProductsModule,
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      // eslint-disable-next-line @typescript-eslint/require-await
+      useFactory: async (configService: ConfigService) => {
+        const mongoUri = configService.get<string>("MONGODB_URI");
+        return {
+          uri: mongoUri,
+        };
+      },
+      inject: [ConfigService],
+    }),
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): any {
+    consumer.apply(CorrelationIdMiddleware).forRoutes("*");
+  }
+}
