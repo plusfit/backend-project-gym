@@ -9,7 +9,7 @@ import { ProductsModule } from "@/src/context/products/products.module";
 import { UserModule } from "@/src/context/users/user.module";
 import { PlansModule } from "@/src/context/plans/plans.module";
 import { ClientsModule } from "@/src/context/clients/clients.module";
-import { ExcercisesModule } from "@/src/context/excercises/excercises.module";
+import { ExercisesModule } from "@/src/context/exercises/exercises.module";
 import { OrganizationsModule } from "@/src/context/organizations/organizations.module";
 import { SchedulesModule } from "@/src/context/schedules/schedules.module";
 
@@ -46,7 +46,7 @@ import { SchedulesModule } from "@/src/context/schedules/schedules.module";
     ProductsModule,
     PlansModule,
     ClientsModule,
-    ExcercisesModule,
+    ExercisesModule,
     OrganizationsModule,
     SchedulesModule,
     MongooseModule.forRootAsync({
