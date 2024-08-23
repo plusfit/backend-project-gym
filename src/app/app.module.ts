@@ -7,6 +7,11 @@ import { CorrelationIdMiddleware } from "@/app/config/correlation-id/correlation
 import { HealthModule } from "@/app/health/health.module";
 import { ProductsModule } from "@/src/context/products/products.module";
 import { UserModule } from "@/src/context/users/user.module";
+import { PlansModule } from "@/src/context/plans/plans.module";
+import { ClientsModule } from "@/src/context/clients/clients.module";
+import { ExcercisesModule } from "@/src/context/excercises/excercises.module";
+import { OrganizationsModule } from "@/src/context/organizations/organizations.module";
+import { SchedulesModule } from "@/src/context/schedules/schedules.module";
 
 @Module({
   imports: [
@@ -39,6 +44,11 @@ import { UserModule } from "@/src/context/users/user.module";
     HealthModule,
     UserModule,
     ProductsModule,
+    PlansModule,
+    ClientsModule,
+    ExcercisesModule,
+    OrganizationsModule,
+    SchedulesModule,
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       // eslint-disable-next-line @typescript-eslint/require-await
