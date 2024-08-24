@@ -49,7 +49,7 @@ export class ExercisesService {
   }
 
   update(id: string, updateExcerciseDto: UpdateExerciseDto) {
-    return updateExcerciseDto;
+    return this.exerciseRepository.update(id, updateExcerciseDto);
   }
 
   remove(id: string) {
