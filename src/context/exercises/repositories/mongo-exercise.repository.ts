@@ -33,4 +33,9 @@ export class MongoExercisesRepository implements ExerciseRepository {
   async findOne(id: string): Promise<Exercise | null> {
     return await this.exerciseModel.findById(id).exec();
   }
+
+  async remove(id: string): Promise<boolean> {
+    const result = await this.exerciseModel.findByIdAndDelete(id).exec();
+    return result !== null;
+  }
 }

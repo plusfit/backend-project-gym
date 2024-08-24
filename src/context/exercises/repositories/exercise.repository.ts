@@ -17,4 +17,6 @@ export interface ExerciseRepository {
   }): Promise<number>;
 
   findOne(id: string): Promise<Exercise | null>;
+
+  remove(id: string): Promise<boolean>;
 }

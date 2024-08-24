@@ -53,6 +53,6 @@ export class ExercisesService {
   }
 
   remove(id: string) {
-    return `This action removes a #${id} excercise`;
+    return this.exerciseRepository.remove(id);
   }
 }
