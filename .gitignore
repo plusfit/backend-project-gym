@@ -3,6 +3,7 @@ dist/
 .tmp
 .idea
 coverage/
+.env
 .npm
 .vscode
 .nyc_output
