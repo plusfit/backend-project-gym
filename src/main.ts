@@ -6,9 +6,9 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { Logger } from "nestjs-pino";
 
 import { AppModule } from "@/app/app.module";
-import { Logger } from "nestjs-pino";
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
