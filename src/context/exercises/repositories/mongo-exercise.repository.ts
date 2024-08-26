@@ -55,15 +55,15 @@ export class MongoExercisesRepository implements ExerciseRepository {
     }
   }
 
-  async update(id: string, exercise: UpdateExerciseDto): Promise<Exercise> {
+  async update(
+    id: string,
+    exercise: UpdateExerciseDto,
+  ): Promise<Exercise | null> {
     try {
-      const _exercise = await this.exerciseModel
+      return await this.exerciseModel
         .findByIdAndUpdate(id, exercise, { new: true })
         .exec();
-      if (!_exercise) {
-        throw new Error(`Exercise with id ${id} not found.`);
-      }
-      return _exercise;
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       throw new Error(
