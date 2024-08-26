@@ -29,7 +29,9 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
   const port = configService.get<string>("PORT", "3000");
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(
+    new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
+  );
   await app.listen(port, "0.0.0.0");
 }
 
