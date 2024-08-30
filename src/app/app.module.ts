@@ -12,6 +12,7 @@ import { ClientsModule } from "@/src/context/clients/clients.module";
 import { ExercisesModule } from "@/src/context/exercises/exercises.module";
 import { OrganizationsModule } from "@/src/context/organizations/organizations.module";
 import { SchedulesModule } from "@/src/context/schedules/schedules.module";
+import { RoutinesModule } from "@/src/context/routines/routines.module";
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { SchedulesModule } from "@/src/context/schedules/schedules.module";
     ExercisesModule,
     OrganizationsModule,
     SchedulesModule,
+    RoutinesModule,
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       // eslint-disable-next-line @typescript-eslint/require-await
