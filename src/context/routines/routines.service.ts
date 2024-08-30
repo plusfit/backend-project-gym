@@ -16,7 +16,6 @@ export class RoutinesService {
     private readonly routineRepository: any,
     @Inject(EXERCISE_REPOSITORY)
     private readonly exerciseRepository: any,
-    // private readonly clientRepository: ClientRepository, //TODO: Agregar el repositorio de clientes
   ) {}
 
   async createRoutine(createRoutineDto: CreateRoutineDto) {
