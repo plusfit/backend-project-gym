@@ -11,8 +11,11 @@ import { PlansModule } from "@/src/context/plans/plans.module";
 import { ClientsModule } from "@/src/context/clients/clients.module";
 import { ExercisesModule } from "@/src/context/exercises/exercises.module";
 import { OrganizationsModule } from "@/src/context/organizations/organizations.module";
+import { PlansModule } from "@/src/context/plans/plans.module";
+import { ProductsModule } from "@/src/context/products/products.module";
 import { SchedulesModule } from "@/src/context/schedules/schedules.module";
 import { RoutinesModule } from "@/src/context/routines/routines.module";
+import { UserModule } from "@/src/context/users/user.module";
 
 @Module({
   imports: [

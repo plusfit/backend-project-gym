@@ -2,8 +2,8 @@ node_modules/
 dist/
 .tmp
 .idea
-.env
 coverage/
+.env
 .npm
 .vscode
 .nyc_output
