@@ -59,9 +59,23 @@ export class PlansController {
     }
   }
 
+  @Get("user/:userId")
+  findByUserId(@Param("userId") userId: string) {
+    return this.plansService.findByUserId(userId);
+  }
+
   @Patch(":id")
   update(@Param("id") id: string, @Body() updatePlanDto: UpdatePlanDto) {
-    return this.plansService.update(id, updatePlanDto);
+    try {
+      const plan = this.plansService.update(id, updatePlanDto);
+      if (!plan) {
+        throw new NotFoundException(`Plan with id ${id} not found`);
+      }
+      return plan;
+    } catch (error: any) {
+      this.logger.error(error.message);
+      throw new NotFoundException(error.message);
+    }
   }
 
   @Delete(":id")

@@ -35,6 +35,10 @@ export class PlansService {
     return { data, total, page, limit };
   }
 
+  findByUserId(userId: string) {
+    return this.plansRepository.findByUserId(userId);
+  }
+
   findOne(id: string) {
     return this.plansRepository.findOne(id);
   }
