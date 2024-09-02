@@ -9,7 +9,11 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
   @Post("register")
   register(@Body() registerDto: RegisterAuthDto) {
-    return this.authService.register(registerDto);
+    try {
+      return this.authService.register(registerDto);
+    } catch (error: any) {
+      throw new Error(`Error creating client: ${error.message}`);
+    }
   }
 
   @Post("login")

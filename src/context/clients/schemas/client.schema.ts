@@ -3,28 +3,28 @@ import { Document } from "mongoose";
 
 @Schema()
 export class UserInfo extends Document {
-  @Prop({ required: true })
-  name!: string;
+  @Prop()
+  name?: string;
 
-  @Prop({ required: true })
-  age!: number;
+  @Prop()
+  age?: number;
 
-  //COMPLETAR DATOS
+  //COMPLETAR CON OTROS DATOS
 }
 
 @Schema()
 export class Client extends Document {
-  @Prop({ required: true })
-  type!: string;
-
-  @Prop({ required: true })
-  planId!: string;
+  @Prop({ default: "User" })
+  role!: string;
 
   @Prop()
+  planId?: string;
+
+  @Prop({ required: true, unique: true })
   email!: string;
 
-  @Prop({ type: SchemaFactory.createForClass(UserInfo), required: true })
-  userInfo!: UserInfo;
+  @Prop({ type: SchemaFactory.createForClass(UserInfo) })
+  userInfo?: UserInfo;
 }
 
 export const ClientSchema = SchemaFactory.createForClass(Client);

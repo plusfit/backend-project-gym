@@ -2,22 +2,29 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 
 import { RegisterAuthDto } from "@/src/context/auth/dto/register-auth.dto";
-import { Auth } from "@/src/context/auth/entities/auth.entity";
 import { AuthRepository } from "@/src/context/auth/repositories/auth.repository";
-import { Client } from "@/src/context/clients/entities/client.entity";
+import { Client } from "@/src/context/clients/schemas/client.schema";
 
 export class MongoAuthRepository implements AuthRepository {
   constructor(
-    @InjectModel(Auth.name) private readonly authModel: Model<Auth>,
+    @InjectModel(Client.name) private readonly clientModel: Model<Client>,
   ) {}
-  register(registerDto: RegisterAuthDto): Promise<Auth> {
-    console.log(registerDto);
-    return Promise.resolve(
-      new Auth({ name: "name", email: "email", token: "token" }),
-    );
+
+  async register(registerDto: RegisterAuthDto): Promise<Client> {
+    try {
+      return await this.clientModel.create(registerDto);
+    } catch (error: any) {
+      throw new Error(`Error creating client: ${error.message}`);
+    }
   }
-  login(email: string): Promise<Client> {
-    console.log(email);
-    return Promise.resolve(new Client());
+
+  async login(email: string): Promise<Client> {
+    const client = await this.clientModel.findOne({ email });
+
+    if (!client) {
+      throw new Error("Client not found");
+    }
+
+    return client;
   }
 }

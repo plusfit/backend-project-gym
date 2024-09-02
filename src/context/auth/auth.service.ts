@@ -16,7 +16,14 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterAuthDto) {
-    return await this.authRepository.register(registerDto);
+    try {
+      return await this.authRepository.register(registerDto);
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
   }
 
   async login(loginDto: LoginAuthDto) {

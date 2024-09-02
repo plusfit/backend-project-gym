@@ -1,30 +1,11 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Post,
-} from "@nestjs/common";
-import { ApiBody } from "@nestjs/swagger";
+import { Body, Controller, Delete, Get, Param, Patch } from "@nestjs/common";
 
 import { ClientsService } from "./clients.service";
-import { CreateClientDto } from "./dto/create-client.dto";
 import { UpdateClientDto } from "./dto/update-client.dto";
 
 @Controller("clients")
 export class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}
-
-  @ApiBody({
-    description: "The client",
-    type: [CreateClientDto],
-  })
-  @Post()
-  create(@Body() createClientDto: CreateClientDto) {
-    return this.clientsService.create(createClientDto);
-  }
 
   @Get()
   findAll() {

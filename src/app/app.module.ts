@@ -5,6 +5,7 @@ import { LoggerModule } from "nestjs-pino";
 
 import { CorrelationIdMiddleware } from "@/app/config/correlation-id/correlation-id.middleware";
 import { HealthModule } from "@/app/health/health.module";
+import { AuthModule } from "@/src/context/auth/auth.module";
 import { ClientsModule } from "@/src/context/clients/clients.module";
 import { ExercisesModule } from "@/src/context/exercises/exercises.module";
 import { OrganizationsModule } from "@/src/context/organizations/organizations.module";
@@ -49,6 +50,7 @@ import { UserModule } from "@/src/context/users/user.module";
     ExercisesModule,
     OrganizationsModule,
     SchedulesModule,
+    AuthModule,
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       // eslint-disable-next-line @typescript-eslint/require-await
