@@ -10,6 +10,7 @@ import { ExercisesModule } from "@/src/context/exercises/exercises.module";
 import { OrganizationsModule } from "@/src/context/organizations/organizations.module";
 import { PlansModule } from "@/src/context/plans/plans.module";
 import { ProductsModule } from "@/src/context/products/products.module";
+import { RoutinesModule } from "@/src/context/routines/routines.module";
 import { SchedulesModule } from "@/src/context/schedules/schedules.module";
 import { UserModule } from "@/src/context/users/user.module";
 
@@ -49,6 +50,7 @@ import { UserModule } from "@/src/context/users/user.module";
     ExercisesModule,
     OrganizationsModule,
     SchedulesModule,
+    RoutinesModule,
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       // eslint-disable-next-line @typescript-eslint/require-await

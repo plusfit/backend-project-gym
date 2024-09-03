@@ -20,5 +20,6 @@ import { ExercisesService } from "./exercises.service";
       useClass: MongoExercisesRepository,
     },
   ],
+  exports: [EXERCISE_REPOSITORY],
 })
 export class ExercisesModule {}
