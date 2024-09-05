@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios from "axios";
-import * as jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
 import { LoginAuthDto } from "@/src/context/auth/dto/login-auth.dto";
 import { RegisterAuthDto } from "@/src/context/auth/dto/register-auth.dto";
@@ -30,9 +30,19 @@ export class AuthService {
     try {
       this.validateLogin(loginDto);
       const email = await this.getEmailFromJWTFirebase(loginDto.token);
-      console.log(email);
+      const response = await this.authRepository.login(email);
+      const { _doc, iat, exp } = response;
+      const payload = {
+        ..._doc,
+        ...iat,
+        ...exp,
+      };
+      const token = this.createToken(payload);
 
-      return await this.authRepository.login(loginDto);
+      return {
+        success: true,
+        token,
+      };
     } catch (error: any) {
       return {
         success: false,
@@ -62,16 +72,15 @@ export class AuthService {
       const kid = decodedHeader?.header?.kid;
 
       if (!kid || !publicKeys[kid]) {
-        throw new Error(
-          "Invalid token: kid not found or public key is missing",
-        );
+        throw new Error("Invalid token");
       }
 
       // Verificar el token con la clave pública correspondiente
       const decoded = jwt.verify(token, publicKeys[kid]) as jwt.JwtPayload;
 
       // Validar que venga de Firebase
-      if (decoded.iss !== `https://securetoken.google.com/your-project-id`) {
+      if (decoded.iss !== `https://securetoken.google.com/dtf-central`) {
+        //dtf-central a modo de prueba
         throw new Error("Token is not from Firebase");
       }
 
@@ -88,5 +97,12 @@ export class AuthService {
     } catch (error: any) {
       throw new Error(error.message);
     }
+  }
+
+  createToken(payload: any) {
+    const secret = this.configService.get("JWT_SECRET");
+    const expiresIn = this.configService.get("JWT_EXPIRES_IN");
+
+    return jwt.sign(payload, secret, { expiresIn });
   }
 }

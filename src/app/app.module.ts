@@ -1,4 +1,9 @@
-import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { MongooseModule } from "@nestjs/mongoose";
 import { LoggerModule } from "nestjs-pino";
@@ -6,6 +11,7 @@ import { LoggerModule } from "nestjs-pino";
 import { CorrelationIdMiddleware } from "@/app/config/correlation-id/correlation-id.middleware";
 import { HealthModule } from "@/app/health/health.module";
 import { AuthModule } from "@/src/context/auth/auth.module";
+import { AuthMiddleware } from "@/src/context/auth/middlewares/auth.middleware";
 import { ClientsModule } from "@/src/context/clients/clients.module";
 import { ExercisesModule } from "@/src/context/exercises/exercises.module";
 import { OrganizationsModule } from "@/src/context/organizations/organizations.module";
@@ -66,6 +72,14 @@ import { UserModule } from "@/src/context/users/user.module";
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): any {
-    consumer.apply(CorrelationIdMiddleware).forRoutes("*");
+    consumer
+      .apply(CorrelationIdMiddleware)
+      .forRoutes("*")
+      .apply(AuthMiddleware)
+      .exclude(
+        { path: "auth/login", method: RequestMethod.POST },
+        { path: "auth/register", method: RequestMethod.POST },
+      )
+      .forRoutes("*");
   }
 }
