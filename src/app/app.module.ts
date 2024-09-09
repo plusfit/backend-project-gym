@@ -18,7 +18,6 @@ import { OrganizationsModule } from "@/src/context/organizations/organizations.m
 import { PlansModule } from "@/src/context/plans/plans.module";
 import { ProductsModule } from "@/src/context/products/products.module";
 import { SchedulesModule } from "@/src/context/schedules/schedules.module";
-import { UserModule } from "@/src/context/users/user.module";
 
 @Module({
   imports: [
@@ -49,7 +48,6 @@ import { UserModule } from "@/src/context/users/user.module";
       },
     }),
     HealthModule,
-    UserModule,
     ProductsModule,
     PlansModule,
     ClientsModule,
