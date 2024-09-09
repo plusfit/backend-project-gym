@@ -10,7 +10,7 @@ import {
   Post,
   Query,
 } from "@nestjs/common";
-import { ApiBody, ApiResponse } from "@nestjs/swagger";
+import { ApiBody, ApiResponse, ApiTags } from "@nestjs/swagger";
 
 import { PageDto } from "../shared/dtos/page.dto";
 import { CreatePlanDto } from "./dto/create-plan.dto";
@@ -18,6 +18,7 @@ import { FiltersDto } from "./dto/filters.dto";
 import { UpdatePlanDto } from "./dto/update-plan.dto";
 import { PlansService } from "./plans.service";
 
+@ApiTags("plans")
 @Controller("plans")
 export class PlansController {
   logger = new Logger(PlansService.name);

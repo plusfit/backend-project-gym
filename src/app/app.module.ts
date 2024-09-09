@@ -14,6 +14,8 @@ import { RoutinesModule } from "@/src/context/routines/routines.module";
 import { SchedulesModule } from "@/src/context/schedules/schedules.module";
 import { UserModule } from "@/src/context/users/user.module";
 
+import { AppConfigModule } from "../context/config/config.module";
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, cache: true }),
@@ -51,6 +53,7 @@ import { UserModule } from "@/src/context/users/user.module";
     OrganizationsModule,
     SchedulesModule,
     RoutinesModule,
+    AppConfigModule,
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       // eslint-disable-next-line @typescript-eslint/require-await
