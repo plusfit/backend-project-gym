@@ -25,6 +25,9 @@ export class Client extends Document {
 
   @Prop({ type: SchemaFactory.createForClass(UserInfo) })
   userInfo?: UserInfo;
+
+  @Prop()
+  refreshToken?: string;
 }
 
 export const ClientSchema = SchemaFactory.createForClass(Client);

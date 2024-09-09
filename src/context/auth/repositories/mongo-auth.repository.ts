@@ -9,6 +9,19 @@ export class MongoAuthRepository implements AuthRepository {
   constructor(
     @InjectModel(Client.name) private readonly clientModel: Model<Client>,
   ) {}
+  async saveRefreshToken(userId: string, refreshToken: string): Promise<void> {
+    await this.clientModel.updateOne(
+      { _id: userId },
+      { $set: { refreshToken } },
+    );
+  }
+  async getRefreshToken(userId: string): Promise<string> {
+    const user = await this.clientModel
+      .findById(userId)
+      .select("refreshToken")
+      .exec();
+    return user?.refreshToken || "";
+  }
 
   async register(registerDto: RegisterAuthDto): Promise<Client> {
     try {
@@ -20,11 +33,9 @@ export class MongoAuthRepository implements AuthRepository {
 
   async login(email: string): Promise<Client> {
     const client = await this.clientModel.findOne({ email });
-
     if (!client) {
       throw new Error("Client not found");
     }
-
     return client;
   }
 }

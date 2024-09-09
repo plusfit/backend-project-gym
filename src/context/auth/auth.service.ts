@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios from "axios";
@@ -29,19 +30,28 @@ export class AuthService {
   async login(loginDto: LoginAuthDto) {
     try {
       this.validateLogin(loginDto);
+      //obtengo el mail
       const email = await this.getEmailFromJWTFirebase(loginDto.token);
       const response = await this.authRepository.login(email);
+      //me quedo con lo importante
       const { _doc, iat, exp } = response;
       const payload = {
         ..._doc,
         ...iat,
         ...exp,
       };
-      const token = this.createToken(payload);
+      //genero los tokens
+      const tokens = this.createToken(payload);
+
+      //guardo el refreshToken en la base de datos
+      await this.authRepository.saveRefreshToken(_doc._id, tokens.refreshToken);
 
       return {
         success: true,
-        token,
+        data: {
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+        },
       };
     } catch (error: any) {
       return {
@@ -63,11 +73,11 @@ export class AuthService {
         "FIREBASE_PUBLIC_KEYS_URL",
       );
 
-      // Obtener las claves públicas desde Firebase
+      //Obtener claves publicas de Firebase
       const response = await axios.get(firebasePublicKeysUrl);
       const publicKeys = response.data;
 
-      // Decodificar el token sin verificar la firma para obtener el kid
+      //Decodificar token sin verificar la firma para obtener el kid
       const decodedHeader: any = jwt.decode(token, { complete: true });
       const kid = decodedHeader?.header?.kid;
 
@@ -75,22 +85,22 @@ export class AuthService {
         throw new Error("Invalid token");
       }
 
-      // Verificar el token con la clave pública correspondiente
+      //Verificar el token con la clave publica
       const decoded = jwt.verify(token, publicKeys[kid]) as jwt.JwtPayload;
 
-      // Validar que venga de Firebase
+      //Validar que venga de Firebase
       if (decoded.iss !== `https://securetoken.google.com/dtf-central`) {
         //dtf-central a modo de prueba
         throw new Error("Token is not from Firebase");
       }
 
-      // Validar que tenga un email
+      //Valido que tenga un email
       if (
         !decoded.email ||
         !decoded.firebase ||
         !decoded.firebase.identities?.email?.length
       ) {
-        throw new Error("Invalid token: Email not found");
+        throw new Error("Invalid token");
       }
 
       return decoded.email;
@@ -100,9 +110,67 @@ export class AuthService {
   }
 
   createToken(payload: any) {
-    const secret = this.configService.get("JWT_SECRET");
-    const expiresIn = this.configService.get("JWT_EXPIRES_IN");
+    //genero el accessToken y el refreshToken con los secrets del .env
+    const accessSecret = this.configService.get("JWT_ACCESS_SECRET");
+    const accessExpiresIn = this.configService.get("JWT_ACCESS_EXPIRES_IN");
 
-    return jwt.sign(payload, secret, { expiresIn });
+    const refreshSecret = this.configService.get<string>("JWT_REFRESH_SECRET");
+    if (!refreshSecret) {
+      throw new Error("JWT_REFRESH_SECRET is not set in the configuration.");
+    }
+    const refreshExpiresIn = this.configService.get("JWT_REFRESH_EXPIRES_IN");
+
+    //creo los tokens con su expiracion
+    const accessToken = jwt.sign(payload, accessSecret, {
+      expiresIn: accessExpiresIn,
+    });
+    const refreshToken = jwt.sign({}, refreshSecret, {
+      expiresIn: refreshExpiresIn,
+    });
+
+    return {
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    };
+  }
+
+  async refreshToken(refreshToken: string) {
+    try {
+      const refreshSecret =
+        this.configService.get<string>("JWT_REFRESH_SECRET");
+      if (!refreshSecret) {
+        throw new Error("JWT_REFRESH_SECRET is not set in the configuration.");
+      }
+
+      //verifico y decodifico el refresh token
+      const decoded = jwt.verify(refreshToken, refreshSecret) as jwt.JwtPayload;
+      const userId = decoded._id;
+
+      //obtengo el refresh token almacenado del usuario
+      const storedRefreshToken =
+        await this.authRepository.getRefreshToken(userId);
+
+      if (storedRefreshToken !== refreshToken) {
+        throw new Error("Invalid refresh token");
+      }
+
+      //genero nuevos tokens
+      const newTokens = this.createToken({ _id: userId, email: decoded.email });
+      await this.authRepository.saveRefreshToken(
+        userId,
+        newTokens.refreshToken,
+      );
+
+      return {
+        success: true,
+        accessToken: newTokens.accessToken,
+        refreshToken: newTokens.refreshToken,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
   }
 }

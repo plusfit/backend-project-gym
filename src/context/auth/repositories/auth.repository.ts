@@ -6,4 +6,8 @@ export interface AuthRepository {
   register(registerDto: RegisterAuthDto): Promise<Client>;
 
   login(email: string): Promise<Client>;
+
+  saveRefreshToken(userId: string, refreshToken: string): Promise<void>;
+
+  getRefreshToken(userId: string): Promise<string>;
 }
