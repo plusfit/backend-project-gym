@@ -11,4 +11,6 @@ export interface ScheduleRepository {
   countSchedules(filters: any): Promise<number>;
   getSchedules(): Promise<Schedule[]>;
   deleteAllClientSchedules(clientId: string): Promise<UpdateWriteOpResult>;
+  assignClientToSchedule(scheduleId: string, clientId: string): Promise<any>;
+  deleteClientFromSchedule(scheduleId: string, clientId: string): Promise<any>;
 }
