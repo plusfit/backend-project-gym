@@ -5,6 +5,7 @@ import axios from "axios";
 import jwt from "jsonwebtoken";
 
 import { LoginAuthDto } from "@/src/context/auth/dto/login-auth.dto";
+import { RefreshTokenAuthDto } from "@/src/context/auth/dto/refresh-token-auth-dto";
 import { RegisterAuthDto } from "@/src/context/auth/dto/register-auth.dto";
 import { AUTH_REPOSITORY } from "@/src/context/auth/repositories/auth.repository";
 
@@ -120,11 +121,21 @@ export class AuthService {
     }
     const refreshExpiresIn = this.configService.get("JWT_REFRESH_EXPIRES_IN");
 
-    //creo los tokens con su expiracion
-    const accessToken = jwt.sign(payload, accessSecret, {
+    const tokenPayload = {
+      ...payload,
+      timestamp: Date.now(),
+    };
+
+    const refreshTokenPayload = {
+      ...payload,
+      timestamp: Date.now(),
+    };
+
+    const accessToken = jwt.sign(tokenPayload, accessSecret, {
       expiresIn: accessExpiresIn,
     });
-    const refreshToken = jwt.sign({}, refreshSecret, {
+
+    const refreshToken = jwt.sign(refreshTokenPayload, refreshSecret, {
       expiresIn: refreshExpiresIn,
     });
 
@@ -134,8 +145,9 @@ export class AuthService {
     };
   }
 
-  async refreshToken(refreshToken: string) {
+  async refreshToken(refreshToken: RefreshTokenAuthDto) {
     try {
+      const _refreshToken = refreshToken.refreshToken;
       const refreshSecret =
         this.configService.get<string>("JWT_REFRESH_SECRET");
       if (!refreshSecret) {
@@ -143,19 +155,27 @@ export class AuthService {
       }
 
       //verifico y decodifico el refresh token
-      const decoded = jwt.verify(refreshToken, refreshSecret) as jwt.JwtPayload;
+      const decoded = jwt.verify(
+        _refreshToken,
+        refreshSecret,
+      ) as jwt.JwtPayload;
       const userId = decoded._id;
 
       //obtengo el refresh token almacenado del usuario
       const storedRefreshToken =
         await this.authRepository.getRefreshToken(userId);
 
-      if (storedRefreshToken !== refreshToken) {
+      if (storedRefreshToken !== _refreshToken) {
         throw new Error("Invalid refresh token");
       }
 
+      //Crea un nuevo access token usando el payload sin 'exp'
+      delete decoded.exp;
+
+      const { ...payloadWithoutExp } = decoded as any;
+
       //genero nuevos tokens
-      const newTokens = this.createToken({ _id: userId, email: decoded.email });
+      const newTokens = this.createToken(payloadWithoutExp);
       await this.authRepository.saveRefreshToken(
         userId,
         newTokens.refreshToken,

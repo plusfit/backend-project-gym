@@ -24,7 +24,7 @@ export class AuthMiddleware implements NestMiddleware {
         throw new UnauthorizedException("Token not found");
       }
 
-      const secret = this.configService.get<string>("JWT_SECRET") || "";
+      const secret = this.configService.get<string>("JWT_ACCESS_SECRET") || "";
 
       const decoded = jwt.verify(token, secret);
 

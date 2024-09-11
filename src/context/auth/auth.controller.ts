@@ -2,6 +2,7 @@ import { Body, Controller, Post } from "@nestjs/common";
 
 import { AuthService } from "@/src/context/auth/auth.service";
 import { LoginAuthDto } from "@/src/context/auth/dto/login-auth.dto";
+import { RefreshTokenAuthDto } from "@/src/context/auth/dto/refresh-token-auth-dto";
 import { RegisterAuthDto } from "@/src/context/auth/dto/register-auth.dto";
 
 @Controller("auth")
@@ -21,8 +22,8 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
-  @Post("refresh-token")
-  refreshToken(refreshToken: string) {
+  @Post("refreshToken")
+  refreshToken(@Body() refreshToken: RefreshTokenAuthDto) {
     return this.authService.refreshToken(refreshToken);
   }
 }
