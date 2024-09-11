@@ -12,6 +12,8 @@ import {
 
 import { SchedulesController } from "./schedules.controller";
 import { SchedulesService } from "./schedules.service";
+import { ConfigService } from "@/src/context/config/config.service";
+import { AppConfigModule } from "@/src/context/config/config.module";
 
 @Module({
   controllers: [SchedulesController],
@@ -19,9 +21,11 @@ import { SchedulesService } from "./schedules.service";
     MongooseModule.forFeature([
       { name: Schedule.name, schema: ScheduleSchema },
     ]),
+    AppConfigModule,
   ],
   providers: [
     SchedulesService,
+    ConfigService,
     {
       provide: SCHEDULE_REPOSITORY,
       useClass: MongoScheduleRepository,

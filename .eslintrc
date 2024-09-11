@@ -39,8 +39,8 @@
       { "ignores": ["modules"] }
     ],
     "node/no-unpublished-import": "off",
-    "no-process-exit": "off",
-    "prettier/prettier": 0
+    "no-process-exit": "off"
+//    "prettier/prettier": 0
   },
   "overrides": [
     {

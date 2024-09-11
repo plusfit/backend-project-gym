@@ -2,6 +2,7 @@ import { BadRequestException, Inject, Injectable } from "@nestjs/common";
 
 import { CreateConfigDto } from "./dto/create-config.dto";
 import { UpdateConfigDto } from "./dto/update-config.dto";
+import { Config } from "./entities/config.entity";
 import { CONFIG_REPOSITORY } from "./repositories/mongo-config.repository";
 
 @Injectable()
@@ -19,13 +20,14 @@ export class ConfigService {
     return this.configRepository.createConfig(createConfigDto);
   }
 
-  async getConfigs(page: number, limit: number) {
-    const offset = (page - 1) * limit;
-    const [data, total] = await Promise.all([
-      this.configRepository.getConfigs(offset, limit),
-      this.configRepository.countConfigs(),
-    ]);
-    return { data, total, page, limit };
+  async getConfigs(): Promise<Config> {
+    const result = await this.configRepository.getConfigs();
+    if (!result) {
+      return {
+        schedule: [],
+      };
+    }
+    return result[0];
   }
 
   update(id: number, updateConfigDto: UpdateConfigDto) {

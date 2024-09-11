@@ -7,6 +7,7 @@ import {
 
 import { SCHEDULE_REPOSITORY } from "@/src/context/schedules/repositories/mongo-schedule.repository";
 
+import { ConfigService } from "../config/config.service";
 import { CreateScheduleDto } from "./dto/create-schedule.dto";
 import { UpdateScheduleDto } from "./dto/update-schedule.dto";
 
@@ -15,6 +16,7 @@ export class SchedulesService {
   constructor(
     @Inject(SCHEDULE_REPOSITORY)
     private readonly scheduleRepository: any,
+    private readonly configService: ConfigService,
     //Client Repository
   ) {}
 
@@ -108,7 +110,7 @@ export class SchedulesService {
     return this.scheduleRepository.assignClientToSchedule(scheduleId, clientId);
   }
 
-  deleteClientFromSchedule(scheduleId: string, clientId: string) {
+  async deleteClientFromSchedule(scheduleId: string, clientId: string) {
     if (!scheduleId || !clientId) {
       throw new BadRequestException("Schedule ID and Client ID are required");
     }
@@ -118,9 +120,40 @@ export class SchedulesService {
       throw new NotFoundException(`Schedule with ID ${scheduleId} not found`);
     }
 
-    return this.scheduleRepository.deleteClientFromSchedule(
+    return await this.scheduleRepository.deleteClientFromSchedule(
       scheduleId,
       clientId,
     );
+  }
+
+  async populateSchedulesByConfig() {
+    const schedules = await this.getAllSchedules();
+    if (schedules.length > 0) {
+      throw new BadRequestException("Schedules collection is not empty");
+    }
+
+    const config = await this.configService.getConfigs();
+    if (config.schedule.length === 0) {
+      throw new BadRequestException("Config Schedules collection is empty");
+    }
+
+    const scheduleConfig = config.schedule;
+    for (const day of scheduleConfig) {
+      for (const hour of day.hours) {
+        const schedule = {
+          day: day.day,
+          startTime: Number(hour).toString(),
+          endTime: (Number(hour) + 1).toString(),
+          clients: [],
+          maxCount: day.maxCount,
+        };
+        await this.createSchedule(schedule);
+      }
+    }
+
+    return {
+      success: true,
+      message: "Horarios creados exitosamente",
+    };
   }
 }

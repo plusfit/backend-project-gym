@@ -116,4 +116,9 @@ export class SchedulesController {
   ) {
     return this.schedulesService.deleteClientFromSchedule(scheduleId, clientId);
   }
+
+  @Post("populateSchedules")
+  populateSchedulesByConfig() {
+    return this.schedulesService.populateSchedulesByConfig();
+  }
 }
