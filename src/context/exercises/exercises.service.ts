@@ -63,8 +63,24 @@ export class ExercisesService {
     }
   }
 
-  update(id: string, updateExcerciseDto: UpdateExerciseDto) {
-    return this.exerciseRepository.update(id, updateExcerciseDto);
+  async update(id: string, updateExcerciseDto: UpdateExerciseDto) {
+    try {
+      const exercise = await this.exerciseRepository.update(
+        id,
+        updateExcerciseDto,
+      );
+      if (exercise) {
+        return {
+          success: true,
+          data: exercise,
+        };
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
   }
 
   async remove(id: string): Promise<{ success: boolean; message: string }> {
