@@ -2,6 +2,7 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 
 import { CreateExerciseDto } from "@/src/context/exercises/dto/create-exercise.dto";
+import { UpdateExerciseDto } from "@/src/context/exercises/dto/update-exercise.dto";
 import { ExerciseRepository } from "@/src/context/exercises/repositories/exercise.repository";
 import { Exercise } from "@/src/context/exercises/schemas/exercise.schema";
 
@@ -51,6 +52,23 @@ export class MongoExercisesRepository implements ExerciseRepository {
       return exercise ?? undefined;
     } catch (error: any) {
       throw new Error(`Error fetching exercise: ${error.message}`);
+    }
+  }
+
+  async update(
+    id: string,
+    exercise: UpdateExerciseDto,
+  ): Promise<Exercise | null> {
+    try {
+      return await this.exerciseModel
+        .findByIdAndUpdate(id, exercise, { new: true })
+        .exec();
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      throw new Error(
+        `Error updating exercise with id ${id}: ${error.message}`,
+      );
     }
   }
 }
