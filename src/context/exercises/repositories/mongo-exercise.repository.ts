@@ -2,7 +2,6 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 
 import { CreateExerciseDto } from "@/src/context/exercises/dto/create-exercise.dto";
-import { UpdateExerciseDto } from "@/src/context/exercises/dto/update-exercise.dto";
 import { ExerciseRepository } from "@/src/context/exercises/repositories/exercise.repository";
 import { Exercise } from "@/src/context/exercises/schemas/exercise.schema";
 
@@ -46,34 +45,8 @@ export class MongoExercisesRepository implements ExerciseRepository {
     }
   }
 
-  async findOne(id: string): Promise<Exercise | null> {
-    try {
-      return await this.exerciseModel.findById(id).exec();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      throw new Error(`Error finding exercise with id ${id}: ${error.message}`);
-    }
-  }
-
-  async update(
-    id: string,
-    exercise: UpdateExerciseDto,
-  ): Promise<Exercise | null> {
-    try {
-      return await this.exerciseModel
-        .findByIdAndUpdate(id, exercise, { new: true })
-        .exec();
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      throw new Error(
-        `Error updating exercise with id ${id}: ${error.message}`,
-      );
-    }
-  }
-
-  async remove(id: string): Promise<boolean> {
-    const result = await this.exerciseModel.findByIdAndDelete(id).exec();
-    return result !== null;
+  async findOne(id: string): Promise<Exercise | undefined> {
+    const exercise = await this.exerciseModel.findById(id).exec();
+    return exercise ?? undefined;
   }
 }
