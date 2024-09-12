@@ -55,10 +55,10 @@ export class ExercisesService {
       } else {
         throw "Exercise not found";
       }
-    } catch {
+    } catch (error: any) {
       return {
         success: false,
-        message: `Exercise not found.`,
+        message: `Exercise cannot be found: ${error.message}`,
       };
     }
   }
@@ -78,7 +78,7 @@ export class ExercisesService {
     } catch (error: any) {
       return {
         success: false,
-        message: error.message,
+        message: `Exercise cannot be updated: ${error.message}`,
       };
     }
   }
