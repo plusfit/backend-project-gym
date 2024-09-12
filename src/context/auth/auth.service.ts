@@ -35,12 +35,12 @@ export class AuthService {
       const email = await this.getEmailFromJWTFirebase(loginDto.token);
       const response = await this.authRepository.login(email);
       //me quedo con lo importante
-      const { _doc, exp } = response;
-      //elimino el refresh token de la respuesta
+      const { _doc } = response;
+      //elimino el refresh token
       delete _doc.refreshToken;
+
       const payload = {
         ..._doc,
-        ...exp,
       };
       //genero los tokens
       const tokens = this.createToken(payload);
