@@ -20,4 +20,6 @@ export interface ExerciseRepository {
   findOne(id: string): Promise<Exercise | null>;
 
   update(id: string, exercise: UpdateExerciseDto): Promise<Exercise | null>;
+
+  remove(id: string): Promise<boolean>;
 }

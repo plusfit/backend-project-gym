@@ -71,4 +71,9 @@ export class MongoExercisesRepository implements ExerciseRepository {
       );
     }
   }
+
+  async remove(id: string): Promise<boolean> {
+    const result = await this.exerciseModel.findByIdAndDelete(id).exec();
+    return result !== null;
+  }
 }

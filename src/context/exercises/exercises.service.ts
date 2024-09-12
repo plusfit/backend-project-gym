@@ -52,7 +52,23 @@ export class ExercisesService {
     return this.exerciseRepository.update(id, updateExcerciseDto);
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} excercise`;
+  async remove(id: string): Promise<{ success: boolean; message: string }> {
+    try {
+      const wasRemoved = await this.exerciseRepository.remove(id);
+
+      if (wasRemoved) {
+        return {
+          success: true,
+          message: "Exerscise removed successfully",
+        };
+      } else {
+        throw new Error("Exercise not found");
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        message: `Error when trying to delete exercise: ${error.message}`,
+      };
+    }
   }
 }
