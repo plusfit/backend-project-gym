@@ -1,13 +1,25 @@
-import { Body, Controller, Delete, Get, Param, Patch } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  UseGuards,
+} from "@nestjs/common";
 
-import { ClientsService } from "./clients.service";
-import { UpdateClientDto } from "./dto/update-client.dto";
+import { ClientsService } from "@/src/context/clients/clients.service";
+import { UpdateClientDto } from "@/src/context/clients/dto/update-client.dto";
+import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
+import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
 
 @Controller("clients")
 export class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}
 
   @Get()
+  @Roles("User")
+  @UseGuards(RolesGuard)
   findAll() {
     return this.clientsService.findAll();
   }
