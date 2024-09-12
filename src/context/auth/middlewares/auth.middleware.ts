@@ -28,7 +28,9 @@ export class AuthMiddleware implements NestMiddleware {
 
       const decoded = jwt.verify(token, secret);
 
-      console.log(`MIDDLEWARE CORRECTO ${JSON.stringify(decoded)}`);
+      if (!decoded) {
+        throw new UnauthorizedException("Invalid token");
+      }
 
       next();
     } catch {

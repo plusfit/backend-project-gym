@@ -35,10 +35,11 @@ export class AuthService {
       const email = await this.getEmailFromJWTFirebase(loginDto.token);
       const response = await this.authRepository.login(email);
       //me quedo con lo importante
-      const { _doc, iat, exp } = response;
+      const { _doc, exp } = response;
+      //elimino el refresh token de la respuesta
+      delete _doc.refreshToken;
       const payload = {
         ..._doc,
-        ...iat,
         ...exp,
       };
       //genero los tokens
@@ -123,17 +124,17 @@ export class AuthService {
 
     const tokenPayload = {
       ...payload,
-      timestamp: Date.now(),
-    };
-
-    const refreshTokenPayload = {
-      ...payload,
-      timestamp: Date.now(),
+      createdAt: Date.now(),
     };
 
     const accessToken = jwt.sign(tokenPayload, accessSecret, {
       expiresIn: accessExpiresIn,
     });
+
+    const refreshTokenPayload = {
+      ...payload,
+      createdAt: Date.now(),
+    };
 
     const refreshToken = jwt.sign(refreshTokenPayload, refreshSecret, {
       expiresIn: refreshExpiresIn,
@@ -150,6 +151,7 @@ export class AuthService {
       const _refreshToken = refreshToken.refreshToken;
       const refreshSecret =
         this.configService.get<string>("JWT_REFRESH_SECRET");
+
       if (!refreshSecret) {
         throw new Error("JWT_REFRESH_SECRET is not set in the configuration.");
       }
@@ -169,13 +171,14 @@ export class AuthService {
         throw new Error("Invalid refresh token");
       }
 
-      //Crea un nuevo access token usando el payload sin 'exp'
-      delete decoded.exp;
+      // elimino los campos exp e iat para que se generen de nuevo a lo que no uso las variables tengo que comentarlas con eslint
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { exp, iat, ...payloadWithoutExp } = decoded;
 
-      const { ...payloadWithoutExp } = decoded as any;
-
-      //genero nuevos tokens
+      // Genero nuevos tokens
       const newTokens = this.createToken(payloadWithoutExp);
+
+      //guardo el nuevo refresh token
       await this.authRepository.saveRefreshToken(
         userId,
         newTokens.refreshToken,
