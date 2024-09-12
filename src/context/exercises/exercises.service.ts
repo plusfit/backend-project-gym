@@ -44,8 +44,23 @@ export class ExercisesService {
     return { data, total, page, limit };
   }
 
-  findOne(id: string) {
-    return this.exerciseRepository.findOne(id);
+  async findOne(id: string) {
+    try {
+      const exercise = await this.exerciseRepository.findOne(id);
+      if (exercise) {
+        return {
+          success: true,
+          data: exercise,
+        };
+      } else {
+        throw "Exercise not found";
+      }
+    } catch {
+      return {
+        success: false,
+        message: `Exercise not found.`,
+      };
+    }
   }
 
   update(id: string, updateExcerciseDto: UpdateExerciseDto) {

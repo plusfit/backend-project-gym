@@ -30,7 +30,8 @@ export class MongoExercisesRepository implements ExerciseRepository {
     return await this.exerciseModel.countDocuments(filters).exec();
   }
 
-  async findOne(id: string): Promise<Exercise | null> {
-    return await this.exerciseModel.findById(id).exec();
+  async findOne(id: string): Promise<Exercise | undefined> {
+    const exercise = await this.exerciseModel.findById(id).exec();
+    return exercise ?? undefined;
   }
 }

@@ -16,5 +16,5 @@ export interface ExerciseRepository {
     productType?: string;
   }): Promise<number>;
 
-  findOne(id: string): Promise<Exercise | null>;
+  findOne(id: string): Promise<Exercise | undefined>;
 }
