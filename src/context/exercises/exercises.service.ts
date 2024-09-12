@@ -1,9 +1,8 @@
 import { Inject, Injectable } from "@nestjs/common";
 
+import { CreateExerciseDto } from "@/src/context/exercises/dto/create-exercise.dto";
+import { UpdateExerciseDto } from "@/src/context/exercises/dto/update-exercise.dto";
 import { EXERCISE_REPOSITORY } from "@/src/context/exercises/repositories/exercise.repository";
-
-import { CreateExerciseDto } from "./dto/create-exercise.dto";
-import { UpdateExerciseDto } from "./dto/update-exercise.dto";
 
 @Injectable()
 export class ExercisesService {
@@ -41,7 +40,14 @@ export class ExercisesService {
       this.exerciseRepository.getExercises(offset, limit, filters),
       this.exerciseRepository.countExercises(filters),
     ]);
-    return { data, total, page, limit };
+
+    return {
+      success: true,
+      data,
+      total,
+      page,
+      limit,
+    };
   }
 
   findOne(id: string) {

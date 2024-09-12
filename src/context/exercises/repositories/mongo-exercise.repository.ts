@@ -19,11 +19,16 @@ export class MongoExercisesRepository implements ExerciseRepository {
     limit: number,
     filters: { name?: string; exerciseType?: string } = {},
   ): Promise<Exercise[]> {
-    return await this.exerciseModel
-      .find(filters)
-      .skip(offset)
-      .limit(limit)
-      .exec();
+    try {
+      const exercises = await this.exerciseModel
+        .find(filters)
+        .skip(offset)
+        .limit(limit)
+        .exec();
+      return exercises;
+    } catch {
+      throw "Error fetching exercises";
+    }
   }
 
   async countExercises(filters: any = {}): Promise<number> {
