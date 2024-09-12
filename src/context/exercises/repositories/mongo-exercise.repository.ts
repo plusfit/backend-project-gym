@@ -46,7 +46,11 @@ export class MongoExercisesRepository implements ExerciseRepository {
   }
 
   async findOne(id: string): Promise<Exercise | undefined> {
-    const exercise = await this.exerciseModel.findById(id).exec();
-    return exercise ?? undefined;
+    try {
+      const exercise = await this.exerciseModel.findById(id).exec();
+      return exercise ?? undefined;
+    } catch (error: any) {
+      throw new Error(`Error fetching exercise: ${error.message}`);
+    }
   }
 }
