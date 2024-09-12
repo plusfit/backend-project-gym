@@ -26,14 +26,14 @@ export class MongoExercisesRepository implements ExerciseRepository {
     filters: { name?: string; exerciseType?: string } = {},
   ): Promise<Exercise[]> {
     try {
-      return await this.exerciseModel
+      const exercises = await this.exerciseModel
         .find(filters)
         .skip(offset)
         .limit(limit)
         .exec();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      throw new Error(`Error fetching exercises: ${error.message}`);
+      return exercises;
+    } catch {
+      throw "Error fetching exercises";
     }
   }
 
