@@ -1,1 +1,3 @@
-export class Client {}
+export class Client {
+  token!: string;
+}
