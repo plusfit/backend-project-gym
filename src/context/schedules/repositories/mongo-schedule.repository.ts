@@ -4,7 +4,7 @@ import { Model, UpdateWriteOpResult } from "mongoose";
 import { CreateScheduleDto } from "@/src/context/schedules/dto/create-schedule.dto";
 
 import { Schedule } from "../schemas/schedule.schema";
-import { ScheduleRepository } from "./schedule.repository"
+import { ScheduleRepository } from "./schedule.repository";
 export const SCHEDULE_REPOSITORY = "ScheduleRepository";
 
 export class MongoScheduleRepository implements ScheduleRepository {
@@ -31,8 +31,7 @@ export class MongoScheduleRepository implements ScheduleRepository {
     await this.scheduleModel.findByIdAndDelete(id).exec();
   }
 
-  async getSchedules(
-  ): Promise<Schedule[]> {
+  async getSchedules(): Promise<Schedule[]> {
     return await this.scheduleModel.find().exec();
   }
 
@@ -40,12 +39,11 @@ export class MongoScheduleRepository implements ScheduleRepository {
     return await this.scheduleModel.countDocuments(filters).exec();
   }
 
-  async  deleteAllClientSchedules(clientId:string): Promise<UpdateWriteOpResult> {
-    return await this.scheduleModel.updateMany(
-      { clients: clientId },
-      { $pull: { clients: clientId } }
-    ).exec();
-
-
+  async deleteAllClientSchedules(
+    clientId: string,
+  ): Promise<UpdateWriteOpResult> {
+    return await this.scheduleModel
+      .updateMany({ clients: clientId }, { $pull: { clients: clientId } })
+      .exec();
   }
 }

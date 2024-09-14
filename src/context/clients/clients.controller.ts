@@ -12,13 +12,14 @@ import { ClientsService } from "@/src/context/clients/clients.service";
 import { UpdateClientDto } from "@/src/context/clients/dto/update-client.dto";
 import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
 import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
+import { Role } from "@/src/context/shared/constants/roles.constant";
 
 @Controller("clients")
 export class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}
 
   @Get()
-  @Roles("User")
+  @Roles(Role.Admin)
   @UseGuards(RolesGuard)
   findAll() {
     return this.clientsService.findAll();

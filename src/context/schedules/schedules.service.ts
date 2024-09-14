@@ -1,9 +1,14 @@
-import { BadRequestException,Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 
-import { SCHEDULE_REPOSITORY } from '@/src/context/schedules/repositories/mongo-schedule.repository';
+import { SCHEDULE_REPOSITORY } from "@/src/context/schedules/repositories/mongo-schedule.repository";
 
-import { CreateScheduleDto } from './dto/create-schedule.dto';
-import { UpdateScheduleDto } from './dto/update-schedule.dto';
+import { CreateScheduleDto } from "./dto/create-schedule.dto";
+import { UpdateScheduleDto } from "./dto/update-schedule.dto";
 
 @Injectable()
 export class SchedulesService {
@@ -14,7 +19,7 @@ export class SchedulesService {
 
   async createSchedule(createScheduleDto: CreateScheduleDto) {
     if (!createScheduleDto) {
-      throw new BadRequestException('Invalid schedule data');
+      throw new BadRequestException("Invalid schedule data");
     }
 
     for (const clientId of createScheduleDto.clients) {
@@ -29,7 +34,7 @@ export class SchedulesService {
 
   async deleteSchedule(id: string) {
     if (!id) {
-      throw new BadRequestException('Schedule ID is required');
+      throw new BadRequestException("Schedule ID is required");
     }
 
     const schedule = await this.scheduleRepository.findById(id);
@@ -41,7 +46,7 @@ export class SchedulesService {
 
   async updateSchedule(scheduleId: string, updateData: UpdateScheduleDto) {
     if (!scheduleId || !updateData) {
-      throw new BadRequestException('Schedule ID and update data are required');
+      throw new BadRequestException("Schedule ID and update data are required");
     }
 
     const schedule = await this.scheduleRepository.findById(scheduleId);
@@ -53,7 +58,7 @@ export class SchedulesService {
 
   async getSchedule(id: string) {
     if (!id) {
-      throw new BadRequestException('Schedule ID is required');
+      throw new BadRequestException("Schedule ID is required");
     }
 
     const schedule = await this.scheduleRepository.findById(id);
@@ -69,13 +74,16 @@ export class SchedulesService {
 
   async deleteAllClientSchedules(clientId: string) {
     if (!clientId) {
-      throw new BadRequestException('Client ID is required');
+      throw new BadRequestException("Client ID is required");
     }
 
-    const result = await this.scheduleRepository.deleteAllClientSchedules(clientId);
+    const result =
+      await this.scheduleRepository.deleteAllClientSchedules(clientId);
 
     if (result.modifiedCount === 0) {
-      throw new NotFoundException(`No schedules found with client ID ${clientId}`);
+      throw new NotFoundException(
+        `No schedules found with client ID ${clientId}`,
+      );
     }
 
     return { message: `Client with ID ${clientId} removed from all schedules` };
