@@ -1,6 +1,6 @@
 import { Routine } from "@/src/context/routines/entities/routine.entity";
 
-export class Plan {
+export class PlanEntity {
   _id!: string;
   name!: string;
   category!: string;

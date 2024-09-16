@@ -15,6 +15,7 @@ import { SchedulesModule } from "@/src/context/schedules/schedules.module";
 import { UserModule } from "@/src/context/users/user.module";
 
 import { AppConfigModule } from "../context/config/config.module";
+import { LoggerMiddleware } from "@/app/middlewares/logger.middleware";
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { AppConfigModule } from "../context/config/config.module";
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): any {
+    consumer.apply(LoggerMiddleware).forRoutes("*");
     consumer.apply(CorrelationIdMiddleware).forRoutes("*");
   }
 }

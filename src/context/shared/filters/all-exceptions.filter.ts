@@ -15,7 +15,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
   async catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<FastifyReply>(); // Obtén el objeto FastifyReply
-    const request = ctx.getRequest<Request>();
 
     // Determina el estado de la excepción
     const status =
@@ -33,12 +32,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
       `HTTP Status: ${status} Error Message: ${JSON.stringify(message)}`,
     );
 
-    // Responde con un mensaje de error estandarizado
-    await response.status(status).send({
-      statusCode: status,
-      timestamp: new Date().toISOString(),
-      path: request.url,
-      message,
+    // Responde con un mensaje de error estandarizado usando Fastify
+    await response.code(status).send({
+      success: false,
+      data: message,
     });
   }
 }
