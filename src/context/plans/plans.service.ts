@@ -1,8 +1,9 @@
 import { Inject, Injectable } from "@nestjs/common";
 
+import { PlanEntity } from "@/src/context/plans/entities/plan.entity";
+
 import { CreatePlanDto } from "./dto/create-plan.dto";
 import { UpdatePlanDto } from "./dto/update-plan.dto";
-import { PlanEntity } from "./entities/plan.entity";
 import { PLAN_REPOSITORY } from "./repositories/plans.repository";
 
 @Injectable()
