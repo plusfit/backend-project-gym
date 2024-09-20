@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
 } from "@nestjs/common";
 import {
   ApiBody,
@@ -18,6 +19,9 @@ import {
 import { CreateScheduleDto } from "./dto/create-schedule.dto";
 import { UpdateScheduleDto } from "./dto/update-schedule.dto";
 import { SchedulesService } from "./schedules.service";
+import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
+import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
+import { Role } from "@/src/context/shared/constants/roles.constant";
 
 @ApiTags("schedules") // Etiqueta para Swagger
 @Controller("schedules")
@@ -25,6 +29,8 @@ export class SchedulesController {
   constructor(private readonly schedulesService: SchedulesService) {}
 
   @Post()
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
   @ApiOperation({ summary: "Crear un nuevo horario" })
   @ApiResponse({ status: 201, description: "Horario creado exitosamente." })
   @ApiBody({ type: CreateScheduleDto })
@@ -33,6 +39,8 @@ export class SchedulesController {
   }
 
   @Get()
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
   @ApiOperation({ summary: "Obtener todos los horarios" })
   @ApiResponse({ status: 200, description: "Lista de todos los horarios." })
   findAll() {
@@ -40,6 +48,8 @@ export class SchedulesController {
   }
 
   @Get(":id")
+  @Roles(Role.Admin, Role.Client)
+  @UseGuards(RolesGuard)
   @ApiOperation({ summary: "Obtener un horario por ID" })
   @ApiResponse({ status: 200, description: "Horario encontrado." })
   @ApiResponse({ status: 404, description: "Horario no encontrado." })
@@ -49,6 +59,8 @@ export class SchedulesController {
   }
 
   @Patch(":id")
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
   @ApiOperation({ summary: "Actualizar un horario por ID" })
   @ApiResponse({
     status: 200,
@@ -65,6 +77,8 @@ export class SchedulesController {
   }
 
   @Delete(":id")
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
   @ApiOperation({ summary: "Eliminar un horario por ID" })
   @ApiResponse({ status: 200, description: "Horario eliminado exitosamente." })
   @ApiResponse({ status: 404, description: "Horario no encontrado." })

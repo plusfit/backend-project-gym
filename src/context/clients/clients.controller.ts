@@ -26,16 +26,22 @@ export class ClientsController {
   }
 
   @Get(":id")
+  @Roles(Role.Admin, Role.Client)
+  @UseGuards(RolesGuard)
   findOne(@Param("id") id: string) {
     return this.clientsService.findOne(+id);
   }
 
   @Patch(":id")
+  @Roles(Role.Admin, Role.Client)
+  @UseGuards(RolesGuard)
   update(@Param("id") id: string, @Body() updateClientDto: UpdateClientDto) {
     return this.clientsService.update(+id, updateClientDto);
   }
 
   @Delete(":id")
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
   remove(@Param("id") id: string) {
     return this.clientsService.remove(+id);
   }

@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from "@nestjs/common";
 import { ApiResponse, ApiTags } from "@nestjs/swagger";
 
@@ -14,6 +15,9 @@ import { PageDto } from "../shared/dtos/page.dto";
 import { ConfigService } from "./config.service";
 import { CreateConfigDto } from "./dto/create-config.dto";
 import { UpdateConfigDto } from "./dto/update-config.dto";
+import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
+import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
+import { Role } from "@/src/context/shared/constants/roles.constant";
 
 @ApiTags("config")
 @Controller("config")
@@ -22,6 +26,8 @@ export class ConfigController {
   constructor(private readonly configService: ConfigService) {}
 
   @Post("create")
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
   @ApiResponse({ status: 201, description: "Config created successfully." })
   create(@Body() createConfigDto: CreateConfigDto) {
     return this.configService.createConfig(createConfigDto);
@@ -38,3 +44,4 @@ export class ConfigController {
     return this.configService.update(+id, updateConfigDto);
   }
 }
+

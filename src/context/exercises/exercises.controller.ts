@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from "@nestjs/common";
 
 import { FiltersDto } from "@/src/context/exercises/dto/filters.dto";
@@ -16,6 +17,9 @@ import { CreateExerciseDto } from "./dto/create-exercise.dto";
 import { UpdateExerciseDto } from "./dto/update-exercise.dto";
 import { ExercisesService } from "./exercises.service";
 import { ApiTags } from "@nestjs/swagger";
+import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
+import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
+import { Role } from "@/src/context/shared/constants/roles.constant";
 
 @ApiTags("exercises")
 @Controller("exercises")
@@ -23,11 +27,15 @@ export class ExercisesController {
   constructor(private readonly exercisesService: ExercisesService) {}
 
   @Post()
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
   create(@Body() createExerciseDto: CreateExerciseDto) {
     return this.exercisesService.create(createExerciseDto);
   }
 
   @Get()
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
   findAll(@Query() pageDto: PageDto, @Query() filtersDto: FiltersDto) {
     //TODO: ADD LOGS
     return this.exercisesService.getExercises(
@@ -40,11 +48,15 @@ export class ExercisesController {
   }
 
   @Get(":id")
+  @Roles(Role.Admin, Role.Client)
+  @UseGuards(RolesGuard)
   findOne(@Param("id") id: string) {
     return this.exercisesService.findOne(id);
   }
 
   @Patch(":id")
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
   update(
     @Param("id") id: string,
     @Body() updateExerciseDto: UpdateExerciseDto,
@@ -53,6 +65,8 @@ export class ExercisesController {
   }
 
   @Delete(":id")
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
   remove(@Param("id") id: string) {
     return this.exercisesService.remove(id);
   }

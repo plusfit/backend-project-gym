@@ -9,6 +9,7 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from "@nestjs/common";
 import { ApiBody, ApiResponse, ApiTags } from "@nestjs/swagger";
 
@@ -17,6 +18,9 @@ import { CreatePlanDto } from "./dto/create-plan.dto";
 import { FiltersDto } from "./dto/filters.dto";
 import { UpdatePlanDto } from "./dto/update-plan.dto";
 import { PlansService } from "./plans.service";
+import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
+import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
+import { Role } from "@/src/context/shared/constants/roles.constant";
 
 @ApiTags("plans")
 @Controller("plans")
@@ -30,12 +34,16 @@ export class PlansController {
     type: [CreatePlanDto],
   })
   @Post("create")
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
   create(@Body() createPlanDto: CreatePlanDto) {
     this.logger.log("Creating a new Plan");
     return this.plansService.create(createPlanDto);
   }
 
   @Get()
+  @Roles(Role.Admin, Role.Client)
+  @UseGuards(RolesGuard)
   getPlans(@Query() pageDto: PageDto, @Query() filtersDto: FiltersDto) {
     this.logger.log("Getting plans");
     return this.plansService.getPlans(
@@ -47,6 +55,8 @@ export class PlansController {
   }
 
   @Get(":id")
+  @Roles(Role.Admin, Role.Client)
+  @UseGuards(RolesGuard)
   async findOne(@Param("id") id: string) {
     try {
       const plan = await this.plansService.findOne(id);
@@ -61,11 +71,15 @@ export class PlansController {
   }
 
   @Get("user/:userId")
+  @Roles(Role.Admin, Role.Client)
+  @UseGuards(RolesGuard)
   findByUserId(@Param("userId") userId: string) {
     return this.plansService.findByUserId(userId);
   }
 
   @Patch(":id")
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
   update(@Param("id") id: string, @Body() updatePlanDto: UpdatePlanDto) {
     try {
       const plan = this.plansService.update(id, updatePlanDto);
@@ -80,6 +94,8 @@ export class PlansController {
   }
 
   @Delete(":id")
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
   remove(@Param("id") id: string) {
     return this.plansService.remove(id);
   }

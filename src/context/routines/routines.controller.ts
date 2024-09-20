@@ -7,6 +7,7 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from "@nestjs/common";
 import {
   ApiBody,
@@ -21,6 +22,9 @@ import { FiltersDto } from "@/src/context/exercises/dto/filters.dto";
 import { UpdateExerciseDto } from "@/src/context/exercises/dto/update-exercise.dto";
 import { RoutinesService } from "@/src/context/routines/routines.service";
 import { PageDto } from "@/src/context/shared/dtos/page.dto";
+import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
+import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
+import { Role } from "@/src/context/shared/constants/roles.constant";
 
 import { CreateRoutineDto } from "./dto/create-routine.dto";
 
@@ -30,6 +34,8 @@ export class RoutinesController {
   constructor(private readonly routinesService: RoutinesService) {}
 
   @Post()
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
   @ApiOperation({ summary: "Crear una nueva rutina" })
   @ApiResponse({ status: 201, description: "Rutina creada exitosamente." })
   @ApiBody({ type: CreateRoutineDto })
@@ -38,6 +44,8 @@ export class RoutinesController {
   }
 
   @Delete(":id")
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
   @ApiOperation({ summary: "Eliminar una rutina por ID" })
   @ApiResponse({ status: 200, description: "Rutina eliminada exitosamente." })
   @ApiResponse({ status: 404, description: "Rutina no encontrada." })
@@ -47,6 +55,8 @@ export class RoutinesController {
   }
 
   @Get()
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
   @ApiOperation({
     summary: "Obtener todas las rutinas con paginación y filtros",
   })
@@ -92,6 +102,8 @@ export class RoutinesController {
   }
 
   @Get(":id")
+  @Roles(Role.Admin, Role.Client)
+  @UseGuards(RolesGuard)
   @ApiOperation({ summary: "Obtener una rutina por ID" })
   @ApiResponse({ status: 200, description: "Rutina encontrada." })
   @ApiResponse({ status: 404, description: "Rutina no encontrada." })
@@ -101,6 +113,8 @@ export class RoutinesController {
   }
 
   @Put(":id")
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
   @ApiOperation({ summary: "Actualizar una rutina por ID" })
   @ApiResponse({ status: 200, description: "Rutina actualizada exitosamente." })
   @ApiResponse({ status: 404, description: "Rutina no encontrada." })
