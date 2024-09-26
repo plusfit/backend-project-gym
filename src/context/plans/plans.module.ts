@@ -5,7 +5,7 @@ import { PlansController } from "./plans.controller";
 import { PlansService } from "./plans.service";
 import { MongoPlansRepository } from "./repositories/mongo-plans.repository";
 import { PLAN_REPOSITORY } from "./repositories/plans.repository";
-import { PlanSchema } from "./schemas/plans.schemas";
+import { PlanSchema } from "./schemas/plan.schema";
 
 @Module({
   imports: [MongooseModule.forFeature([{ name: "Plan", schema: PlanSchema }])],

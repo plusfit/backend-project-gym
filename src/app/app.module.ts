@@ -5,6 +5,7 @@ import { LoggerModule } from "nestjs-pino";
 
 import { CorrelationIdMiddleware } from "@/app/config/correlation-id/correlation-id.middleware";
 import { HealthModule } from "@/app/health/health.module";
+import { LoggerMiddleware } from "@/app/middlewares/logger.middleware";
 import { ClientsModule } from "@/src/context/clients/clients.module";
 import { ExercisesModule } from "@/src/context/exercises/exercises.module";
 import { OrganizationsModule } from "@/src/context/organizations/organizations.module";
@@ -15,7 +16,6 @@ import { SchedulesModule } from "@/src/context/schedules/schedules.module";
 import { UserModule } from "@/src/context/users/user.module";
 
 import { AppConfigModule } from "../context/config/config.module";
-import { LoggerMiddleware } from "@/app/middlewares/logger.middleware";
 
 @Module({
   imports: [
