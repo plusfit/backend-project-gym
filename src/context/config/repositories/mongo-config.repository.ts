@@ -14,11 +14,17 @@ export class MongoConfigRepository implements ConfigRepository {
     return newConfig.save();
   }
 
-  async getConfigs(offset: number, limit: number): Promise<Config[]> {
-    return await this.configModel.find().skip(offset).limit(limit).exec();
+  async getConfigs(): Promise<Config[]> {
+    return this.configModel.find().lean();
   }
 
   async countConfigs(): Promise<number> {
     return await this.configModel.countDocuments().exec();
+  }
+
+  async update(id: string, updateData: any): Promise<Config | null> {
+    return this.configModel
+      .findByIdAndUpdate(id, updateData, { new: true })
+      .exec();
   }
 }

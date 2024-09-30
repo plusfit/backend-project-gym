@@ -6,11 +6,9 @@ import {
   Param,
   Patch,
   Post,
-  Query,
 } from "@nestjs/common";
 import { ApiResponse, ApiTags } from "@nestjs/swagger";
 
-import { PageDto } from "../shared/dtos/page.dto";
 import { ConfigService } from "./config.service";
 import { CreateConfigDto } from "./dto/create-config.dto";
 import { UpdateConfigDto } from "./dto/update-config.dto";
@@ -28,13 +26,13 @@ export class ConfigController {
   }
 
   @Get()
-  getConfigs(@Query() pageDto: PageDto) {
+  getConfigs() {
     this.logger.log("Getting plans");
-    return this.configService.getConfigs(pageDto.page, pageDto.limit);
+    return this.configService.getConfigs();
   }
 
   @Patch(":id")
   update(@Param("id") id: string, @Body() updateConfigDto: UpdateConfigDto) {
-    return this.configService.update(+id, updateConfigDto);
+    return this.configService.update(id, updateConfigDto);
   }
 }

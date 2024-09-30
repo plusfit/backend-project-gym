@@ -46,4 +46,29 @@ export class MongoScheduleRepository implements ScheduleRepository {
       .updateMany({ clients: clientId }, { $pull: { clients: clientId } })
       .exec();
   }
+
+  async assignClientToSchedule(scheduleId: string, clientId: string) {
+    return this.scheduleModel
+      .findByIdAndUpdate(
+        scheduleId,
+        { $push: { clients: clientId } },
+        { new: true },
+      )
+      .exec();
+  }
+  deleteClientFromSchedule(scheduleId: string, clientId: string): Promise<any> {
+    return this.scheduleModel
+      .findByIdAndUpdate(
+        scheduleId,
+        { $pull: { clients: clientId } },
+        { new: true },
+      )
+      .exec();
+  }
+
+  updateScheduleConfig(schedule: string): Promise<any> {
+    return this.scheduleModel
+      .findByIdAndUpdate(schedule, { $set: { config: schedule } })
+      .exec();
+  }
 }

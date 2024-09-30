@@ -1,25 +1,19 @@
 import { ApiProperty } from "@nestjs/swagger";
-import {
-  IsArray,
-  IsDateString,
-  IsInt,
-  IsMongoId,
-  IsString,
-} from "class-validator";
+import { IsArray, IsInt, IsMongoId, IsString } from "class-validator";
 
 export class CreateScheduleDto {
   @ApiProperty({
     description: "Hora de inicio del horario",
-    example: "2024-09-02T08:00:00Z",
+    example: "12",
   })
-  @IsDateString()
+  @IsString()
   startTime!: string;
 
   @ApiProperty({
     description: "Hora de finalización del horario",
-    example: "2024-09-02T10:00:00Z",
+    example: "13",
   })
-  @IsDateString()
+  @IsString()
   endTime!: string;
 
   @ApiProperty({
