@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   Logger,
   Param,
@@ -34,18 +33,8 @@ export class ConfigController {
     return this.configService.getConfigs(pageDto.page, pageDto.limit);
   }
 
-  @Get(":id")
-  findOne(@Param("id") id: string) {
-    return this.configService.findOne(+id);
-  }
-
   @Patch(":id")
   update(@Param("id") id: string, @Body() updateConfigDto: UpdateConfigDto) {
     return this.configService.update(+id, updateConfigDto);
-  }
-
-  @Delete(":id")
-  remove(@Param("id") id: string) {
-    return this.configService.remove(+id);
   }
 }

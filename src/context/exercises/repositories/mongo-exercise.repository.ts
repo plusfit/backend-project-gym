@@ -26,14 +26,14 @@ export class MongoExercisesRepository implements ExerciseRepository {
     filters: { name?: string; exerciseType?: string } = {},
   ): Promise<Exercise[]> {
     try {
-      return await this.exerciseModel
+      const exercises = await this.exerciseModel
         .find(filters)
         .skip(offset)
         .limit(limit)
         .exec();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      throw new Error(`Error fetching exercises: ${error.message}`);
+      return exercises;
+    } catch {
+      throw "Error fetching exercises";
     }
   }
 
@@ -46,12 +46,12 @@ export class MongoExercisesRepository implements ExerciseRepository {
     }
   }
 
-  async findOne(id: string): Promise<Exercise | null> {
+  async findOne(id: string): Promise<Exercise | undefined> {
     try {
-      return await this.exerciseModel.findById(id).exec();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const exercise = await this.exerciseModel.findById(id).exec();
+      return exercise ?? undefined;
     } catch (error: any) {
-      throw new Error(`Error finding exercise with id ${id}: ${error.message}`);
+      throw new Error(`Error fetching exercise: ${error.message}`);
     }
   }
 

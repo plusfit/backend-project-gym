@@ -1,9 +1,8 @@
 import { Inject, Injectable } from "@nestjs/common";
 
+import { CreateExerciseDto } from "@/src/context/exercises/dto/create-exercise.dto";
+import { UpdateExerciseDto } from "@/src/context/exercises/dto/update-exercise.dto";
 import { EXERCISE_REPOSITORY } from "@/src/context/exercises/repositories/exercise.repository";
-
-import { CreateExerciseDto } from "./dto/create-exercise.dto";
-import { UpdateExerciseDto } from "./dto/update-exercise.dto";
 
 @Injectable()
 export class ExercisesService {
@@ -41,18 +40,72 @@ export class ExercisesService {
       this.exerciseRepository.getExercises(offset, limit, filters),
       this.exerciseRepository.countExercises(filters),
     ]);
-    return { data, total, page, limit };
+
+    return {
+      success: true,
+      data,
+      total,
+      page,
+      limit,
+    };
   }
 
-  findOne(id: string) {
-    return this.exerciseRepository.findOne(id);
+  async findOne(id: string) {
+    try {
+      const exercise = await this.exerciseRepository.findOne(id);
+      if (exercise) {
+        return {
+          success: true,
+          data: exercise,
+        };
+      } else {
+        throw "Exercise not found";
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        message: `Exercise cannot be found: ${error.message}`,
+      };
+    }
   }
 
-  update(id: string, updateExcerciseDto: UpdateExerciseDto) {
-    return this.exerciseRepository.update(id, updateExcerciseDto);
+  async update(id: string, updateExcerciseDto: UpdateExerciseDto) {
+    try {
+      const exercise = await this.exerciseRepository.update(
+        id,
+        updateExcerciseDto,
+      );
+      if (exercise) {
+        return {
+          success: true,
+          data: exercise,
+        };
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        message: `Exercise cannot be updated: ${error.message}`,
+      };
+    }
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} excercise`;
+  async remove(id: string): Promise<{ success: boolean; message: string }> {
+    try {
+      const wasRemoved = await this.exerciseRepository.remove(id);
+
+      if (wasRemoved) {
+        return {
+          success: true,
+          message: "Exerscise removed successfully",
+        };
+      } else {
+        throw new Error("Exercise not found");
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        message: `Error when trying to delete exercise: ${error.message}`,
+      };
+    }
   }
 }

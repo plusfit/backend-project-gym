@@ -21,7 +21,6 @@ import {
   ApiResponse,
   ApiTags,
 } from "@nestjs/swagger";
-
 import { UpdateExerciseDto } from "@/src/context/exercises/dto/update-exercise.dto";
 import { GetRoutinesDto } from "@/src/context/routines/dto/get-routines.dto";
 import { RoutinesService } from "@/src/context/routines/routines.service";
