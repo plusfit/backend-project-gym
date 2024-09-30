@@ -21,4 +21,10 @@ export class MongoConfigRepository implements ConfigRepository {
   async countConfigs(): Promise<number> {
     return await this.configModel.countDocuments().exec();
   }
+
+  async update(id: string, updateData: any): Promise<Config | null> {
+    return this.configModel
+      .findByIdAndUpdate(id, updateData, { new: true })
+      .exec();
+  }
 }

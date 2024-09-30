@@ -18,6 +18,7 @@ import {
 import { CreateScheduleDto } from "./dto/create-schedule.dto";
 import { UpdateScheduleDto } from "./dto/update-schedule.dto";
 import { SchedulesService } from "./schedules.service";
+import { UpdateConfigDto } from "../config/dto/update-config.dto";
 
 @ApiTags("schedules")
 @Controller("schedules")
@@ -120,5 +121,18 @@ export class SchedulesController {
   @Post("populateSchedules")
   populateSchedulesByConfig() {
     return this.schedulesService.populateSchedulesByConfig();
+  }
+
+  @Patch("updateScheduleConfig/:id")
+  @ApiOperation({ summary: "Actualizar la configuración de un Horario" })
+  @ApiResponse({
+    status: 200,
+    description: "Configuración de Horario actualizada exitosamente.",
+  })
+  updateScheduleConfig(
+    @Param("id") id: string,
+    @Body() updateConfigDto: UpdateConfigDto,
+  ) {
+    return this.schedulesService.updateScheduleConfig(id, updateConfigDto);
   }
 }

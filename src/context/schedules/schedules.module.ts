@@ -1,6 +1,8 @@
 import { Module } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
 
+import { AppConfigModule } from "@/src/context/config/config.module";
+import { ConfigService } from "@/src/context/config/config.service";
 import {
   MongoScheduleRepository,
   SCHEDULE_REPOSITORY,
@@ -12,8 +14,6 @@ import {
 
 import { SchedulesController } from "./schedules.controller";
 import { SchedulesService } from "./schedules.service";
-import { ConfigService } from "@/src/context/config/config.service";
-import { AppConfigModule } from "@/src/context/config/config.module";
 
 @Module({
   controllers: [SchedulesController],

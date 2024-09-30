@@ -30,9 +30,17 @@ export class ConfigService {
     return result[0];
   }
 
-  update(id: number, updateConfigDto: UpdateConfigDto) {
-    if (!updateConfigDto) {
-      throw new BadRequestException("Invalid config data");
+  async update(id: string, updateConfigDto: UpdateConfigDto) {
+    try {
+      if (!updateConfigDto && !id) {
+        throw new BadRequestException("Invalid config data");
+      }
+
+      await this.configRepository.update(id, updateConfigDto);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error("Error during update or updateSchedule:", error);
+      throw error;
     }
   }
 }
