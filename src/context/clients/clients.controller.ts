@@ -5,28 +5,22 @@ import {
   Get,
   Param,
   Patch,
-  Post,
+  UseGuards,
 } from "@nestjs/common";
-import { ApiBody } from "@nestjs/swagger";
 
-import { ClientsService } from "./clients.service";
-import { CreateClientDto } from "./dto/create-client.dto";
-import { UpdateClientDto } from "./dto/update-client.dto";
+import { ClientsService } from "@/src/context/clients/clients.service";
+import { UpdateClientDto } from "@/src/context/clients/dto/update-client.dto";
+import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
+import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
+import { Role } from "@/src/context/shared/constants/roles.constant";
 
 @Controller("clients")
 export class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}
 
-  @ApiBody({
-    description: "The client",
-    type: [CreateClientDto],
-  })
-  @Post()
-  create(@Body() createClientDto: CreateClientDto) {
-    return this.clientsService.create(createClientDto);
-  }
-
   @Get()
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
   findAll() {
     return this.clientsService.findAll();
   }

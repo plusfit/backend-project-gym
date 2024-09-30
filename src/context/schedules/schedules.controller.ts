@@ -15,10 +15,10 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 
+import { UpdateConfigDto } from "../config/dto/update-config.dto";
 import { CreateScheduleDto } from "./dto/create-schedule.dto";
 import { UpdateScheduleDto } from "./dto/update-schedule.dto";
 import { SchedulesService } from "./schedules.service";
-import { UpdateConfigDto } from "../config/dto/update-config.dto";
 
 @ApiTags("schedules")
 @Controller("schedules")

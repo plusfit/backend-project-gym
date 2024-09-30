@@ -28,6 +28,13 @@ export class SchedulesService {
       throw new BadRequestException("Invalid schedule data");
     }
 
+    for (const clientId of createScheduleDto.clients) {
+      const clientExists = await this.scheduleRepository.findById(clientId);
+      if (!clientExists) {
+        throw new NotFoundException(`Client with ID ${clientId} not found`);
+      }
+    }
+
     return await this.scheduleRepository.createSchedule(createScheduleDto);
   }
 
