@@ -57,6 +57,7 @@ import { AppConfigModule } from "../context/config/config.module";
     ClientsModule,
     ExercisesModule,
     OrganizationsModule,
+    AppConfigModule,
     SchedulesModule,
     RoutinesModule,
     AppConfigModule,

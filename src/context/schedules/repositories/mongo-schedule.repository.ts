@@ -65,4 +65,10 @@ export class MongoScheduleRepository implements ScheduleRepository {
       )
       .exec();
   }
+
+  updateScheduleConfig(schedule: string): Promise<any> {
+    return this.scheduleModel
+      .findByIdAndUpdate(schedule, { $set: { config: schedule } })
+      .exec();
+  }
 }
