@@ -8,6 +8,7 @@ import {
   Post,
   Query,
 } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 
 import { FiltersDto } from "@/src/context/exercises/dto/filters.dto";
 import { PageDto } from "@/src/context/shared/dtos/page.dto";
@@ -15,7 +16,6 @@ import { PageDto } from "@/src/context/shared/dtos/page.dto";
 import { CreateExerciseDto } from "./dto/create-exercise.dto";
 import { UpdateExerciseDto } from "./dto/update-exercise.dto";
 import { ExercisesService } from "./exercises.service";
-import { ApiTags } from "@nestjs/swagger";
 
 @ApiTags("exercises")
 @Controller("exercises")
