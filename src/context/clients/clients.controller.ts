@@ -8,6 +8,7 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 
 import { ClientsService } from "@/src/context/clients/clients.service";
 import { UpdateClientDto } from "@/src/context/clients/dto/update-client.dto";
@@ -16,6 +17,7 @@ import { Role } from "@/src/context/shared/constants/roles.constant";
 import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
 import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
 
+@ApiTags("clients")
 @Controller("clients")
 export class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}
