@@ -3,7 +3,7 @@ import { Model } from "mongoose";
 
 import { CreatePlanDto } from "../dto/create-plan.dto";
 import { UpdatePlanDto } from "../dto/update-plan.dto";
-import { Plan } from "../schemas/plans.schemas";
+import { Plan } from "../schemas/plan.schema";
 import { PlanRepository } from "./plans.repository";
 
 export class MongoPlansRepository implements PlanRepository {
@@ -52,5 +52,9 @@ export class MongoPlansRepository implements PlanRepository {
     } catch (error: any) {
       throw new Error(`Error deleting plan with id ${id}, ${error.message}`);
     }
+  }
+
+  async getPlanByMode(mode: string): Promise<Plan | null> {
+    return await this.planModel.findOne({ mode }).exec();
   }
 }

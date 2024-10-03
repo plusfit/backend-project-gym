@@ -1,6 +1,8 @@
 import { Module } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
 
+import { AppConfigModule } from "@/src/context/config/config.module";
+import { ConfigService } from "@/src/context/config/config.service";
 import {
   MongoScheduleRepository,
   SCHEDULE_REPOSITORY,
@@ -19,9 +21,11 @@ import { SchedulesService } from "./schedules.service";
     MongooseModule.forFeature([
       { name: Schedule.name, schema: ScheduleSchema },
     ]),
+    AppConfigModule,
   ],
   providers: [
     SchedulesService,
+    ConfigService,
     {
       provide: SCHEDULE_REPOSITORY,
       useClass: MongoScheduleRepository,

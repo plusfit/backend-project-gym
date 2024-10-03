@@ -4,7 +4,10 @@ import { MongooseModule } from "@nestjs/mongoose";
 // import { ConfigSchema } from "@/src/context/config/schemas/config.schema";
 import { ConfigController } from "./config.controller";
 import { ConfigService } from "./config.service";
-import { MongoConfigRepository } from "./repositories/mongo-config.repository";
+import {
+  CONFIG_REPOSITORY,
+  MongoConfigRepository,
+} from "./repositories/mongo-config.repository";
 import { Config, ConfigSchema } from "./schemas/config.schemas";
 
 @Module({
@@ -15,10 +18,10 @@ import { Config, ConfigSchema } from "./schemas/config.schemas";
   providers: [
     ConfigService,
     {
-      provide: "ConfigRepository",
+      provide: CONFIG_REPOSITORY,
       useClass: MongoConfigRepository,
     },
   ],
-  exports: ["ConfigRepository"],
+  exports: ["ConfigRepository", ConfigService],
 })
 export class AppConfigModule {}

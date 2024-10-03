@@ -3,6 +3,8 @@ import { UpdateWriteOpResult } from "mongoose";
 import { CreateScheduleDto } from "@/src/context/schedules/dto/create-schedule.dto";
 import { Schedule } from "@/src/context/schedules/schemas/schedule.schema";
 
+import { UpdateConfigDto } from "../../config/dto/update-config.dto";
+
 export interface ScheduleRepository {
   findById(id: string): Promise<Schedule | null>;
   updateSchedule(id: string, updateData: any): Promise<Schedule | null>;
@@ -11,4 +13,10 @@ export interface ScheduleRepository {
   countSchedules(filters: any): Promise<number>;
   getSchedules(): Promise<Schedule[]>;
   deleteAllClientSchedules(clientId: string): Promise<UpdateWriteOpResult>;
+  assignClientToSchedule(scheduleId: string, clientId: string): Promise<any>;
+  deleteClientFromSchedule(scheduleId: string, clientId: string): Promise<any>;
+  updateScheduleConfig(
+    id: string,
+    updateConfigDto: UpdateConfigDto,
+  ): Promise<any>;
 }

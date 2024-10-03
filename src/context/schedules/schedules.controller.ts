@@ -16,6 +16,7 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 
+import { UpdateConfigDto } from "../config/dto/update-config.dto";
 import { CreateScheduleDto } from "./dto/create-schedule.dto";
 import { UpdateScheduleDto } from "./dto/update-schedule.dto";
 import { SchedulesService } from "./schedules.service";
@@ -23,7 +24,7 @@ import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
 import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
 import { Role } from "@/src/context/shared/constants/roles.constant";
 
-@ApiTags("schedules") // Etiqueta para Swagger
+@ApiTags("schedules")
 @Controller("schedules")
 export class SchedulesController {
   constructor(private readonly schedulesService: SchedulesService) {}
@@ -97,5 +98,55 @@ export class SchedulesController {
   @ApiParam({ name: "id", type: String, description: "ID del Cliente" })
   removeAllClientSchedules(@Param("id") id: string) {
     return this.schedulesService.deleteAllClientSchedules(id);
+  }
+
+  @Patch("assignClient/:scheduleId/:clientId")
+  @ApiOperation({ summary: "Asignar un Cliente a un Horario" })
+  @ApiResponse({
+    status: 200,
+    description: "Cliente asignado exitosamente.",
+  })
+  @ApiResponse({ status: 404, description: "Cliente no encontrado." })
+  @ApiParam({ name: "scheduleId", type: String, description: "ID del Horario" })
+  @ApiParam({ name: "clientId", type: String, description: "ID del Cliente" })
+  assignClientToSchedule(
+    @Param("scheduleId") scheduleId: string,
+    @Param("clientId") clientId: string,
+  ) {
+    return this.schedulesService.assignClientToSchedule(scheduleId, clientId);
+  }
+
+  @Delete("deleteClient/:scheduleId/:clientId")
+  @ApiOperation({ summary: "Eliminar un Cliente de un Horario" })
+  @ApiResponse({
+    status: 200,
+    description: "Cliente eliminado exitosamente.",
+  })
+  @ApiResponse({ status: 404, description: "Cliente no encontrado." })
+  @ApiParam({ name: "scheduleId", type: String, description: "ID del Horario" })
+  @ApiParam({ name: "clientId", type: String, description: "ID del Cliente" })
+  deleteClientFromSchedule(
+    @Param("scheduleId") scheduleId: string,
+    @Param("clientId") clientId: string,
+  ) {
+    return this.schedulesService.deleteClientFromSchedule(scheduleId, clientId);
+  }
+
+  @Post("populateSchedules")
+  populateSchedulesByConfig() {
+    return this.schedulesService.populateSchedulesByConfig();
+  }
+
+  @Patch("updateScheduleConfig/:id")
+  @ApiOperation({ summary: "Actualizar la configuración de un Horario" })
+  @ApiResponse({
+    status: 200,
+    description: "Configuración de Horario actualizada exitosamente.",
+  })
+  updateScheduleConfig(
+    @Param("id") id: string,
+    @Body() updateConfigDto: UpdateConfigDto,
+  ) {
+    return this.schedulesService.updateScheduleConfig(id, updateConfigDto);
   }
 }

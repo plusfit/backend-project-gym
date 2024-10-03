@@ -10,6 +10,7 @@ import { LoggerModule } from "nestjs-pino";
 
 import { CorrelationIdMiddleware } from "@/app/config/correlation-id/correlation-id.middleware";
 import { HealthModule } from "@/app/health/health.module";
+import { LoggerMiddleware } from "@/app/middlewares/logger.middleware";
 import { AuthModule } from "@/src/context/auth/auth.module";
 import { AuthMiddleware } from "@/src/context/auth/middlewares/auth.middleware";
 import { ClientsModule } from "@/src/context/clients/clients.module";
@@ -56,6 +57,7 @@ import { AppConfigModule } from "../context/config/config.module";
     ClientsModule,
     ExercisesModule,
     OrganizationsModule,
+    AppConfigModule,
     SchedulesModule,
     RoutinesModule,
     AppConfigModule,
@@ -87,5 +89,7 @@ export class AppModule implements NestModule {
         { path: "api/(.*)", method: RequestMethod.GET },
       )
       .forRoutes("*");
+    consumer.apply(LoggerMiddleware).forRoutes("*");
+    consumer.apply(CorrelationIdMiddleware).forRoutes("*");
   }
 }

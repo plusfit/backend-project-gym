@@ -1,8 +1,9 @@
 import { Inject, Injectable } from "@nestjs/common";
 
+import { PlanEntity } from "@/src/context/plans/entities/plan.entity";
+
 import { CreatePlanDto } from "./dto/create-plan.dto";
 import { UpdatePlanDto } from "./dto/update-plan.dto";
-import { Plan } from "./entities/plan.entity";
 import { PLAN_REPOSITORY } from "./repositories/plans.repository";
 
 @Injectable()
@@ -12,7 +13,7 @@ export class PlansService {
     private readonly plansRepository: any,
   ) {}
 
-  async create(createPlanDto: CreatePlanDto): Promise<Plan> {
+  async create(createPlanDto: CreatePlanDto): Promise<PlanEntity> {
     return await this.plansRepository.createPlan(createPlanDto);
   }
 

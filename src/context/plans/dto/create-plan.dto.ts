@@ -1,12 +1,10 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Type } from "class-transformer";
 import {
   IsArray,
   IsBoolean,
   IsNotEmpty,
   IsNumber,
   IsString,
-  ValidateNested,
 } from "class-validator";
 
 export class Routine {
@@ -38,10 +36,8 @@ export class CreatePlanDto {
   @IsNotEmpty()
   category!: string;
 
-  @ApiProperty({ type: [Routine] })
+  @ApiProperty({ type: ["RoutineId"] })
   @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => Routine)
   @IsNotEmpty()
   routines!: Routine[];
 

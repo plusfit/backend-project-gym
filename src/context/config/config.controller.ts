@@ -6,18 +6,17 @@ import {
   Param,
   Patch,
   Post,
-  Query,
   UseGuards,
 } from "@nestjs/common";
 import { ApiResponse, ApiTags } from "@nestjs/swagger";
 
-import { PageDto } from "../shared/dtos/page.dto";
+import { Role } from "@/src/context/shared/constants/roles.constant";
+import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
+import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
+
 import { ConfigService } from "./config.service";
 import { CreateConfigDto } from "./dto/create-config.dto";
 import { UpdateConfigDto } from "./dto/update-config.dto";
-import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
-import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
-import { Role } from "@/src/context/shared/constants/roles.constant";
 
 @ApiTags("config")
 @Controller("config")
@@ -34,14 +33,13 @@ export class ConfigController {
   }
 
   @Get()
-  getConfigs(@Query() pageDto: PageDto) {
+  getConfigs() {
     this.logger.log("Getting plans");
-    return this.configService.getConfigs(pageDto.page, pageDto.limit);
+    return this.configService.getConfigs();
   }
 
   @Patch(":id")
   update(@Param("id") id: string, @Body() updateConfigDto: UpdateConfigDto) {
-    return this.configService.update(+id, updateConfigDto);
+    return this.configService.update(id, updateConfigDto);
   }
 }
-
