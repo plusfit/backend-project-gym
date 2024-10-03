@@ -1,5 +1,5 @@
 import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
+import { Error, Model, Promise } from "mongoose";
 
 import { ClientsRepository } from "@/src/context/clients/repositories/clients.repository";
 import { Client } from "@/src/context/clients/schemas/client.schema";
@@ -15,7 +15,7 @@ export class MongoClientsRepository implements ClientsRepository {
   async getClients(
     offset: number,
     limit: number,
-    filters: { name?: string; type?: string },
+    filters: { name?: string; email?: string },
   ): Promise<Client[]> {
     return await this.clientModel
       .find(filters)
@@ -28,13 +28,30 @@ export class MongoClientsRepository implements ClientsRepository {
     return await this.clientModel.create(client);
   }
 
-  async updateClient(client: Client): Promise<Client | null> {
+  async updateClient(id: string, client: Client): Promise<Client | null> {
     return await this.clientModel
-      .findByIdAndUpdate(client._id, client, { new: true })
+      .findByIdAndUpdate(id, client, { new: true })
       .exec();
   }
 
   async countClients(filters: any = {}): Promise<number> {
     return await this.clientModel.countDocuments(filters).exec();
+  }
+
+  async removeClient(id: string): Promise<boolean> {
+    try {
+      await this.clientModel.findByIdAndDelete(id).exec();
+      return true;
+    } catch (error: any) {
+      throw new Error(`Error deleting plan with id ${id}, ${error.message}`);
+    }
+  }
+
+  async findClientByEmail(email: string): Promise<Client | null> {
+    return await this.clientModel.findOne({ email }).exec();
+  }
+
+  async findClientById(id: string): Promise<Client | null> {
+    return await this.clientModel.findById(id).exec();
   }
 }

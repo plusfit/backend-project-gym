@@ -6,10 +6,11 @@ import { CLIENT_REPOSITORY } from "@/src/context/clients/repositories/clients.re
 @Injectable()
 export class ClientsService {
   constructor(
-    @Inject(CLIENT_REPOSITORY) private readonly clientRepository: any,
+    @Inject(CLIENT_REPOSITORY)
+    private readonly clientRepository: any,
   ) {}
 
-  findAll(page: number, limit: number, name?: string, email?: string) {
+  async findAll(page: number, limit: number, name?: string, email?: string) {
     const offset = (page - 1) * limit;
     const filters: any = {};
 
@@ -18,10 +19,14 @@ export class ClientsService {
     }
 
     if (email) {
-      filters.type = email;
+      filters.email = email;
     }
 
-    return this.clientRepository.getClients(offset, limit, filters);
+    const [data, total] = await Promise.all([
+      this.clientRepository.getClients(offset, limit, filters),
+      this.clientRepository.countClients(filters),
+    ]);
+    return { data, total, page, limit };
   }
 
   findOne(id: string) {
@@ -29,7 +34,7 @@ export class ClientsService {
   }
 
   update(id: string, updateClientDto: UpdateClientDto) {
-    return this.clientRepository.updateClient(updateClientDto);
+    return this.clientRepository.updateClient(id, updateClientDto);
   }
 
   remove(id: string) {

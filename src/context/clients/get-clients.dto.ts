@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsNumber, IsOptional, IsString, Min } from "class-validator";
 
@@ -15,12 +15,15 @@ export class GetClientsDto {
   @Min(1)
   limit: number = 5;
 
-  @ApiProperty({ description: "Filtro por Nombre", example: "Nahuel" })
+  @ApiPropertyOptional({ description: "Filtro por Nombre", example: "Nahuel" })
   @IsOptional()
   @IsString()
   name?: string;
 
-  @ApiProperty({ description: "Filtro por email", example: "ng@gmail.com" })
+  @ApiPropertyOptional({
+    description: "Filtro por email",
+    example: "ng@gmail.com",
+  })
   @IsOptional()
   @IsString()
   email?: string;
