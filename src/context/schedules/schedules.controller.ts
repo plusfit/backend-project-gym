@@ -16,13 +16,14 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 
+import { Role } from "@/src/context/shared/constants/roles.constant";
+import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
+import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
+
 import { UpdateConfigDto } from "../config/dto/update-config.dto";
 import { CreateScheduleDto } from "./dto/create-schedule.dto";
 import { UpdateScheduleDto } from "./dto/update-schedule.dto";
 import { SchedulesService } from "./schedules.service";
-import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
-import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
-import { Role } from "@/src/context/shared/constants/roles.constant";
 
 @ApiTags("schedules")
 @Controller("schedules")

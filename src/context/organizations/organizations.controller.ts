@@ -9,12 +9,13 @@ import {
   UseGuards,
 } from "@nestjs/common";
 
+import { Role } from "@/src/context/shared/constants/roles.constant";
+import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
+import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
+
 import { CreateOrganizationDto } from "./dto/create-organization.dto";
 import { UpdateOrganizationDto } from "./dto/update-organization.dto";
 import { OrganizationsService } from "./organizations.service";
-import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
-import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
-import { Role } from "@/src/context/shared/constants/roles.constant";
 
 @Controller("organizations")
 export class OrganizationsController {

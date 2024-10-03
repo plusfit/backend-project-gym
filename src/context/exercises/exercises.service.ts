@@ -42,7 +42,6 @@ export class ExercisesService {
     ]);
 
     return {
-      success: true,
       data,
       total,
       page,
@@ -55,8 +54,7 @@ export class ExercisesService {
       const exercise = await this.exerciseRepository.findOne(id);
       if (exercise) {
         return {
-          success: true,
-          data: exercise,
+          exercise,
         };
       } else {
         throw "Exercise not found";
@@ -77,8 +75,7 @@ export class ExercisesService {
       );
       if (exercise) {
         return {
-          success: true,
-          data: exercise,
+          exercise,
         };
       }
     } catch (error: any) {
@@ -89,23 +86,17 @@ export class ExercisesService {
     }
   }
 
-  async remove(id: string): Promise<{ success: boolean; message: string }> {
+  async remove(id: string): Promise<string> {
     try {
       const wasRemoved = await this.exerciseRepository.remove(id);
 
       if (wasRemoved) {
-        return {
-          success: true,
-          message: "Exerscise removed successfully",
-        };
+        return "Exerscise removed successfully";
       } else {
         throw new Error("Exercise not found");
       }
     } catch (error: any) {
-      return {
-        success: false,
-        message: `Error when trying to delete exercise: ${error.message}`,
-      };
+      throw new Error(`Error when trying to delete exercise: ${error.message}`);
     }
   }
 }

@@ -10,6 +10,7 @@ import { Logger } from "nestjs-pino";
 
 import { AppModule } from "@/app/app.module";
 import { AllExceptionsFilter } from "@/src/context/shared/filters/all-exceptions.filter";
+import { ResponseInterceptor } from "@/src/context/shared/interceptors/response-success.interceptor";
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -42,6 +43,7 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
   );
+  app.useGlobalInterceptors(new ResponseInterceptor());
   await app.listen(port, "0.0.0.0");
 }
 

@@ -12,7 +12,7 @@ import { FastifyReply } from "fastify";
 export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new Logger(AllExceptionsFilter.name);
 
-  async catch(exception: unknown, host: ArgumentsHost) {
+  async catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<FastifyReply>(); // Obtén el objeto FastifyReply
 
@@ -25,7 +25,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const message =
       exception instanceof HttpException
         ? exception.getResponse()
-        : "Internal server error";
+        : (exception.message ?? "Internal server error");
 
     // Log de la excepción
     this.logger.error(

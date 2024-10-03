@@ -153,11 +153,7 @@ export class SchedulesService {
         await this.createSchedule(schedule);
       }
     }
-
-    return {
-      success: true,
-      message: "Horarios creados exitosamente",
-    };
+    return "Horarios creados exitosamente";
   }
 
   async updateScheduleConfig(id: string, updateConfigDto: UpdateConfigDto) {
@@ -236,9 +232,6 @@ export class SchedulesService {
     for (const schedule of schedulesToCreate) {
       await this.createSchedule(schedule);
     }
-    return {
-      success: true,
-      message: "Horarios actualizados exitosamente",
-    };
+    return "Horarios actualizados exitosamente";
   }
 }

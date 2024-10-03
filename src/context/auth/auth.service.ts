@@ -49,11 +49,8 @@ export class AuthService {
       await this.authRepository.saveRefreshToken(_doc._id, tokens.refreshToken);
 
       return {
-        success: true,
-        data: {
-          accessToken: tokens.accessToken,
-          refreshToken: tokens.refreshToken,
-        },
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
       };
     } catch (error: any) {
       return {
@@ -185,7 +182,6 @@ export class AuthService {
       );
 
       return {
-        success: true,
         accessToken: newTokens.accessToken,
         refreshToken: newTokens.refreshToken,
       };
