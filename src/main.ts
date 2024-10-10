@@ -1,4 +1,5 @@
 import { ValidationPipe } from "@nestjs/common";
+import { CorsOptions } from "@nestjs/common/interfaces/external/cors-options.interface";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import {
@@ -17,6 +18,15 @@ async function bootstrap() {
     AppModule,
     new FastifyAdapter(),
   );
+
+  const corsOptions: CorsOptions = {
+    origin: "http://localhost:4200",
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+    credentials: true,
+  };
+  app.enableCors(corsOptions);
 
   app.useLogger(app.get(Logger));
   app.useGlobalFilters(new AllExceptionsFilter());

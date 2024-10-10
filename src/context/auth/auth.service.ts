@@ -88,7 +88,7 @@ export class AuthService {
       const decoded = jwt.verify(token, publicKeys[kid]) as jwt.JwtPayload;
 
       //Validar que venga de Firebase
-      if (decoded.iss !== `https://securetoken.google.com/dtf-central`) {
+      if (decoded.aud !== `project-gym-72fd9`) {
         //dtf-central a modo de prueba
         throw new Error("Token is not from Firebase");
       }
