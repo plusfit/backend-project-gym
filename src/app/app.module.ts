@@ -77,18 +77,22 @@ import { AppConfigModule } from "../context/config/config.module";
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): any {
+    consumer.apply(CorrelationIdMiddleware).forRoutes("*");
+
     consumer
-      .apply(CorrelationIdMiddleware)
-      .forRoutes("*")
       .apply(AuthMiddleware)
       .exclude(
         { path: "auth/login", method: RequestMethod.POST },
+        { path: "auth/login", method: RequestMethod.OPTIONS },
         { path: "auth/register", method: RequestMethod.POST },
+        { path: "auth/register", method: RequestMethod.OPTIONS },
         { path: "auth/refreshToken", method: RequestMethod.POST },
+        { path: "auth/refreshToken", method: RequestMethod.OPTIONS },
         { path: "api", method: RequestMethod.GET },
         { path: "api/(.*)", method: RequestMethod.GET },
       )
       .forRoutes("*");
+
     consumer.apply(LoggerMiddleware).forRoutes("*");
     consumer.apply(CorrelationIdMiddleware).forRoutes("*");
   }
