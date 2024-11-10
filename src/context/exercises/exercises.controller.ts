@@ -37,7 +37,6 @@ export class ExercisesController {
   @Roles(Role.Admin)
   @UseGuards(RolesGuard)
   findAll(@Query() pageDto: PageDto, @Query() filtersDto: FiltersDto) {
-    //TODO: ADD LOGS
     return this.exercisesService.getExercises(
       pageDto.page,
       pageDto.limit,

@@ -11,8 +11,8 @@ import {
 import { ApiTags } from "@nestjs/swagger";
 
 import { ClientsService } from "@/src/context/clients/clients.service";
+import { GetClientsDto } from "@/src/context/clients/dto/get-clients.dto";
 import { UpdateClientDto } from "@/src/context/clients/dto/update-client.dto";
-import { GetClientsDto } from "@/src/context/clients/get-clients.dto";
 import { Role } from "@/src/context/shared/constants/roles.constant";
 import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
 import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";

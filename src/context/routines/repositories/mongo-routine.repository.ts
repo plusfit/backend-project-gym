@@ -2,10 +2,11 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 
 import { CreateRoutineDto } from "@/src/context/routines/dto/create-routine.dto";
+import { RoutineRepository } from "@/src/context/routines/repositories/routine.repository";
+import { Routine } from "@/src/context/routines/schemas/routine.schema";
 
-import { RoutineRepository } from "../repositories/routine.repository";
-import { Routine } from "../schemas/routine.schema";
 export const ROUTINE_REPOSITORY = "RoutineRepository";
+export const SUB_ROUTINE_REPOSITORY = "RoutineRepository";
 
 export class MongoRoutineRepository implements RoutineRepository {
   constructor(

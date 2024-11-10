@@ -1,24 +1,15 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { Document } from "mongoose";
+import { Document, Types } from "mongoose";
 
-import { Routine } from "../dto/create-plan.dto";
+import { Routine } from "@/src/context/routines/schemas/routine.schema";
 
 @Schema()
 export class Plan extends Document {
   @Prop({ required: true })
   name!: string;
 
-  @Prop({ required: true })
-  category!: string;
-
-  @Prop({ required: true })
-  routines!: Routine[];
-
-  @Prop({ required: true })
-  daysCount!: number;
-
-  @Prop({ required: true })
-  days!: string[];
+  @Prop({ type: { type: Types.ObjectId, ref: () => Routine } })
+  defaultRoutine!: Routine;
 
   @Prop({ default: Date.now() })
   updatedAt!: Date;

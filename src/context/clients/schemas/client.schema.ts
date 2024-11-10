@@ -20,6 +20,9 @@ export class Client extends Document {
   @Prop()
   planId?: string;
 
+  @Prop()
+  routineId?: string;
+
   @Prop({ required: true, unique: true })
   email!: string;
 

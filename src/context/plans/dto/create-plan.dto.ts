@@ -1,29 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import {
-  IsArray,
-  IsBoolean,
-  IsNotEmpty,
-  IsNumber,
-  IsString,
-} from "class-validator";
-
-export class Routine {
-  @ApiProperty()
-  @IsString()
-  name!: string;
-
-  @ApiProperty()
-  @IsBoolean()
-  isCustom: boolean = false;
-
-  @ApiProperty()
-  @IsArray()
-  exercises!: string[];
-
-  @ApiProperty()
-  @IsString()
-  day!: string;
-}
+import { IsMongoId, IsNotEmpty, IsString } from "class-validator";
 
 export class CreatePlanDto {
   @ApiProperty()
@@ -36,18 +12,8 @@ export class CreatePlanDto {
   @IsNotEmpty()
   category!: string;
 
-  @ApiProperty({ type: ["RoutineId"] })
-  @IsArray()
+  @ApiProperty({ type: "RoutineId" })
+  @IsMongoId()
   @IsNotEmpty()
-  routines!: Routine[];
-
-  @ApiProperty()
-  @IsNumber()
-  @IsNotEmpty()
-  daysCount!: number;
-
-  @ApiProperty()
-  @IsArray()
-  @IsNotEmpty()
-  days!: string[];
+  defaultRoutine!: string;
 }
