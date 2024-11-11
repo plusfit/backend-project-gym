@@ -23,8 +23,8 @@ export class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}
 
   @Get()
-  @Roles(Role.Admin)
-  @UseGuards(RolesGuard)
+  // @Roles(Role.Admin)
+  // @UseGuards(RolesGuard)
   findAll(@Query() getClientsDto: GetClientsDto) {
     return this.clientsService.findAll(
       getClientsDto.page,
@@ -35,8 +35,8 @@ export class ClientsController {
   }
 
   @Get(":id")
-  @Roles(Role.Admin, Role.Client)
-  @UseGuards(RolesGuard)
+  // @Roles(Role.Admin, Role.Client)
+  // @UseGuards(RolesGuard)
   findOne(@Param("id") id: string) {
     return this.clientsService.findOne(id);
   }

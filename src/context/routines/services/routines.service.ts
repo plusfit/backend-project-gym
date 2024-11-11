@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 
+import { CLIENT_REPOSITORY } from "@/src/context/clients/repositories/clients.repository";
 import { CreateRoutineDto } from "@/src/context/routines/dto/create-routine.dto";
 import {
   ROUTINE_REPOSITORY,
@@ -18,6 +19,8 @@ export class RoutinesService {
     private readonly subRoutineRepository: any,
     @Inject(ROUTINE_REPOSITORY)
     private readonly routineRepository: any,
+    @Inject(CLIENT_REPOSITORY)
+    private readonly clientRepository: any,
   ) {}
 
   async createRoutine(createRoutineDto: CreateRoutineDto) {
@@ -26,7 +29,7 @@ export class RoutinesService {
         throw new HttpException("Exercise ID is required", 500);
       }
       const subRoutineExist =
-        await this.subRoutineRepository.findOne(subRoutineId);
+        await this.subRoutineRepository.findById(subRoutineId);
       if (!subRoutineExist) {
         throw new NotFoundException(
           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
@@ -53,19 +56,21 @@ export class RoutinesService {
 
     if (!routine.isCustom && clientId) {
       routine.isCustom = true;
-      const newRoutine = {
+      const newRoutineObj = {
         ...routine.toObject(),
         ...updateData,
         isCustom: false,
       };
 
-      return await this.routineRepository.createRoutine(newRoutine);
+      const newRoutine =
+        await this.routineRepository.createRoutine(newRoutineObj);
 
       //TODO: // Asignar la nueva rutina al cliente
-      // await this.clientRepository.addRoutineToClient(
-      //   clientId,
-      //   savedRoutine._id,
-      // ); // Check if this will be in the frontend
+      //LLamar al client service y asignar la rutina al mismo
+      return this.clientRepository.assignRoutineToClient(
+        clientId,
+        newRoutine._id,
+      );
     } else {
       return this.routineRepository.updateRoutine(routineId, updateData);
     }

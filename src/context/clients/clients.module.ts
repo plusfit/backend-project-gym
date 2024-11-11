@@ -22,6 +22,6 @@ import {
       useClass: MongoClientsRepository,
     },
   ],
-  exports: [MongooseModule],
+  exports: [MongooseModule, ClientsService, CLIENT_REPOSITORY],
 })
 export class ClientsModule {}

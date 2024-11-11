@@ -40,4 +40,8 @@ export class ClientsService {
   remove(id: string) {
     return this.clientRepository.removeClient(id);
   }
+
+  assignRoutineToClient(clientId: string, routineId: string) {
+    return this.clientRepository.assignRoutineToClient(clientId, routineId);
+  }
 }

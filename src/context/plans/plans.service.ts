@@ -5,12 +5,15 @@ import { PlanEntity } from "@/src/context/plans/entities/plan.entity";
 import { CreatePlanDto } from "./dto/create-plan.dto";
 import { UpdatePlanDto } from "./dto/update-plan.dto";
 import { PLAN_REPOSITORY } from "./repositories/plans.repository";
+import { CLIENT_REPOSITORY } from "@/src/context/clients/repositories/clients.repository";
 
 @Injectable()
 export class PlansService {
   constructor(
     @Inject(PLAN_REPOSITORY)
     private readonly plansRepository: any,
+    @Inject(CLIENT_REPOSITORY)
+    private readonly clientRepository: any,
   ) {}
 
   async create(createPlanDto: CreatePlanDto): Promise<PlanEntity> {
@@ -50,5 +53,9 @@ export class PlansService {
 
   remove(id: string) {
     return this.plansRepository.remove(id);
+  }
+
+  assignPlanToClient(clientId: string, planId: string) {
+    return this.clientRepository.assignPlanToClient(clientId, planId);
   }
 }

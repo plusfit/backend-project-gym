@@ -23,9 +23,10 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 
-import { UpdateExerciseDto } from "@/src/context/exercises/dto/update-exercise.dto";
+import { ClientsService } from "@/src/context/clients/clients.service";
 import { CreateSubRoutineDto } from "@/src/context/routines/dto/create-sub-routine.dto";
 import { GetRoutinesDto } from "@/src/context/routines/dto/get-routines.dto";
+import { UpdateRoutineDto } from "@/src/context/routines/dto/update-routine.dto";
 import { UpdateSubRoutineDto } from "@/src/context/routines/dto/update-sub-routine.dto";
 // import { GetSubRoutinesDto } from "@/src/context/routines/dto/get-sub-routines.dto";
 import { RoutinesService } from "@/src/context/routines/services/routines.service";
@@ -45,6 +46,7 @@ export class RoutinesController {
   constructor(
     private readonly subRoutinesService: SubRoutinesService,
     private readonly routinesService: RoutinesService,
+    private readonly clientService: ClientsService,
   ) {}
 
   @Post()
@@ -180,17 +182,17 @@ export class RoutinesController {
     type: String,
     description: "ID del cliente para actualizar rutina",
   })
-  @ApiBody({ type: UpdateExerciseDto })
+  @ApiBody({ type: UpdateRoutineDto })
   async update(
     @Param("id") id: string,
-    @Body() updateExerciseDto: UpdateExerciseDto,
+    @Body() updateRoutineDto: UpdateRoutineDto,
     @Query("clientId") clientId?: string,
   ) {
     this.logger.log(`Updating routine with ID: ${id}`);
     try {
       const updatedRoutine = await this.routinesService.updateRoutine(
         id,
-        updateExerciseDto,
+        updateRoutineDto,
         clientId,
       );
       if (!updatedRoutine) {
@@ -201,6 +203,49 @@ export class RoutinesController {
       return { message: "Routine updated successfully.", updatedRoutine };
     } catch (error) {
       this.logger.error(`Failed to update routine with ID ${id}:`, error);
+      throw error;
+    }
+  }
+
+  //assing routine to a client
+  @Post("assign/:id")
+  // @Roles(Role.Admin)
+  // @UseGuards(RolesGuard)
+  @ApiOperation({ summary: "Asignar una rutina a un cliente" })
+  @ApiResponse({ status: 200, description: "Rutina asignada exitosamente." })
+  @ApiResponse({ status: 404, description: "Rutina no encontrada." })
+  @ApiParam({ name: "id", type: String, description: "ID de la rutina" })
+  @ApiQuery({
+    name: "clientId",
+    required: true,
+    type: String,
+    description: "ID del cliente para asignar rutina",
+  })
+  async assignRoutineToClient(
+    @Param("id") id: string,
+    @Query("clientId") clientId: string,
+  ) {
+    this.logger.log(
+      `Assigning routine with ID: ${id} to client with ID: ${clientId}`,
+    );
+    try {
+      const assignedRoutine = await this.clientService.assignRoutineToClient(
+        clientId,
+        id,
+      );
+      if (!assignedRoutine) {
+        this.logger.warn(`Routine with ID: ${id} not found for assignment.`);
+        throw new NotFoundException(`Routine with ID ${id} not found`);
+      }
+      this.logger.log(
+        `Routine with ID: ${id} assigned to client with ID: ${clientId} successfully.`,
+      );
+      return { message: "Routine assigned successfully.", assignedRoutine };
+    } catch (error) {
+      this.logger.error(
+        `Failed to assign routine with ID ${id} to client with ID ${clientId}:`,
+        error,
+      );
       throw error;
     }
   }
@@ -340,7 +385,7 @@ export class RoutinesController {
     type: String,
     description: "ID del cliente para actualizar rutina",
   })
-  @ApiBody({ type: UpdateExerciseDto })
+  @ApiBody({ type: UpdateSubRoutineDto })
   async updateSubRoutine(
     @Param("id") id: string,
     @Body() updateSubRoutineDto: UpdateSubRoutineDto,

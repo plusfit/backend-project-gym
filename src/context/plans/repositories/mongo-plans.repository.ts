@@ -31,10 +31,6 @@ export class MongoPlansRepository implements PlanRepository {
     return await this.planModel.findById(id).exec();
   }
 
-  async findByUserId(userId: string): Promise<Plan[]> {
-    return await this.planModel.find({ userId }).exec();
-  }
-
   async update(id: string, plan: UpdatePlanDto): Promise<Plan | null> {
     try {
       return await this.planModel

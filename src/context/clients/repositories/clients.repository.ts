@@ -15,4 +15,9 @@ export interface ClientsRepository {
   findClientByEmail(email: string): Promise<Client | null>;
   countClients(filters: { name?: string; type?: string }): Promise<number>;
   findClientById(id: string): Promise<Client | null>;
+  assignRoutineToClient(
+    clientId: string,
+    routineId: string,
+  ): Promise<Client | null>;
+  assignPlanToClient(clientId: string, planId: string): Promise<Client | null>;
 }
