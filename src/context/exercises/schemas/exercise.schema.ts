@@ -24,7 +24,7 @@ export class Exercise extends Document {
   @IsString()
   mode!: string;
 
-  @Prop({ default: Date.now })
+  @Prop()
   updatedAt!: Date;
 
   @Prop({ default: Date.now })

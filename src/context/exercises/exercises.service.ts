@@ -53,9 +53,7 @@ export class ExercisesService {
     try {
       const exercise = await this.exerciseRepository.findOne(id);
       if (exercise) {
-        return {
-          exercise,
-        };
+        return exercise;
       } else {
         throw "Exercise not found";
       }
@@ -69,9 +67,11 @@ export class ExercisesService {
 
   async update(id: string, updateExcerciseDto: UpdateExerciseDto) {
     try {
+      const _updateExcerciseDto = { ...updateExcerciseDto };
+      _updateExcerciseDto.updatedAt = new Date();
       const exercise = await this.exerciseRepository.update(
         id,
-        updateExcerciseDto,
+        _updateExcerciseDto,
       );
       if (exercise) {
         return {

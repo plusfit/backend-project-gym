@@ -11,13 +11,12 @@ import {
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 
-import { FiltersDto } from "@/src/context/exercises/dto/filters.dto";
 import { Role } from "@/src/context/shared/constants/roles.constant";
-import { PageDto } from "@/src/context/shared/dtos/page.dto";
 import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
 import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
 
 import { CreateExerciseDto } from "./dto/create-exercise.dto";
+import { GetExercisesDto } from "./dto/get-exercises.dto";
 import { UpdateExerciseDto } from "./dto/update-exercise.dto";
 import { ExercisesService } from "./exercises.service";
 
@@ -36,14 +35,14 @@ export class ExercisesController {
   @Get()
   @Roles(Role.Admin)
   @UseGuards(RolesGuard)
-  findAll(@Query() pageDto: PageDto, @Query() filtersDto: FiltersDto) {
+  findAll(@Query() getExercisesDto: GetExercisesDto) {
     //TODO: ADD LOGS
     return this.exercisesService.getExercises(
-      pageDto.page,
-      pageDto.limit,
-      filtersDto.name,
-      filtersDto.type,
-      filtersDto.mode,
+      getExercisesDto.page,
+      getExercisesDto.limit,
+      getExercisesDto.name,
+      getExercisesDto.type,
+      getExercisesDto.mode,
     );
   }
 

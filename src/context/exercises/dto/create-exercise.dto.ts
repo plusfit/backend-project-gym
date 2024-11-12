@@ -21,11 +21,11 @@ export class CreateExerciseDto {
 
   @IsString()
   @IsNotEmpty()
-  type!: string;
+  type!: string; //cardio o room
 
   @IsString()
   @IsNotEmpty()
-  mode!: string;
+  mode!: string; //reps o time. Si es time: minutes - rest.       Si es reps: reps - series
 
   // Campos para 'cardio'
   @ValidateIf(obj => obj.type === "cardio")
