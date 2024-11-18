@@ -1,5 +1,12 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsMongoId, IsNotEmpty, IsString } from "class-validator";
+import {
+  IsMongoId,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  Max,
+  Min,
+} from "class-validator";
 
 export class CreatePlanDto {
   @ApiProperty({
@@ -25,4 +32,14 @@ export class CreatePlanDto {
   @IsMongoId()
   @IsNotEmpty()
   defaultRoutine!: string;
+
+  @ApiProperty({
+    description: "The number of days of the plan",
+    example: 3,
+  })
+  @IsNotEmpty()
+  @IsNumber()
+  @Min(1)
+  @Max(6)
+  days!: number;
 }
