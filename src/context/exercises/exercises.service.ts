@@ -19,7 +19,6 @@ export class ExercisesService {
     limit: number,
     name?: string,
     type?: string,
-    mode?: string,
   ) {
     const offset = (page - 1) * limit;
     const filters: any = {};
@@ -30,10 +29,6 @@ export class ExercisesService {
 
     if (type) {
       filters.type = type;
-    }
-
-    if (mode) {
-      filters.mode = mode;
     }
 
     const [data, total] = await Promise.all([

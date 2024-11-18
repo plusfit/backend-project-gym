@@ -4,7 +4,6 @@ export class Exercise {
   description?: string;
   gifUrl?: string;
   type?: string;
-  mode?: string;
   minutes?: number;
   rest?: number;
   reps?: number;
