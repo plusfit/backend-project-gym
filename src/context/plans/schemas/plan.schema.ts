@@ -12,6 +12,9 @@ export class Plan extends Document {
   @Prop({ type: Types.ObjectId, ref: "Routine", required: true })
   defaultRoutine!: Types.ObjectId;
 
+  @Prop({ required: true })
+  days!: number;
+
   @Prop({ default: Date.now() })
   updatedAt!: Date;
 
