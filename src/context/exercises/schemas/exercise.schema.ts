@@ -20,10 +20,6 @@ export class Exercise extends Document {
   @IsString()
   type!: string;
 
-  @Prop({ required: true })
-  @IsString()
-  mode!: string;
-
   @Prop()
   updatedAt!: Date;
 

@@ -8,8 +8,4 @@ export class FiltersDto {
   @IsOptional()
   @IsString()
   type?: string;
-
-  @IsOptional()
-  @IsString()
-  mode?: string;
 }

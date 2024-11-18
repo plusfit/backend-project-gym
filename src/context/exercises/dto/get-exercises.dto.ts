@@ -23,8 +23,4 @@ export class GetExercisesDto {
   @IsOptional()
   @IsString()
   type?: string;
-
-  @IsOptional()
-  @IsString()
-  mode?: string;
 }
