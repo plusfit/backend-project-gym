@@ -21,6 +21,7 @@ export class AuthService {
     try {
       return await this.authRepository.register(registerDto);
     } catch (error: any) {
+      console.log(error);
       throw new UnauthorizedException("Error al registrar, verifique datos");
     }
   }
@@ -50,6 +51,7 @@ export class AuthService {
         refreshToken: tokens.refreshToken,
       };
     } catch (error: any) {
+      console.log(error);
       throw new UnauthorizedException(
         "Error al iniciar sesión, verifique datos",
       );
