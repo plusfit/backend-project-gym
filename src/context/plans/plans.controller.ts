@@ -69,6 +69,16 @@ export class PlansController {
     return response;
   }
 
+  @Get("assignableClients")
+  // @Roles(Role.Admin, Role.Client)
+  // @UseGuards(RolesGuard)
+  findAssignableClientsBasedOnPlan(@Query() getplansDto: GetPlansDto) {
+    return this.plansService.findAssignableClientsBasedOnPlan(
+      getplansDto.page,
+      getplansDto.limit,
+    );
+  }
+
   @ApiResponse({ status: 200, description: "Plan found." })
   @ApiResponse({ status: 404, description: "Plan not found." })
   @ApiResponse({ status: 500, description: "Internal server error." })
