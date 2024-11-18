@@ -14,7 +14,6 @@ export interface PlanRepository {
   ): Promise<Plan[]>;
   countPlans(filters: { name?: string; type?: string }): Promise<number>;
   findOne(id: string): Promise<Plan | null>;
-  findByUserId(userId: string): Promise<Plan[]>;
   update(id: string, plan: UpdatePlanDto): Promise<Plan | null>;
   remove(id: string): Promise<boolean>;
 }

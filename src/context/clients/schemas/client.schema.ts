@@ -18,7 +18,10 @@ export class Client extends Document {
   role!: string;
 
   @Prop()
-  planId?: string;
+  planId!: string;
+
+  @Prop()
+  routineId?: string;
 
   @Prop({ required: true, unique: true })
   email!: string;

@@ -12,7 +12,7 @@ import { CorrelationIdMiddleware } from "@/app/config/correlation-id/correlation
 import { HealthModule } from "@/app/health/health.module";
 import { LoggerMiddleware } from "@/app/middlewares/logger.middleware";
 import { AuthModule } from "@/src/context/auth/auth.module";
-//import { AuthMiddleware } from "@/src/context/auth/middlewares/auth.middleware";
+// import { AuthMiddleware } from "@/src/context/auth/middlewares/auth.middleware";
 import { ClientsModule } from "@/src/context/clients/clients.module";
 import { ExercisesModule } from "@/src/context/exercises/exercises.module";
 import { OrganizationsModule } from "@/src/context/organizations/organizations.module";

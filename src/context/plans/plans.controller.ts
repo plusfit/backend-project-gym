@@ -13,6 +13,7 @@ import {
 } from "@nestjs/common";
 import { ApiBody, ApiResponse, ApiTags } from "@nestjs/swagger";
 
+import { ClientsService } from "@/src/context/clients/clients.service";
 import { GetPlansDto } from "@/src/context/plans/dto/get-plans.dto";
 import { Role } from "@/src/context/shared/constants/roles.constant";
 import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
@@ -27,18 +28,21 @@ import { PlansService } from "./plans.service";
 export class PlansController {
   private readonly logger = new Logger(PlansController.name);
 
-  constructor(private readonly plansService: PlansService) {}
+  constructor(
+    private readonly plansService: PlansService,
+    private readonly clientService: ClientsService,
+  ) {}
 
   @ApiResponse({ status: 201, description: "Plan created successfully." })
   @ApiResponse({ status: 400, description: "Invalid input, plan not created." })
   @ApiResponse({ status: 500, description: "Internal server error." })
   @ApiBody({
     description: "The plan data to create.",
-    type: [CreatePlanDto],
+    type: CreatePlanDto,
   })
   @Post("create")
-  @Roles(Role.Admin)
-  @UseGuards(RolesGuard)
+  // @Roles(Role.Admin)
+  // @UseGuards(RolesGuard)
   create(@Body() createPlanDto: CreatePlanDto) {
     this.logger.log("Creating a new Plan");
     return this.plansService.create(createPlanDto);
@@ -69,8 +73,8 @@ export class PlansController {
   @ApiResponse({ status: 404, description: "Plan not found." })
   @ApiResponse({ status: 500, description: "Internal server error." })
   @Get(":id")
-  @Roles(Role.Admin, Role.Client)
-  @UseGuards(RolesGuard)
+  // @Roles(Role.Admin, Role.Client)
+  // @UseGuards(RolesGuard)
   async findOne(@Param("id") id: string) {
     this.logger.log(`Finding plan with ID: ${id}`);
     const plan = await this.plansService.findOne(id);
@@ -117,5 +121,27 @@ export class PlansController {
   @UseGuards(RolesGuard)
   remove(@Param("id") id: string) {
     return this.plansService.remove(id);
+  }
+
+  //Asign plan to user
+  //When the plan is assigned to a user the plan default routine is assigned to.
+  @Post("assign/:planId/:userId")
+  // @Roles(Role.Admin)
+  // @UseGuards(RolesGuard)
+  async assignPlanToUser(
+    @Param("planId") planId: string,
+    @Param("userId") userId: string,
+  ) {
+    //Validate if plans exist and user exists
+    const planExist = await this.plansService.findOne(planId);
+    if (!planExist) {
+      throw new NotFoundException(`Plan with ID ${planId} not found`);
+    }
+    const clientExist = await this.clientService.findOne(userId);
+    if (!clientExist) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    return this.plansService.assignPlanToClient(userId, planId);
   }
 }
