@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios from "axios";
 import jwt from "jsonwebtoken";
@@ -21,10 +21,7 @@ export class AuthService {
     try {
       return await this.authRepository.register(registerDto);
     } catch (error: any) {
-      return {
-        success: false,
-        error: error.message,
-      };
+      throw new UnauthorizedException("Error al registrar, verifique datos");
     }
   }
 
@@ -53,10 +50,9 @@ export class AuthService {
         refreshToken: tokens.refreshToken,
       };
     } catch (error: any) {
-      return {
-        success: false,
-        error: error.message,
-      };
+      throw new UnauthorizedException(
+        "Error al iniciar sesión, verifique datos",
+      );
     }
   }
 
