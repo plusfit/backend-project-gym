@@ -151,7 +151,7 @@ export class RoutinesController {
     }
   }
 
-  @Get("id")
+  @Get(":id")
   // @Roles(Role.Admin, Role.Client)
   // @UseGuards(RolesGuard)
   @ApiOperation({ summary: "Obtener una rutina por ID" })
