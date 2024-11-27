@@ -15,7 +15,7 @@ export class MongoSubRoutineRepository implements SubRoutineRepository {
   ) {}
 
   async findById(id: string): Promise<SubRoutine | null> {
-    return this.routineModel.findById(id).exec();
+    return this.routineModel.findById(id).populate("exercises").exec();
   }
 
   async updateSubRoutine(

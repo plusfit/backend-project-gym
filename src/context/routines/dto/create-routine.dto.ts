@@ -1,8 +1,20 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsBoolean, IsMongoId, IsString } from "class-validator";
+import {
+  IsArray,
+  IsBoolean,
+  IsMongoId,
+  IsOptional,
+  IsString,
+} from "class-validator";
 import { Types } from "mongoose";
+import { Expose } from "class-transformer";
 
 export class CreateRoutineDto {
+  @Expose()
+  @IsOptional()
+  _id?: string;
+
+  @Expose()
   @IsString()
   @ApiProperty({
     description: "The name of the routine",
@@ -10,6 +22,7 @@ export class CreateRoutineDto {
   })
   name!: string;
 
+  @Expose()
   @IsString()
   @ApiProperty({
     description: "The category of the routine",
@@ -17,6 +30,7 @@ export class CreateRoutineDto {
   })
   category!: string;
 
+  @Expose()
   @IsBoolean()
   @ApiProperty({
     description: "Si la rutina es personalizada",
@@ -24,6 +38,7 @@ export class CreateRoutineDto {
   })
   isCustom!: boolean;
 
+  @Expose()
   @IsArray()
   @IsMongoId({ each: true })
   @ApiProperty({

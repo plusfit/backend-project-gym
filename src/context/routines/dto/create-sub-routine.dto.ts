@@ -4,6 +4,7 @@ import {
   IsBoolean,
   IsEnum,
   IsMongoId,
+  IsNotEmpty,
   IsString,
 } from "class-validator";
 
@@ -14,6 +15,7 @@ export class CreateSubRoutineDto {
     description: "Nombre de la Subrutina",
     example: "SubRutina Default",
   })
+  @IsNotEmpty()
   @IsString()
   name!: string;
 
@@ -21,6 +23,7 @@ export class CreateSubRoutineDto {
     description: "Indica si la rutina es personalizada",
     example: false,
   })
+  @IsNotEmpty()
   @IsBoolean()
   isCustom!: boolean;
 
@@ -33,6 +36,11 @@ export class CreateSubRoutineDto {
   @IsMongoId({ each: true })
   exercises!: string[];
 
+  @ApiProperty({
+    description: "Día de la semana",
+    example: EDay.MONDAY,
+  })
+  @IsNotEmpty()
   @IsEnum(EDay)
-  day!: EDay;
+  day!: number;
 }

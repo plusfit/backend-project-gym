@@ -151,13 +151,17 @@ export class RoutinesController {
     }
   }
 
-  @Get("id")
+  @Get(":id")
   // @Roles(Role.Admin, Role.Client)
   // @UseGuards(RolesGuard)
   @ApiOperation({ summary: "Obtener una rutina por ID" })
   @ApiResponse({ status: 200, description: "Rutina encontrada." })
   @ApiResponse({ status: 404, description: "Rutina no encontrada." })
-  @ApiParam({ name: "id", type: String, description: "ID de la rutina" })
+  @ApiParam({
+    name: "id",
+    type: String,
+    description: "ID de la rutina",
+  })
   async findOneRoutine(@Param("id") id: string) {
     this.logger.log(`Searching for routine with ID: ${id}`);
     const routine = await this.routinesService.getRoutineById(id);
@@ -362,13 +366,13 @@ export class RoutinesController {
   @ApiResponse({ status: 404, description: "Rutina no encontrada." })
   @ApiParam({ name: "id", type: String, description: "ID de la rutina" })
   async findOneSubRoutine(@Param("id") id: string) {
-    this.logger.log(`Searching for routine with ID: ${id}`);
+    this.logger.log(`Searching for sub-routine with ID: ${id}`);
     const routine = await this.subRoutinesService.getSubRoutineById(id);
     if (!routine) {
-      this.logger.warn(`Routine with ID: ${id} not found.`);
-      throw new NotFoundException(`Routine with ID ${id} not found`);
+      this.logger.warn(`Sub-Routine with ID: ${id} not found.`);
+      throw new NotFoundException(`Sub-Routine with ID ${id} not found`);
     }
-    this.logger.log(`Routine with ID: ${id} found.`);
+    this.logger.log(`Sub-Routine with ID: ${id} found.`);
     return routine;
   }
 

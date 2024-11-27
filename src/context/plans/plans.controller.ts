@@ -132,16 +132,36 @@ export class PlansController {
     @Param("planId") planId: string,
     @Param("userId") userId: string,
   ) {
-    //Validate if plans exist and user exists
-    const planExist = await this.plansService.findOne(planId);
-    if (!planExist) {
-      throw new NotFoundException(`Plan with ID ${planId} not found`);
-    }
-    const clientExist = await this.clientService.findOne(userId);
-    if (!clientExist) {
-      throw new NotFoundException(`User with ID ${userId} not found`);
-    }
+    try {
+      // Validate if plan exists
+      const planExist = await this.plansService.findOne(planId);
+      if (!planExist) {
+        throw new NotFoundException(`Plan with ID ${planId} not found`);
+      }
 
-    return this.plansService.assignPlanToClient(userId, planId);
+      // Validate if clients exists
+      const clientExist = await this.clientService.findOne(userId);
+      if (!clientExist) {
+        throw new NotFoundException(`User with ID ${userId} not found`);
+      }
+
+      // Check if clients have a routineId assigned
+      if (!clientExist.routineId) {
+        // Assign the defaultRoutine from the plan to the client
+        await this.clientService.update(userId, {
+          routineId: planExist.defaultRoutine,
+        });
+      }
+
+      // Assign the plan to the client
+      await this.plansService.assignPlanToClient(userId, planId);
+
+      return {
+        message: "Plan assigned to user successfully.",
+      };
+    } catch (error: any) {
+      this.logger.error(`Failed to assign plan to user: ${error.message}`);
+      throw error;
+    }
   }
 }

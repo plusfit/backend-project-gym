@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
+import { plainToInstance } from "class-transformer";
 
 import { CLIENT_REPOSITORY } from "@/src/context/clients/repositories/clients.repository";
 import { CreateRoutineDto } from "@/src/context/routines/dto/create-routine.dto";
@@ -76,8 +77,18 @@ export class RoutinesService {
     }
   }
 
-  getRoutineById(id: string) {
-    return this.routineRepository.findOne(id);
+  async getRoutineById(id: string) {
+    try {
+      const routine = await this.routineRepository.findById(id);
+      if (!routine) {
+        throw new NotFoundException(`Routine with ID ${id} not found`);
+      }
+      return plainToInstance(CreateRoutineDto, routine, {
+        excludeExtraneousValues: true,
+      });
+    } catch {
+      throw new NotFoundException(`Routine with ID ${id} not found`);
+    }
   }
 
   async getRoutines(
@@ -106,6 +117,13 @@ export class RoutinesService {
       this.routineRepository.getRoutines(offset, limit, filters),
       this.routineRepository.countRoutines(filters),
     ]);
-    return { data, total, page, limit };
+
+    const transformedData = data.map((routine: any) =>
+      plainToInstance(CreateRoutineDto, routine, {
+        excludeExtraneousValues: true,
+      }),
+    );
+
+    return { data: transformedData, total, page, limit };
   }
 }
