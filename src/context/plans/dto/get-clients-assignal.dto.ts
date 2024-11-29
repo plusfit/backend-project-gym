@@ -2,7 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsNumber, IsOptional, IsString, Min } from "class-validator";
 
-export class GetPlansDto {
+export class GetClientsAssignalDto {
   @ApiProperty({ description: "Número de página", example: 1 })
   @Type(() => Number)
   @IsNumber()
@@ -20,7 +20,11 @@ export class GetPlansDto {
   @IsString()
   name?: string;
 
+  @ApiPropertyOptional({
+    description: "Email filter",
+    example: "juan@gmail.com",
+  })
   @IsOptional()
   @IsString()
-  plansType?: string;
+  email?: string;
 }

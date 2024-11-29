@@ -29,6 +29,30 @@ export class ClientsService {
     return { data, total, page, limit };
   }
 
+  async getListClients(ids: string[]) {
+    try {
+      // Inicializamos un array vacío para almacenar los clientes obtenidos
+      const clients = [];
+
+      // Iteramos sobre los IDs de los clientes
+      for (const id of ids) {
+        // Esperamos a obtener el cliente de la base de datos
+        const client = await this.clientRepository.getClientById(id);
+
+        // Si el cliente existe, lo agregamos al array
+        if (client) {
+          clients.push(client);
+        }
+      }
+
+      // Devolvemos el array de clientes obtenidos
+      return clients;
+    } catch (error) {
+      console.error("Error al obtener los clientes:", error);
+      throw new Error("Error al obtener los clientes");
+    }
+  }
+
   findOne(id: string) {
     return this.clientRepository.getClientById(id);
   }

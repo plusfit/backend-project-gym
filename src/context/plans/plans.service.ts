@@ -62,9 +62,13 @@ export class PlansService {
     return this.clientRepository.assignPlanToClient(clientId, planId);
   }
 
-  async getClientsWithPlansAndSchedules(offset: number, limit: number) {
+  async getClientsWithPlansAndSchedules(filters: any) {
     // Obtener los clientes paginados
-    const clients = await this.clientRepository.getClients(offset, limit);
+    const clients = await this.clientRepository.getClients(
+      undefined,
+      undefined,
+      filters,
+    );
 
     const clientsWithDetails = await Promise.all(
       // eslint-disable-next-line @typescript-eslint/require-await
@@ -91,18 +95,33 @@ export class PlansService {
     return clientsWithDetails;
   }
 
-  async findAssignableClientsBasedOnPlan(offset: number, limit: number) {
-    const clients = await this.getClientsWithPlansAndSchedules(offset, limit);
+  async findAssignableClientsBasedOnPlan(
+    offset: number,
+    limit: number,
+    email?: string,
+  ) {
+    const filters: any = {};
 
-    return clients.filter((client: any) => {
+    if (email) {
+      filters.email = email;
+    }
+    const clients = await this.getClientsWithPlansAndSchedules(filters);
+
+    const clientsFilter = clients.filter((client: any) => {
       // Días definidos en el plan
-      const planDays = client.plan?.days || [];
+      const planDays = client.plan?.days || 0;
       // Días asignados al cliente en los schedules
       const assignedDays =
         client.assignedSchedules?.map((s: any) => s.day) || [];
 
       // Si la cantidad de días asignados es menor que los días del plan, el cliente es asignable
-      return assignedDays.length < planDays.length;
+      return assignedDays.length < planDays && client._doc.role === "User";
     });
+
+    return clientsFilter.map((client: any) => ({
+      _id: client._doc._id,
+      name: client._doc.name,
+      email: client._doc.email,
+    }));
   }
 }
