@@ -34,6 +34,11 @@ export class ClientsController {
     );
   }
 
+  @Get("list/:ids")
+  getListClients(@Param("ids") ids: string) {
+    return this.clientsService.getListClients(ids.split(","));
+  }
+
   @Get(":id")
   // @Roles(Role.Admin, Role.Client)
   // @UseGuards(RolesGuard)

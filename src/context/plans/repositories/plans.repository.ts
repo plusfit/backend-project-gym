@@ -16,4 +16,9 @@ export interface PlanRepository {
   findOne(id: string): Promise<Plan | null>;
   update(id: string, plan: UpdatePlanDto): Promise<Plan | null>;
   remove(id: string): Promise<boolean>;
+  getClientsWithPlansAndSchedules(
+    offset: number,
+    limit: number,
+  ): Promise<Plan[]>;
+  findAssignableClientsBasedOnPlan(planId: string): Promise<Plan[]>;
 }
