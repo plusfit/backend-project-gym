@@ -14,7 +14,7 @@ export class MongoRoutineRepository implements RoutineRepository {
   ) {}
 
   async findById(id: string): Promise<Routine | null> {
-    return this.routineModel.findById(id).exec();
+    return this.routineModel.findById(id).populate("subRoutines").exec();
   }
 
   async updateRoutine(id: string, updateData: any): Promise<Routine | null> {

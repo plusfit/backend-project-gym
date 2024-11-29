@@ -77,7 +77,7 @@ export class RoutinesService {
   }
 
   getRoutineById(id: string) {
-    return this.routineRepository.findOne(id);
+    return this.routineRepository.findById(id);
   }
 
   async getRoutines(
