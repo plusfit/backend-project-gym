@@ -5,6 +5,7 @@ import {
   IsEnum,
   IsMongoId,
   IsNotEmpty,
+  IsOptional,
   IsString,
 } from "class-validator";
 
@@ -40,7 +41,7 @@ export class CreateSubRoutineDto {
     description: "Día de la semana",
     example: EDay.MONDAY,
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsEnum(EDay)
-  day!: number;
+  day?: number;
 }

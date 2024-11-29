@@ -32,8 +32,8 @@ export class MongoSubRoutineRepository implements SubRoutineRepository {
     return newRoutine.save();
   }
 
-  async deleteSubRoutine(id: string): Promise<void> {
-    await this.routineModel.findByIdAndDelete(id).exec();
+  async deleteSubRoutine(id: string): Promise<any> {
+    return await this.routineModel.findByIdAndDelete(id).exec();
   }
 
   async getSubRoutines(

@@ -287,13 +287,13 @@ export class RoutinesController {
   async deleteSubRoutine(@Param("id") id: string) {
     this.logger.log(`Attempting to delete routine with ID: ${id}`);
     if (validateMongoId(id)) {
-      const result = await this.routinesService.deleteRoutine(id);
+      const result = await this.subRoutinesService.deleteSubRoutine(id);
       if (!result) {
-        this.logger.warn(`Routine with ID: ${id} not found for deletion.`);
-        throw new NotFoundException(`Routine with ID ${id} not found`);
+        this.logger.warn(`Subroutine with ID: ${id} not found for deletion.`);
+        throw new NotFoundException(`Subroutine with ID ${id} not found`);
       }
-      this.logger.log(`Routine with ID: ${id} deleted successfully.`);
-      return { message: "Routine deleted successfully." };
+      this.logger.log(`Subroutine with ID: ${id} deleted successfully.`);
+      return { message: "Subroutine deleted successfully." };
     } else {
       throw new BadRequestException(`${id} is not a valid MongoDB ID`);
     }
@@ -395,21 +395,21 @@ export class RoutinesController {
     @Body() updateSubRoutineDto: UpdateSubRoutineDto,
     @Query("clientId") clientId?: string,
   ) {
-    this.logger.log(`Updating routine with ID: ${id}`);
+    this.logger.log(`Updating subroutine with ID: ${id}`);
     try {
-      const updatedRoutine = await this.routinesService.updateRoutine(
+      const updatedRoutine = await this.subRoutinesService.updateSubRoutine(
         id,
         updateSubRoutineDto,
         clientId,
       );
       if (!updatedRoutine) {
-        this.logger.warn(`Routine with ID: ${id} not found for update.`);
+        this.logger.warn(`Subroutine with ID: ${id} not found for update.`);
         throw new NotFoundException(`Routine with ID ${id} not found`);
       }
-      this.logger.log(`Routine with ID: ${id} updated successfully.`);
-      return { message: "Routine updated successfully.", updatedRoutine };
+      this.logger.log(`Subroutine with ID: ${id} updated successfully.`);
+      return { message: "Subroutine updated successfully.", updatedRoutine };
     } catch (error) {
-      this.logger.error(`Failed to update routine with ID ${id}:`, error);
+      this.logger.error(`Failed to update Subroutine with ID ${id}:`, error);
       throw error;
     }
   }

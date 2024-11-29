@@ -32,11 +32,14 @@ export class SubRoutinesService {
   }
 
   async deleteSubRoutine(id: string) {
-    const routine = await this.subRoutineRepository.findById(id);
-    if (!routine) {
-      throw new NotFoundException(`Routine with ID ${id} not found`);
+    const subroutine = await this.getSubRoutineById(id);
+
+    if (!subroutine) {
+      throw new NotFoundException(`Subroutine with ID ${id} not found`);
     }
-    return this.subRoutineRepository.deleteRoutine(id);
+
+    const result = await this.subRoutineRepository.deleteSubRoutine(id);
+    return result;
   }
   async updateSubRoutine(
     routineId: string,
@@ -69,8 +72,8 @@ export class SubRoutinesService {
     }
   }
 
-  getSubRoutineById(id: string) {
-    return this.subRoutineRepository.findById(id);
+  async getSubRoutineById(id: string) {
+    return await this.subRoutineRepository.findById(id);
   }
 
   async getSubRoutines(

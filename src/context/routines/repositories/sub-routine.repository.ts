@@ -5,7 +5,7 @@ export interface SubRoutineRepository {
   findById(id: string): Promise<SubRoutine | null>;
   updateSubRoutine(id: string, updateData: any): Promise<SubRoutine | null>;
   createSubRoutine(routine: CreateSubRoutineDto): Promise<SubRoutine>;
-  deleteSubRoutine(id: string): Promise<void>;
+  deleteSubRoutine(id: string): Promise<any>;
   countSubRoutines(filters: any): Promise<number>;
   getSubRoutines(
     offset: number,
