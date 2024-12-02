@@ -19,6 +19,9 @@ export class Routine extends Document {
 
   @Prop({ type: [{ type: SchemaMongo.Types.ObjectId, ref: () => SubRoutine }] })
   subRoutines!: Types.ObjectId[];
+
+  @Prop({ required: true })
+  days!: number;
 }
 
 export const RoutineSchema = SchemaFactory.createForClass(Routine);

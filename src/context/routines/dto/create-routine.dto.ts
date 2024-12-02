@@ -1,5 +1,11 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsBoolean, IsMongoId, IsString } from "class-validator";
+import {
+  IsArray,
+  IsBoolean,
+  IsMongoId,
+  IsNumber,
+  IsString,
+} from "class-validator";
 import { Types } from "mongoose";
 
 export class CreateRoutineDto {
@@ -16,6 +22,20 @@ export class CreateRoutineDto {
     example: "Cardio",
   })
   category!: string;
+
+  @IsNumber()
+  @ApiProperty({
+    description: "The category of the routine",
+    example: "Cardio",
+  })
+  days!: number;
+
+  @IsString()
+  @ApiProperty({
+    description: "The category of the routine",
+    example: "Cardio",
+  })
+  description!: string;
 
   @IsBoolean()
   @ApiProperty({
