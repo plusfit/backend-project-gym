@@ -53,4 +53,12 @@ export class MongoPlansRepository implements PlanRepository {
   async getPlanByMode(mode: string): Promise<Plan | null> {
     return await this.planModel.findOne({ mode }).exec();
   }
+
+  async getClientsWithPlansAndSchedules(offset: number, limit: number) {
+    return await this.planModel.find().skip(offset).limit(limit).exec();
+  }
+
+  async findAssignableClientsBasedOnPlan(planId: string) {
+    return await this.planModel.find({ _id: planId }).exec();
+  }
 }

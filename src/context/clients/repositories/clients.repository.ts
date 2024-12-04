@@ -20,4 +20,5 @@ export interface ClientsRepository {
     routineId: string,
   ): Promise<Client | null>;
   assignPlanToClient(clientId: string, planId: string): Promise<Client | null>;
+  getListClients(ids: string[]): Promise<Client[]>;
 }

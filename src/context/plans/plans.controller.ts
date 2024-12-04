@@ -20,6 +20,7 @@ import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
 import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
 
 import { CreatePlanDto } from "./dto/create-plan.dto";
+import { GetClientsAssignalDto } from "./dto/get-clients-assignal.dto";
 import { UpdatePlanDto } from "./dto/update-plan.dto";
 import { PlansService } from "./plans.service";
 
@@ -67,6 +68,19 @@ export class PlansController {
     );
     this.logger.log(`Retrieved ${response.data.length} plans.`);
     return response;
+  }
+
+  @Get("assignableClients")
+  // @Roles(Role.Admin, Role.Client)
+  // @UseGuards(RolesGuard)
+  findAssignableClientsBasedOnPlan(
+    @Query() getClientsAssignalDto: GetClientsAssignalDto,
+  ) {
+    return this.plansService.findAssignableClientsBasedOnPlan(
+      getClientsAssignalDto.page,
+      getClientsAssignalDto.limit,
+      getClientsAssignalDto.email,
+    );
   }
 
   @ApiResponse({ status: 200, description: "Plan found." })
