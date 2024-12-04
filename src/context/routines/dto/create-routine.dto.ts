@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Expose } from "class-transformer";
+import { Expose, Type } from "class-transformer";
 import {
   IsArray,
   IsBoolean,
@@ -7,6 +7,7 @@ import {
   IsMongoId,
   IsOptional,
   IsString,
+  ValidateNested,
 } from "class-validator";
 import { Types } from "mongoose";
 
@@ -28,6 +29,14 @@ export class CreateRoutineDto {
   @Expose()
   @IsString()
   @ApiProperty({
+    description: "The description of the routine",
+    example: "This is a morning routine",
+  })
+  description!: string;
+
+  @Expose()
+  @IsString()
+  @ApiProperty({
     description: "The category of the routine",
     example: "Cardio",
   })
@@ -41,8 +50,9 @@ export class CreateRoutineDto {
   })
   isCustom!: boolean;
 
-  @Expose()
   @IsArray()
+  @ValidateNested({ each: true }) // Indico que cada elemento del array debe validarse.
+  @Type(() => SubRoutineDetailDto)
   @ApiProperty({
     description: "The subRoutines that the routine has",
     example: [
@@ -52,18 +62,16 @@ export class CreateRoutineDto {
       },
     ],
   })
-  subRoutines!: SubRoutineDetail[];
+  subRoutines!: SubRoutineDetailDto[];
 }
 
-class SubRoutineDetail {
-  @Expose()
-  @IsString()
+class SubRoutineDetailDto {
+  @IsEnum(EDay)
   @ApiProperty({
     description: "The day of the week",
-    example: "Monday",
+    example: "Lunes",
   })
-  @IsEnum(EDay)
-  day!: EDay;
+  day!: string;
 
   @Expose()
   @IsMongoId()
