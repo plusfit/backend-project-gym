@@ -2,14 +2,10 @@ import { ApiProperty } from "@nestjs/swagger";
 import {
   IsArray,
   IsBoolean,
-  IsEnum,
   IsMongoId,
   IsNotEmpty,
-  IsOptional,
   IsString,
 } from "class-validator";
-
-import { EDay } from "@/src/context/shared/enums/days.enum";
 
 export class CreateSubRoutineDto {
   @ApiProperty({
@@ -36,12 +32,4 @@ export class CreateSubRoutineDto {
   @IsArray()
   @IsMongoId({ each: true })
   exercises!: string[];
-
-  @ApiProperty({
-    description: "Día de la semana",
-    example: EDay.MONDAY,
-  })
-  @IsOptional()
-  @IsEnum(EDay)
-  day?: number;
 }
