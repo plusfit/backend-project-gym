@@ -25,16 +25,17 @@ export class RoutinesService {
   ) {}
 
   async createRoutine(createRoutineDto: CreateRoutineDto) {
-    for (const subRoutineId of createRoutineDto.subRoutines) {
-      if (!subRoutineId) {
-        throw new HttpException("Exercise ID is required", 500);
+    for (const subRoutineDetail of createRoutineDto.subRoutines) {
+      if (!subRoutineDetail.subRoutine) {
+        throw new HttpException("Subroutine ID is required", 500);
       }
-      const subRoutineExist =
-        await this.subRoutineRepository.findById(subRoutineId);
+      const subRoutineExist = await this.subRoutineRepository.findById(
+        subRoutineDetail.subRoutine,
+      );
       if (!subRoutineExist) {
         throw new NotFoundException(
           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-          `Exercise with ID ${subRoutineId} not found`,
+          `Subroutine with ID ${subRoutineDetail.subRoutine} not found`,
         );
       }
     }

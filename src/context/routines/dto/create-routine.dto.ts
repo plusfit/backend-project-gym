@@ -1,13 +1,16 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { Expose } from "class-transformer";
 import {
   IsArray,
   IsBoolean,
+  IsEnum,
   IsMongoId,
   IsOptional,
   IsString,
 } from "class-validator";
 import { Types } from "mongoose";
-import { Expose } from "class-transformer";
+
+import { EDay } from "@/src/context/shared/enums/days.enum";
 
 export class CreateRoutineDto {
   @Expose()
@@ -40,11 +43,33 @@ export class CreateRoutineDto {
 
   @Expose()
   @IsArray()
-  @IsMongoId({ each: true })
   @ApiProperty({
-    description: "The subroutines that the routine has",
-    type: [String], // Cambia a tipo String ya que es un array de IDs
-    example: ["60f8b3f3d7f9a8e1c4e2d5e0"],
+    description: "The subRoutines that the routine has",
+    example: [
+      {
+        day: "Lunes",
+        subRoutine: "60f8b3f3d7f9a8e1c4e2d5e0",
+      },
+    ],
   })
-  subRoutines!: Types.ObjectId[];
+  subRoutines!: SubRoutineDetail[];
+}
+
+class SubRoutineDetail {
+  @Expose()
+  @IsString()
+  @ApiProperty({
+    description: "The day of the week",
+    example: "Monday",
+  })
+  @IsEnum(EDay)
+  day!: EDay;
+
+  @Expose()
+  @IsMongoId()
+  @ApiProperty({
+    description: "The subRoutine that the routine has",
+    example: "60f8b3f3d7f9a8e1c4e2d5e0",
+  })
+  subRoutine!: Types.ObjectId;
 }

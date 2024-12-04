@@ -30,7 +30,7 @@ export class CreateSubRoutineDto {
 
   @ApiProperty({
     description: "Indica los ejercicios de la rutina",
-    type: [String], // Cambiar aquí explícitamente para evitar Swagger circular.
+    type: [String],
     example: ["66d75350be595041c1c2fe4d"],
   })
   @IsArray()

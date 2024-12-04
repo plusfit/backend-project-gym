@@ -1,7 +1,16 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document, Types } from "mongoose";
 
-import { SubRoutine } from "@/src/context/routines/entities/subroutine.entity";
+@Schema()
+class SubRoutineDetail {
+  @Prop({ required: true })
+  day!: string;
+
+  @Prop({ type: Types.ObjectId, ref: "SubRoutine", required: true })
+  subRoutine!: Types.ObjectId;
+}
+
+const SubRoutineDetailSchema = SchemaFactory.createForClass(SubRoutineDetail);
 
 @Schema()
 export class Routine extends Document {
@@ -14,8 +23,8 @@ export class Routine extends Document {
   @Prop({ required: true, default: false })
   isCustom!: boolean;
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: () => SubRoutine }] })
-  subRoutines!: Types.ObjectId[];
+  @Prop({ type: [SubRoutineDetailSchema], required: true })
+  subRoutines!: SubRoutineDetail[];
 }
 
 export const RoutineSchema = SchemaFactory.createForClass(Routine);
