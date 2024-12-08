@@ -28,8 +28,8 @@ export class MongoRoutineRepository implements RoutineRepository {
     return newRoutine.save();
   }
 
-  async deleteRoutine(id: string): Promise<void> {
-    await this.routineModel.findByIdAndDelete(id).exec();
+  async deleteRoutine(id: string): Promise<any> {
+    return await this.routineModel.findByIdAndDelete(id).exec();
   }
 
   async getRoutines(

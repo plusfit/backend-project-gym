@@ -5,6 +5,9 @@ import { Document, Types } from "mongoose";
 class SubRoutineDetail {
   @Prop({ required: true })
   day!: string;
+  // TODO: DELETE
+  @Prop({ required: true })
+  name!: string;
 
   @Prop({ type: Types.ObjectId, ref: "SubRoutine", required: true })
   subRoutine!: Types.ObjectId;

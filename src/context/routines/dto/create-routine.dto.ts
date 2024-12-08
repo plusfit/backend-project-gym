@@ -73,6 +73,9 @@ class SubRoutineDetailDto {
   })
   day!: string;
 
+  @IsString()
+  name!: string;
+
   @Expose()
   @IsMongoId()
   @ApiProperty({
