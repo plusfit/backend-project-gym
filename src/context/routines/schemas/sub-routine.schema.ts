@@ -6,8 +6,8 @@ export class SubRoutine extends Document {
   @Prop({ required: true, unique: true })
   name!: string;
 
-  @Prop({ required: true, default: false })
-  isCustom!: boolean;
+  @Prop({ required: true })
+  description!: string;
 
   @Prop({ type: [{ type: SchemaMongo.Types.ObjectId, ref: "Exercise" }] })
   exercises!: Types.ObjectId[];

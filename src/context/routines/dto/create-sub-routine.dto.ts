@@ -1,11 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import {
-  IsArray,
-  IsBoolean,
-  IsMongoId,
-  IsNotEmpty,
-  IsString,
-} from "class-validator";
+import { IsArray, IsMongoId, IsNotEmpty, IsString } from "class-validator";
 
 export class CreateSubRoutineDto {
   @ApiProperty({
@@ -21,8 +15,8 @@ export class CreateSubRoutineDto {
     example: false,
   })
   @IsNotEmpty()
-  @IsBoolean()
-  isCustom!: boolean;
+  @IsString()
+  description!: string;
 
   @ApiProperty({
     description: "Indica los ejercicios de la rutina",
