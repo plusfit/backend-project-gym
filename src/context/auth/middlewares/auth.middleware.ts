@@ -13,8 +13,12 @@ export class AuthMiddleware implements NestMiddleware {
 
   use(req: FastifyRequest, res: FastifyReply, next: () => void) {
     try {
-      const authHeader = req.headers["authorization"];
+      if (req.method === "OPTIONS") {
+        // Ignora las solicitudes OPTIONS y sigue ya que hace 2 peticiones por req y en options el auth no viaja
+        return next();
+      }
 
+      const authHeader = req.headers["authorization"];
       if (!authHeader) {
         throw new UnauthorizedException("Authorization header not found");
       }
