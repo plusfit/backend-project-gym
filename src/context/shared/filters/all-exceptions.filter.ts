@@ -7,6 +7,7 @@ import {
   Logger,
 } from "@nestjs/common";
 import { FastifyReply } from "fastify";
+import { stat } from "node:fs";
 
 @Catch() // Captura todas las excepciones
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -32,19 +33,19 @@ export class AllExceptionsFilter implements ExceptionFilter {
       `HTTP Status: ${status} Error Message: ${JSON.stringify(message)}`,
     );
 
-    response.writeHead(status, { "Content-Type": "application/json" });
-
-    await response.end(
-      JSON.stringify({
+    if (response.code) {
+      await response.code(status).send({
         success: false,
         data: message,
-      }),
-    );
-
-    // Responde con un mensaje de error estandarizado usando Fastify
-    // await response.status(status).send({
-    //   success: false,
-    //   data: message,
-    // });
+      });
+    } else {
+      response.writeHead(status, { "Content-Type": "application/json" });
+      await response.end(
+        JSON.stringify({
+          success: false,
+          data: message,
+        }),
+      );
+    }
   }
 }
