@@ -7,7 +7,6 @@ import {
   Logger,
 } from "@nestjs/common";
 import { FastifyReply } from "fastify";
-import { stat } from "node:fs";
 
 @Catch() // Captura todas las excepciones
 export class AllExceptionsFilter implements ExceptionFilter {
