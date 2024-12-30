@@ -101,7 +101,7 @@ export class SchedulesController {
     return this.schedulesService.deleteAllClientSchedules(id);
   }
 
-  @Patch("assignClient/:scheduleId/:clientId")
+  @Patch("assignClient/:scheduleId")
   @ApiOperation({ summary: "Asignar un Cliente a un Horario" })
   @ApiResponse({
     status: 200,
@@ -112,9 +112,9 @@ export class SchedulesController {
   @ApiParam({ name: "clientId", type: String, description: "ID del Cliente" })
   assignClientToSchedule(
     @Param("scheduleId") scheduleId: string,
-    @Param("clientId") clientId: string,
+    @Body() clientsIds: string[],
   ) {
-    return this.schedulesService.assignClientToSchedule(scheduleId, clientId);
+    return this.schedulesService.assignClientToSchedule(scheduleId, clientsIds);
   }
 
   @Delete("deleteClient/:scheduleId/:clientId")

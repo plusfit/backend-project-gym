@@ -95,8 +95,8 @@ export class SchedulesService {
     return { message: `Client with ID ${clientId} removed from all schedules` };
   }
 
-  async assignClientToSchedule(scheduleId: string, clientId: string) {
-    if (!scheduleId || !clientId) {
+  async assignClientToSchedule(scheduleId: string, clienstIds: string[]) {
+    if (!scheduleId || !clienstIds) {
       throw new BadRequestException("Schedule ID and Client ID are required");
     }
 
@@ -110,7 +110,10 @@ export class SchedulesService {
     //   throw new NotFoundException(`Client with ID ${clientId} not found`);
     // }
 
-    return this.scheduleRepository.assignClientToSchedule(scheduleId, clientId);
+    return this.scheduleRepository.assignClientToSchedule(
+      scheduleId,
+      clienstIds,
+    );
   }
 
   async deleteClientFromSchedule(scheduleId: string, clientId: string) {

@@ -17,11 +17,15 @@ export class MongoClientsRepository implements ClientsRepository {
     limit: number,
     filters: { name?: string; email?: string },
   ): Promise<Client[]> {
-    return await this.clientModel
-      .find(filters)
-      .skip(offset)
-      .limit(limit)
-      .exec();
+    try {
+      return await this.clientModel
+        .find(filters)
+        .skip(offset)
+        .limit(limit)
+        .exec();
+    } catch (error: any) {
+      throw new Error(`Error fetching clients: ${error.message}`);
+    }
   }
 
   async getListClients(ids: string[]): Promise<Client[]> {
