@@ -11,15 +11,15 @@ import {
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 
+import { GetExerciseDto } from "@/src/context/exercises/dto/get-exercise.dto";
+
 // import { Role } from "@/src/context/shared/constants/roles.constant";
 // import { PageDto } from "@/src/context/shared/dtos/page.dto";
 // import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
 // import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
-
 import { CreateExerciseDto } from "./dto/create-exercise.dto";
 import { UpdateExerciseDto } from "./dto/update-exercise.dto";
 import { ExercisesService } from "./exercises.service";
-import { GetExerciseDto } from "@/src/context/exercises/dto/get-exercise.dto";
 
 @ApiTags("exercises")
 @Controller("exercises")

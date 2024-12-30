@@ -1,5 +1,6 @@
+import fastifyCors from "@fastify/cors";
 import { ValidationPipe } from "@nestjs/common";
-import { CorsOptions } from "@nestjs/common/interfaces/external/cors-options.interface";
+//import { CorsOptions } from "@nestjs/common/interfaces/external/cors-options.interface";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import {
@@ -19,14 +20,15 @@ async function bootstrap() {
     new FastifyAdapter(),
   );
 
-  const corsOptions: CorsOptions = {
-    origin: "http://localhost:4200",
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
-    credentials: true,
-  };
-  app.enableCors(corsOptions);
+  await app
+    .getHttpAdapter()
+    .getInstance()
+    .register(fastifyCors, {
+      origin: "http://localhost:4200",
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Authorization", "Content-Type"],
+      credentials: true,
+    });
 
   app.useLogger(app.get(Logger));
   app.useGlobalFilters(new AllExceptionsFilter());
