@@ -47,11 +47,14 @@ export class MongoScheduleRepository implements ScheduleRepository {
       .exec();
   }
 
-  async assignClientToSchedule(scheduleId: string, clientId: string) {
+  async assignClientToSchedule(
+    scheduleId: string,
+    clientId: { clients: string[] },
+  ) {
     return this.scheduleModel
       .findByIdAndUpdate(
         scheduleId,
-        { $push: { clients: clientId } },
+        { $push: { clients: { $each: clientId.clients } } },
         { new: true },
       )
       .exec();
