@@ -62,11 +62,15 @@ export class PlansService {
     return this.clientRepository.assignPlanToClient(clientId, planId);
   }
 
-  async getClientsWithPlansAndSchedules(filters: any) {
+  async getClientsWithPlansAndSchedules(
+    filters: any,
+    offset: number,
+    limit: number,
+  ) {
     // Obtener los clientes paginados
     const clients = await this.clientRepository.getClients(
-      undefined,
-      undefined,
+      offset,
+      limit,
       filters,
     );
 
@@ -103,9 +107,13 @@ export class PlansService {
     const filters: any = {};
 
     if (email) {
-      filters.email = email;
+      filters.email = { $regex: email, $options: "i" };
     }
-    const clients = await this.getClientsWithPlansAndSchedules(filters);
+    const clients = await this.getClientsWithPlansAndSchedules(
+      filters,
+      offset,
+      limit,
+    );
 
     const clientsFilter = clients.filter((client: any) => {
       // Días definidos en el plan

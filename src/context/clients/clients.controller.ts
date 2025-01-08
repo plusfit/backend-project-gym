@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Patch,
+  Post,
   Query,
   UseGuards,
 } from "@nestjs/common";
@@ -17,10 +18,16 @@ import { Role } from "@/src/context/shared/constants/roles.constant";
 import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
 import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
 
+import { ClientsIdsDto } from "./dto/clients-ids.dto";
+
 @ApiTags("clients")
 @Controller("clients")
 export class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}
+  @Post("list")
+  getListClients(@Body() clientsIdsDto: ClientsIdsDto) {
+    return this.clientsService.getListClients(clientsIdsDto.clientsIds);
+  }
 
   @Get()
   // @Roles(Role.Admin)
@@ -32,11 +39,6 @@ export class ClientsController {
       getClientsDto.name,
       getClientsDto.email,
     );
-  }
-
-  @Get("list/:ids")
-  getListClients(@Param("ids") ids: string) {
-    return this.clientsService.getListClients(ids.split(","));
   }
 
   @Get(":id")
