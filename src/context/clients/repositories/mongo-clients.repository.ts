@@ -82,6 +82,10 @@ export class MongoClientsRepository implements ClientsRepository {
     return await this.clientModel.findById(id).exec();
   }
 
+  async findClientsByPlanId(planId: string): Promise<Client[]> {
+    return await this.clientModel.find({ planId }).exec();
+  }
+
   async assignRoutineToClient(
     clientId: string,
     routineId: string,

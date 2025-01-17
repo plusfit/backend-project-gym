@@ -21,4 +21,5 @@ export interface ClientsRepository {
   ): Promise<Client | null>;
   assignPlanToClient(clientId: string, planId: string): Promise<Client | null>;
   getListClients(ids: string[]): Promise<Client[]>;
+  findClientsByPlanId(planId: string): Promise<Client[]>;
 }

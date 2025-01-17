@@ -137,6 +137,16 @@ export class PlansController {
     return this.plansService.remove(id);
   }
 
+  @ApiResponse({ status: 200, description: "Client List" })
+  @ApiResponse({ status: 404, description: "Plan not found." })
+  @ApiResponse({ status: 500, description: "Internal server error." })
+  @Get("clients/:planId")
+  // @Roles(Role.Admin)
+  // @UseGuards(RolesGuard)
+  async findClientsByPlanId(@Param("planId") planId: string) {
+    return await this.plansService.getClientsByPlanId(planId);
+  }
+
   //Asign plan to user
   //When the plan is assigned to a user the plan default routine is assigned to.
   @Post("assign/:planId/:userId")
