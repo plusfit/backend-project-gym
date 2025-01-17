@@ -11,6 +11,12 @@ export class SubRoutine extends Document {
 
   @Prop({ type: [{ type: SchemaMongo.Types.ObjectId, ref: "Exercise" }] })
   exercises!: Types.ObjectId[];
+
+  @Prop({ default: Date.now() })
+  updatedAt!: Date;
+
+  @Prop({ default: Date.now() })
+  createdAt!: Date;
 }
 
 export const SubRoutineSchema = SchemaFactory.createForClass(SubRoutine);
