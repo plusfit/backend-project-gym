@@ -54,8 +54,14 @@ export class PlansService {
     return this.plansRepository.update(id, updatePlanDto);
   }
 
-  remove(id: string) {
-    return this.plansRepository.remove(id);
+  async remove(id: string) {
+    const clients = await this.getClientsByPlanId(id);
+    if (clients.length > 0) {
+      for (const client of clients) {
+        await this.updateClientPlan(client._id, "");
+      }
+    }
+    await this.plansRepository.remove(id);
   }
 
   assignPlanToClient(clientId: string, planId: string) {
@@ -131,5 +137,13 @@ export class PlansService {
       name: client._doc.name,
       email: client._doc.email,
     }));
+  }
+
+  getClientsByPlanId(planId: string) {
+    return this.clientRepository.findClientsByPlanId(planId);
+  }
+
+  updateClientPlan(clientId: string, planId: string | null) {
+    return this.clientRepository.assignPlanToClient(clientId, planId);
   }
 }

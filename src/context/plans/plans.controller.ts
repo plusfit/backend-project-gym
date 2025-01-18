@@ -131,10 +131,20 @@ export class PlansController {
   @ApiResponse({ status: 404, description: "Plan not found." })
   @ApiResponse({ status: 500, description: "Internal server error." })
   @Delete(":id")
-  @Roles(Role.Admin)
-  @UseGuards(RolesGuard)
+  // @Roles(Role.Admin)
+  // @UseGuards(RolesGuard)
   remove(@Param("id") id: string) {
     return this.plansService.remove(id);
+  }
+
+  @ApiResponse({ status: 200, description: "Client List" })
+  @ApiResponse({ status: 404, description: "Plan not found." })
+  @ApiResponse({ status: 500, description: "Internal server error." })
+  @Get("clients/:planId")
+  // @Roles(Role.Admin)
+  // @UseGuards(RolesGuard)
+  async findClientsByPlanId(@Param("planId") planId: string) {
+    return await this.plansService.getClientsByPlanId(planId);
   }
 
   //Asign plan to user
