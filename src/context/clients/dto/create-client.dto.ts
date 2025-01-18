@@ -14,11 +14,9 @@ export class CreateClientDto {
   role!: EClientRole;
 
   @IsMongoId()
-  @IsNotEmpty()
   planId?: string;
 
   @IsMongoId()
-  @IsNotEmpty()
   routineId?: string;
 
   @IsEmail()

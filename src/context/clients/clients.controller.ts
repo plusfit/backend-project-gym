@@ -19,6 +19,7 @@ import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
 import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
 
 import { ClientsIdsDto } from "./dto/clients-ids.dto";
+import { CreateClientDto } from "./dto/create-client.dto";
 
 @ApiTags("clients")
 @Controller("clients")
@@ -46,6 +47,13 @@ export class ClientsController {
   // @UseGuards(RolesGuard)
   findOne(@Param("id") id: string) {
     return this.clientsService.findOne(id);
+  }
+
+  @Post("create")
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
+  create(@Body() createClientDto: CreateClientDto) {
+    return this.clientsService.create(createClientDto);
   }
 
   @Patch(":id")

@@ -7,9 +7,34 @@ export class UserInfo extends Document {
   name?: string;
 
   @Prop()
-  age?: number;
+  date?: number;
 
-  //COMPLETAR CON OTROS DATOS
+  @Prop()
+  sex?: string;
+
+  @Prop()
+  address?: string;
+
+  @Prop()
+  medicalSociety?: string;
+
+  @Prop()
+  cardiacHistory?: string;
+
+  @Prop()
+  cardiacHistoryInput?: string;
+
+  @Prop()
+  bloodPressure?: string;
+
+  @Prop()
+  frequencyOfPhysicalExercise?: string;
+
+  @Prop()
+  respiratoryHistory?: string;
+
+  @Prop()
+  respiratoryHistoryInput?: string;
 }
 
 @Schema()

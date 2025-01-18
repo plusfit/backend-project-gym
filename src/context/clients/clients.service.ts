@@ -2,6 +2,7 @@ import { Inject, Injectable } from "@nestjs/common";
 
 import { UpdateClientDto } from "@/src/context/clients/dto/update-client.dto";
 import { CLIENT_REPOSITORY } from "@/src/context/clients/repositories/clients.repository";
+import { CreateClientDto } from "./dto/create-client.dto";
 
 @Injectable()
 export class ClientsService {
@@ -14,12 +15,15 @@ export class ClientsService {
     const offset = (page - 1) * limit;
     const filters: any = {};
 
-    if (name) {
-      filters.name = { $regex: name, $options: "i" };
-    }
+    if (name || email) {
+      filters.$or = [];
 
-    if (email) {
-      filters.email = email;
+      if (name) {
+        filters.$or.push({ name: { $regex: name, $options: "i" } });
+      }
+      if (email) {
+        filters.$or.push({ email: { $regex: email, $options: "i" } });
+      }
     }
 
     const [data, total] = await Promise.all([
@@ -55,6 +59,10 @@ export class ClientsService {
 
   findOne(id: string) {
     return this.clientRepository.getClientById(id);
+  }
+
+  create(createClientDto: CreateClientDto) {
+    return this.clientRepository.createClient(createClientDto);
   }
 
   update(id: string, updateClientDto: UpdateClientDto) {
