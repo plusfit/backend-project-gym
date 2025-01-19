@@ -29,13 +29,13 @@ export class CreateRoutineDto {
   })
   description!: string;
 
-  @Expose()
-  @IsString()
-  @ApiProperty({
-    description: "The category of the routine",
-    example: "Cardio",
-  })
-  category!: string;
+  // @Expose()
+  // @IsString()
+  // @ApiProperty({
+  //   description: "The category of the routine",
+  //   example: "Cardio",
+  // })
+  // category!: string;
 
   @Expose()
   @IsBoolean()

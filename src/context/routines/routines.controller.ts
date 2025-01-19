@@ -127,12 +127,6 @@ export class RoutinesController {
     type: String,
     description: "Filtro por tipo de rutina",
   })
-  @ApiQuery({
-    name: "mode",
-    required: false,
-    type: String,
-    description: "Filtro por modo de rutina",
-  })
   async findAllRoutines(@Query() getRoutinesDto: GetRoutinesDto) {
     this.logger.log("Retrieving routines with filters:", getRoutinesDto);
     try {
@@ -141,7 +135,6 @@ export class RoutinesController {
         getRoutinesDto.limit,
         getRoutinesDto.name,
         getRoutinesDto.type,
-        getRoutinesDto.mode,
       );
       this.logger.log(`Retrieved ${routines.data.length} routines.`);
       return routines;
@@ -334,12 +327,6 @@ export class RoutinesController {
     type: String,
     description: "Filtro por tipo de rutina",
   })
-  @ApiQuery({
-    name: "mode",
-    required: false,
-    type: String,
-    description: "Filtro por modo de rutina",
-  })
   async findAllSubRoutines(@Query() getRoutinesDto: GetRoutinesDto) {
     this.logger.log("Retrieving routines with filters:", getRoutinesDto);
     try {
@@ -348,7 +335,6 @@ export class RoutinesController {
         getRoutinesDto.limit,
         getRoutinesDto.name,
         getRoutinesDto.type,
-        getRoutinesDto.mode,
       );
       this.logger.log(`Retrieved ${routines.data.length} routines.`);
       return routines;
