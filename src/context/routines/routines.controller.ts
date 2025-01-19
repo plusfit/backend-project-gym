@@ -327,6 +327,12 @@ export class RoutinesController {
     type: String,
     description: "Filtro por tipo de rutina",
   })
+  @ApiQuery({
+    name: "mode",
+    required: false,
+    type: String,
+    description: "Filtro por modo de rutina",
+  })
   async findAllSubRoutines(@Query() getRoutinesDto: GetRoutinesDto) {
     this.logger.log("Retrieving routines with filters:", getRoutinesDto);
     try {
