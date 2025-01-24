@@ -7,22 +7,34 @@ export class UserInfo extends Document {
   name?: string;
 
   @Prop()
-  date?: number;
+  password?: string;
+
+  @Prop()
+  identifier?: string;
+
+  @Prop({ type: Date })
+  dateBirthday?: Date;
 
   @Prop()
   sex?: string;
 
   @Prop()
+  phone?: string;
+
+  @Prop()
+  plan?: string;
+
+  @Prop()
   address?: string;
+
+  @Prop()
+  historyofPathologicalLesions?: string;
 
   @Prop()
   medicalSociety?: string;
 
   @Prop()
   cardiacHistory?: string;
-
-  @Prop()
-  cardiacHistoryInput?: string;
 
   @Prop()
   bloodPressure?: string;
@@ -34,7 +46,7 @@ export class UserInfo extends Document {
   respiratoryHistory?: string;
 
   @Prop()
-  respiratoryHistoryInput?: string;
+  surgicalHistory?: string;
 }
 
 @Schema()
