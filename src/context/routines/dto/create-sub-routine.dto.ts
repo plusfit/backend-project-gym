@@ -26,4 +26,11 @@ export class CreateSubRoutineDto {
   @IsArray()
   @IsMongoId({ each: true })
   exercises!: string[];
+
+  @IsString()
+  @ApiProperty({
+    description: "The category of the routine",
+    example: "Cardio",
+  })
+  category!: string;
 }

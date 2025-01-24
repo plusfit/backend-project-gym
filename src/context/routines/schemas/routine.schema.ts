@@ -9,8 +9,8 @@ export class Routine extends Document {
   @Prop({ required: true })
   description!: string;
 
-  @Prop({ required: true })
-  category!: string;
+  // @Prop({ required: true })
+  // category!: string;
 
   @Prop({ required: true, default: false })
   isCustom!: boolean;

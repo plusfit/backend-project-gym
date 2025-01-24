@@ -17,6 +17,9 @@ export class SubRoutine extends Document {
 
   @Prop({ default: Date.now() })
   createdAt!: Date;
+
+  @Prop({ required: true })
+  category!: string;
 }
 
 export const SubRoutineSchema = SchemaFactory.createForClass(SubRoutine);
