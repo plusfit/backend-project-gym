@@ -405,4 +405,11 @@ export class RoutinesController {
       throw error;
     }
   }
+
+  @Delete("exercise/:id")
+  // @Roles(Role.Admin)
+  // @UseGuards(RolesGuard)
+  deleteExercise(@Param("id") id: string) {
+    return this.subRoutinesService.deleteExercise(id);
+  }
 }

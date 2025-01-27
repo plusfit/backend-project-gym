@@ -61,11 +61,4 @@ export class ExercisesController {
   ) {
     return this.exercisesService.update(id, updateExerciseDto);
   }
-
-  @Delete(":id")
-  // @Roles(Role.Admin)
-  // @UseGuards(RolesGuard)
-  remove(@Param("id") id: string) {
-    return this.exercisesService.remove(id);
-  }
 }

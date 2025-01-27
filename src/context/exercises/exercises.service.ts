@@ -80,18 +80,4 @@ export class ExercisesService {
       };
     }
   }
-
-  async remove(id: string): Promise<string> {
-    try {
-      const wasRemoved = await this.exerciseRepository.remove(id);
-
-      if (wasRemoved) {
-        return "Exerscise removed successfully";
-      } else {
-        throw new Error("Exercise not found");
-      }
-    } catch (error: any) {
-      throw new Error(`Error when trying to delete exercise: ${error.message}`);
-    }
-  }
 }

@@ -51,4 +51,11 @@ export class MongoSubRoutineRepository implements SubRoutineRepository {
   async countSubRoutines(filters: any): Promise<number> {
     return await this.routineModel.countDocuments(filters).exec();
   }
+
+  async removeExerciseFromSubRoutines(exercisesId: string): Promise<any> {
+    return await this.routineModel.updateMany(
+      { exercises: exercisesId },
+      { $pull: { exercises: exercisesId } },
+    );
+  }
 }
