@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   Param,
   Patch,
@@ -58,12 +57,5 @@ export class ExercisesController {
     @Body() updateExerciseDto: UpdateExerciseDto,
   ) {
     return this.exercisesService.update(id, updateExerciseDto);
-  }
-
-  @Delete(":id")
-  // @Roles(Role.Admin)
-  // @UseGuards(RolesGuard)
-  remove(@Param("id") id: string) {
-    return this.exercisesService.remove(id);
   }
 }

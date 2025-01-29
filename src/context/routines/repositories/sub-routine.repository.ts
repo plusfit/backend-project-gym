@@ -12,4 +12,5 @@ export interface SubRoutineRepository {
     limit: number,
     filters: any,
   ): Promise<SubRoutine[]>;
+  removeExerciseFromSubRoutines(exercisesId: string): Promise<any>;
 }

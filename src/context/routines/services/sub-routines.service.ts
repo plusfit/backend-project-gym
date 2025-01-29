@@ -11,6 +11,7 @@ import { SUB_ROUTINE_REPOSITORY } from "@/src/context/routines/repositories/mong
 
 @Injectable()
 export class SubRoutinesService {
+  static removeExerciseFromSubRoutines: any;
   constructor(
     @Inject(SUB_ROUTINE_REPOSITORY)
     private readonly subRoutineRepository: any,
@@ -103,5 +104,23 @@ export class SubRoutinesService {
       this.subRoutineRepository.countSubRoutines(filters),
     ]);
     return { data, total, page, limit };
+  }
+
+  async deleteExercise(id: string): Promise<string> {
+    try {
+      const wasRemoved = await this.exerciseRepository.remove(id);
+      const exercisesRemovedFromSubRoutines =
+        await this.subRoutineRepository.removeExerciseFromSubRoutines(id);
+
+      if (wasRemoved && exercisesRemovedFromSubRoutines) {
+        return "Exerscise removed successfully";
+      } else if (wasRemoved) {
+        throw "Error when trying to remove exercise from subroutines";
+      } else {
+        throw "Exercise not found";
+      }
+    } catch (error: any) {
+      throw new Error(`Error when trying to delete exercise: ${error.message}`);
+    }
   }
 }

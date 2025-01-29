@@ -1,5 +1,5 @@
 import { InjectModel } from "@nestjs/mongoose";
-import { Error, Model, Promise } from "mongoose";
+import { Error, Model } from "mongoose";
 
 import { ClientsRepository } from "@/src/context/clients/repositories/clients.repository";
 import { Client } from "@/src/context/clients/schemas/client.schema";
@@ -15,7 +15,7 @@ export class MongoClientsRepository implements ClientsRepository {
   async getClients(
     offset: number,
     limit: number,
-    filters: { name?: string; email?: string },
+    filters: { name?: string; email?: string } = {},
   ): Promise<Client[]> {
     try {
       return await this.clientModel
