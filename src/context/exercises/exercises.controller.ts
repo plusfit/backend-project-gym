@@ -10,9 +10,7 @@ import {
   // UseGuards,
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
-
 import { GetExerciseDto } from "@/src/context/exercises/dto/get-exercise.dto";
-
 // import { Role } from "@/src/context/shared/constants/roles.constant";
 // import { PageDto } from "@/src/context/shared/dtos/page.dto";
 // import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";

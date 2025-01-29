@@ -82,6 +82,7 @@ export class ExercisesService {
   }
 
   async remove(id: string): Promise<string> {
+    // TODO: Delete the exercise from the subroutines
     try {
       const wasRemoved = await this.exerciseRepository.remove(id);
 
