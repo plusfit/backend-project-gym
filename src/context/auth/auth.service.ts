@@ -107,7 +107,7 @@ export class AuthService {
   }
 
   createToken(payload: any) {
-    //genero el accessToken y el refreshToken con los secrets del .env
+    //género el accessToken y el refreshToken con los secrets del .env
     const accessSecret = this.configService.get("JWT_ACCESS_SECRET");
     const accessExpiresIn = this.configService.get("JWT_ACCESS_EXPIRES_IN");
 

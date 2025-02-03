@@ -60,14 +60,10 @@ export class RoutinesService {
       const newRoutineObj = {
         ...routine.toObject(),
         ...updateData,
-        isCustom: false,
       };
 
       const newRoutine =
         await this.routineRepository.createRoutine(newRoutineObj);
-
-      //TODO: // Asignar la nueva rutina al cliente
-      //LLamar al client service y asignar la rutina al mismo
       return this.clientRepository.assignRoutineToClient(
         clientId,
         newRoutine._id,
