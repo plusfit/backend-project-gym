@@ -47,6 +47,9 @@ export class UserInfo extends Document {
 
   @Prop()
   surgicalHistory?: string;
+
+  @Prop()
+  CI?: string;
 }
 
 @Schema()

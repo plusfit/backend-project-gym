@@ -25,19 +25,43 @@ export class ClientsService {
     private readonly plansService: any,
   ) {}
 
-  async findAll(page: number, limit: number, name?: string, email?: string) {
+  async findAll(
+    page: number,
+    limit: number,
+    name?: string,
+    email?: string,
+    CI?: string,
+    role?: string,
+    withoutPlan?: boolean,
+  ) {
     const offset = (page - 1) * limit;
     const filters: any = {};
 
-    if (name || email) {
+    if (role) {
+      filters.role = role;
+    }
+
+    if (name || email || CI) {
       filters.$or = [];
 
       if (name) {
-        filters.$or.push({ name: { $regex: name, $options: "i" } });
+        filters.$or.push({ "userInfo.name": { $regex: name, $options: "i" } });
       }
       if (email) {
         filters.$or.push({ email: { $regex: email, $options: "i" } });
       }
+
+      if (CI) {
+        filters.$or.push({ "userInfo.CI": { $regex: CI, $options: "i" } });
+      }
+    }
+
+    if (withoutPlan) {
+      filters.planId = { $in: [undefined, undefined, ""] }; // Plan no asignado (null, undefined o "")
+    }
+
+    if (filters.$or && filters.$or.length === 0) {
+      delete filters.$or;
     }
 
     const [data, total] = await Promise.all([
