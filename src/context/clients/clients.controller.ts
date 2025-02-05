@@ -39,6 +39,9 @@ export class ClientsController {
       getClientsDto.limit,
       getClientsDto.name,
       getClientsDto.email,
+      getClientsDto.CI,
+      getClientsDto.role,
+      getClientsDto.withoutPlan,
     );
   }
 

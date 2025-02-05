@@ -166,7 +166,7 @@ export class RoutinesController {
     return routine;
   }
 
-  @Put(":id")
+  @Put(":id/:clientId")
   // @Roles(Role.Admin)
   // @UseGuards(RolesGuard)
   @ApiOperation({ summary: "Actualizar una rutina por ID" })
@@ -183,7 +183,7 @@ export class RoutinesController {
   async update(
     @Param("id") id: string,
     @Body() updateRoutineDto: UpdateRoutineDto,
-    @Query("clientId") clientId?: string,
+    @Param("clientId") clientId?: string,
   ) {
     this.logger.log(`Updating routine with ID: ${id}`);
     try {
