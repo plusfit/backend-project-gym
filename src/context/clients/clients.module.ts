@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { forwardRef, Module } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
 
 import { ClientsController } from "@/src/context/clients/clients.controller";
@@ -9,9 +9,11 @@ import {
   Client,
   ClientSchema,
 } from "@/src/context/clients/schemas/client.schema";
+import { PlansModule } from "@/src/context/plans/plans.module";
 
 @Module({
   imports: [
+    forwardRef(() => PlansModule),
     MongooseModule.forFeature([{ name: Client.name, schema: ClientSchema }]),
   ],
   controllers: [ClientsController],
@@ -22,6 +24,6 @@ import {
       useClass: MongoClientsRepository,
     },
   ],
-  exports: [MongooseModule, ClientsService, CLIENT_REPOSITORY],
+  exports: [MongooseModule, CLIENT_REPOSITORY, ClientsService],
 })
 export class ClientsModule {}

@@ -61,7 +61,9 @@ export class RoutinesController {
     try {
       const routine =
         await this.routinesService.createRoutine(createRoutineDto);
-      this.logger.log(`Routine created successfully with ID: ${routine._id}`);
+      this.logger.log(
+        `Routine created successfully with ID: ${routine._id as string}`,
+      );
       return routine;
     } catch (error) {
       this.logger.error("Failed to create routine:", error);
@@ -286,7 +288,7 @@ export class RoutinesController {
         throw new NotFoundException(`Subroutine with ID ${id} not found`);
       }
       this.logger.log(`Subroutine with ID: ${id} deleted successfully.`);
-      return { message: "Subroutine deleted successfully." };
+      return result;
     } else {
       throw new BadRequestException(`${id} is not a valid MongoDB ID`);
     }
@@ -411,5 +413,27 @@ export class RoutinesController {
   // @UseGuards(RolesGuard)
   deleteExercise(@Param("id") id: string) {
     return this.subRoutinesService.deleteExercise(id);
+  }
+
+  @Get("routinesBySubroutine/:id")
+  // @Roles(Role.Admin)
+  // @UseGuards(RolesGuard)
+  @ApiOperation({ summary: "Obtener listado de rutinas por ID de Subrutina." })
+  @ApiResponse({ status: 200, description: "Lista de rutinas." })
+  @ApiResponse({ status: 404, description: "Subrutina no encontrada." })
+  @ApiParam({ name: "id", type: String, description: "ID de la subrutina" })
+  async getRoutinesBySubRoutine(@Param("id") id: string) {
+    this.logger.log(`Searching for routines with subRoutine ID: ${id}`);
+    const routines = await this.routinesService.getRoutinesBySubRoutine(id);
+    if (!routines) {
+      this.logger.warn(`No routines found for subRoutine with ID: ${id}`);
+      throw new NotFoundException(
+        `No routines found for subRoutine with ID ${id}`,
+      );
+    }
+    this.logger.log(
+      `Found ${routines.length} routines for subRoutine with ID: ${id}`,
+    );
+    return routines;
   }
 }

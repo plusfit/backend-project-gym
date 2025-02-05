@@ -1,6 +1,6 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { forwardRef, Inject, Injectable } from "@nestjs/common";
 
-import { CLIENT_REPOSITORY } from "@/src/context/clients/repositories/clients.repository";
+import { ClientsService } from "@/src/context/clients/clients.service";
 import { PlanEntity } from "@/src/context/plans/entities/plan.entity";
 
 import { SCHEDULE_REPOSITORY } from "../schedules/repositories/mongo-schedule.repository";
@@ -11,10 +11,10 @@ import { PLAN_REPOSITORY } from "./repositories/plans.repository";
 @Injectable()
 export class PlansService {
   constructor(
+    @Inject(forwardRef(() => ClientsService))
+    private readonly clientsService: any,
     @Inject(PLAN_REPOSITORY)
     private readonly plansRepository: any,
-    @Inject(CLIENT_REPOSITORY)
-    private readonly clientRepository: any,
     @Inject(SCHEDULE_REPOSITORY)
     private readonly scheduleRepository: any,
   ) {}
@@ -65,7 +65,7 @@ export class PlansService {
   }
 
   assignPlanToClient(clientId: string, planId: string) {
-    return this.clientRepository.assignPlanToClient(clientId, planId);
+    return this.clientsService.assignPlanToClient(clientId, planId);
   }
 
   async getClientsWithPlansAndSchedules(
@@ -74,15 +74,11 @@ export class PlansService {
     limit: number,
   ) {
     // Obtener los clientes paginados
-    const clients = await this.clientRepository.getClients(
-      offset,
-      limit,
-      filters,
-    );
+    const clients = await this.clientsService.findAll(offset, limit, filters);
 
     const clientsWithDetails = await Promise.all(
       // eslint-disable-next-line @typescript-eslint/require-await
-      clients.map(async (client: any) => {
+      clients.data.map(async (client: any) => {
         // Obtener el plan del cliente basado en su planId
         const plan = client.planId
           ? await this.plansRepository.findOne(client.planId)
@@ -140,10 +136,10 @@ export class PlansService {
   }
 
   getClientsByPlanId(planId: string) {
-    return this.clientRepository.findClientsByPlanId(planId);
+    return this.clientsService.findClientsByPlanId(planId);
   }
 
-  updateClientPlan(clientId: string, planId: string | null) {
-    return this.clientRepository.assignPlanToClient(clientId, planId);
+  updateClientPlan(clientId: string, planId: string) {
+    return this.clientsService.assignPlanToClient(clientId, planId);
   }
 }
