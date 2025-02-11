@@ -168,17 +168,18 @@ export class PlansController {
       if (!clientExist) {
         throw new NotFoundException(`User with ID ${userId} not found`);
       }
-
-      // Check if clients have a routineId assigned
+      const assignResponse = await this.plansService.assignPlanToClient(
+        userId,
+        planId,
+      );
+      if (!assignResponse) {
+        throw new Error(`Failed to assign plan to user.`);
+      }
       if (!clientExist.routineId) {
-        // Assign the defaultRoutine from the plan to the client
         await this.clientService.update(userId, {
           routineId: planExist.defaultRoutine,
         });
       }
-
-      // Assign the plan to the client
-      await this.plansService.assignPlanToClient(userId, planId);
 
       return {
         message: "Plan assigned to user successfully.",

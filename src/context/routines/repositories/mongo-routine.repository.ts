@@ -1,3 +1,4 @@
+import { HttpException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 
@@ -46,5 +47,39 @@ export class MongoRoutineRepository implements RoutineRepository {
 
   async countRoutines(filters: any): Promise<number> {
     return await this.routineModel.countDocuments(filters).exec();
+  }
+
+  getRoutinesBySubRoutine(subRoutineId: string): Promise<Routine[]> {
+    return this.routineModel.find({ subRoutines: subRoutineId }).exec();
+  }
+
+  async removeSubRoutineFromRoutines(subRoutineId: string): Promise<any[]> {
+    try {
+      const routinesAffected = await this.routineModel
+        .find({ subRoutines: subRoutineId })
+        .exec();
+
+      if (!routinesAffected || routinesAffected.length === 0) {
+        return [];
+      }
+
+      await this.routineModel
+        .updateMany(
+          { subRoutines: subRoutineId },
+          { $pull: { subRoutines: subRoutineId } },
+        )
+        .exec();
+
+      return await this.routineModel
+        .find({
+          _id: { $in: routinesAffected.map(routine => routine._id) },
+        })
+        .exec();
+    } catch (error: any) {
+      throw new HttpException(
+        `Error al remover la subroutine de las rutinas: ${error.message}`,
+        error.status || 500,
+      );
+    }
   }
 }

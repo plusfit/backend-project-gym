@@ -3,6 +3,7 @@ import { MongooseModule } from "@nestjs/mongoose";
 
 import { ClientsModule } from "@/src/context/clients/clients.module";
 import { ExercisesModule } from "@/src/context/exercises/exercises.module";
+import { PlansModule } from "@/src/context/plans/plans.module";
 import { MongoRoutineRepository } from "@/src/context/routines/repositories/mongo-routine.repository";
 import {
   MongoSubRoutineRepository,
@@ -31,6 +32,7 @@ import { RoutinesController } from "./routines.controller";
     ]),
     ExercisesModule,
     ClientsModule,
+    PlansModule,
   ],
   providers: [
     SubRoutinesService,
