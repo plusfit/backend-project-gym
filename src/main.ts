@@ -10,12 +10,9 @@ import {
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { Logger } from "nestjs-pino";
 
-//import { AppModule } from "@/app/app.module";
-//import { AllExceptionsFilter } from "@/src/context/shared/filters/all-exceptions.filter";
-//import { ResponseInterceptor } from "@/src/context/shared/interceptors/response-success.interceptor";
-import { AppModule } from "./app/app.module";
-import { AllExceptionsFilter } from "./context/shared/filters/all-exceptions.filter";
-import { ResponseInterceptor } from "./context/shared/interceptors/response-success.interceptor";
+import { AppModule } from "@/app/app.module";
+import { AllExceptionsFilter } from "@/src/context/shared/filters/all-exceptions.filter";
+import { ResponseInterceptor } from "@/src/context/shared/interceptors/response-success.interceptor";
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
