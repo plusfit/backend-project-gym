@@ -10,8 +10,7 @@ import {
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { Logger } from "nestjs-pino";
 
-// import { AppModule } from "@/app/app.module";
-import { AppModule } from "@/src/app/app.module";
+import { AppModule } from "@/app/app.module";
 import { AllExceptionsFilter } from "@/src/context/shared/filters/all-exceptions.filter";
 import { ResponseInterceptor } from "@/src/context/shared/interceptors/response-success.interceptor";
 
