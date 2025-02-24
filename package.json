@@ -26,6 +26,7 @@
   "scripts": {
     "build": "npm run build:clean && nest build --path tsconfig.prod.json",
     "start": "node dist/main.js",
+    "start:prod": "node dist/main.js",
     "dev": "nest start --watch --debug=0.0.0.0:9229",
     "test": "rimraf coverage .nyc_output && concurrently 'npm:test:unit' 'npm:test:e2e' && npm run calculate-global-test-coverage",
     "test:unit": "vitest run --coverage --config vitest.config.unit.ts",
