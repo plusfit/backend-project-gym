@@ -19,12 +19,18 @@ async function bootstrap() {
     AppModule,
     new FastifyAdapter(),
   );
+  const configService = app.get(ConfigService);
+
+  const front_url = configService.get<string>(
+    "FRONT_URL",
+    "http://localhost:4200",
+  );
 
   await app
     .getHttpAdapter()
     .getInstance()
     .register(fastifyCors, {
-      origin: "http://localhost:4200",
+      origin: front_url,
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
       allowedHeaders: ["Authorization", "Content-Type"],
       credentials: true,
@@ -50,7 +56,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("api", app, document);
 
-  const configService = app.get(ConfigService);
   const port = configService.get<string>("PORT", "3000");
   app.useGlobalPipes(
     new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
