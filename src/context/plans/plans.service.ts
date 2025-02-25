@@ -130,7 +130,8 @@ export class PlansService {
 
     return clientsFilter.map((client: any) => ({
       _id: client._doc._id,
-      name: client._doc.name,
+      name: client._doc.userInfo.name,
+      CI: client._doc.userInfo.CI,
       email: client._doc.email,
     }));
   }

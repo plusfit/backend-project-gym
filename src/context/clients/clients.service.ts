@@ -44,20 +44,21 @@ export class ClientsService {
     if (name || email || CI) {
       filters.$or = [];
 
-      if (name) {
+      if (typeof name === "string" && name.trim() !== "") {
         filters.$or.push({ "userInfo.name": { $regex: name, $options: "i" } });
       }
-      if (email) {
+
+      if (typeof email === "string" && email.trim() !== "") {
         filters.$or.push({ email: { $regex: email, $options: "i" } });
       }
 
-      if (CI) {
+      if (typeof CI === "string" && CI.trim() !== "") {
         filters.$or.push({ "userInfo.CI": { $regex: CI, $options: "i" } });
       }
     }
 
     if (withoutPlan) {
-      filters.planId = { $in: [undefined, undefined, ""] }; // Plan no asignado (null, undefined o "")
+      filters.planId = { $in: [undefined, undefined, ""] }; // null, undefined o vacío
     }
 
     if (filters.$or && filters.$or.length === 0) {
@@ -68,6 +69,7 @@ export class ClientsService {
       this.clientRepository.getClients(offset, limit, filters),
       this.clientRepository.countClients(filters),
     ]);
+
     return { data, total, page, limit };
   }
 
@@ -90,6 +92,7 @@ export class ClientsService {
       // Devolvemos el array de clientes obtenidos
       return clients;
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error("Error al obtener los clientes:", error);
       throw new Error("Error al obtener los clientes");
     }

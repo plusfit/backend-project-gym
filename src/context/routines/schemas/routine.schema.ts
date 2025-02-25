@@ -15,6 +15,12 @@ export class Routine extends Document {
   @Prop({ required: true, default: false })
   isCustom!: boolean;
 
+  @Prop({ required: true, default: false })
+  isGeneral!: boolean;
+
+  @Prop({ type: [{ type: SchemaMongo.Types.ObjectId, ref: "Type" }] })
+  types!: Types.ObjectId[];
+
   @Prop({ type: [{ type: SchemaMongo.Types.ObjectId, ref: "SubRoutine" }] })
   subRoutines!: Types.ObjectId[];
 }

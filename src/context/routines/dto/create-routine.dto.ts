@@ -45,6 +45,23 @@ export class CreateRoutineDto {
   })
   isCustom!: boolean;
 
+  @Expose()
+  @IsBoolean()
+  @ApiProperty({
+    description: "Si la rutina es general o no",
+    example: false,
+  })
+  isGeneral!: boolean;
+
+  @Expose()
+  @IsString({ each: true })
+  @ApiProperty({
+    description: "Indica los tipos de la rutina",
+    type: [String],
+    example: ["66d75350be595041c1c2fe4d"],
+  })
+  type!: string[];
+
   @ApiProperty({
     description: "Indica las subrutinas de la rutina",
     type: [String],

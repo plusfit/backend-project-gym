@@ -161,9 +161,20 @@ export class RoutinesService {
     name?: string,
     type?: string,
     mode?: string,
-  ): Promise<{ data: Routine[]; total: number; page: number; limit: number }> {
+    isGeneral?: boolean,
+  ): Promise<{
+    data: Routine[];
+    total: number;
+    page: number;
+    limit: number;
+    isGeneral?: boolean;
+  }> {
     const offset = (page - 1) * limit;
     const filters: any = {};
+
+    if (isGeneral !== undefined) {
+      filters.isGeneral = isGeneral;
+    }
 
     if (name) {
       filters.name = { $regex: name, $options: "i" };

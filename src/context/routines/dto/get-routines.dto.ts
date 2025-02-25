@@ -25,8 +25,13 @@ export class GetRoutinesDto {
   @IsOptional()
   type?: string;
 
-  // @ApiProperty({ description: "Mode filter", example: "Cardio" })
-  // @IsString()
-  // @IsOptional()
-  // mode?: string;
+  @ApiProperty({ description: "Es general" })
+  @IsString()
+  @IsOptional()
+  isGeneral?: boolean;
+
+  @ApiProperty({ description: "Mode filter", example: "Cardio" })
+  @IsString()
+  @IsOptional()
+  mode?: string;
 }

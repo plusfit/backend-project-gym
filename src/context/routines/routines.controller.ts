@@ -137,6 +137,8 @@ export class RoutinesController {
         getRoutinesDto.limit,
         getRoutinesDto.name,
         getRoutinesDto.type,
+        getRoutinesDto.mode,
+        getRoutinesDto.isGeneral,
       );
       this.logger.log(`Retrieved ${routines.data.length} routines.`);
       return routines;
