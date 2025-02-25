@@ -23,14 +23,14 @@ async function bootstrap() {
 
   const front_url = configService.get<string>(
     "FRONT_URL",
-    "http://localhost:4200",
+    "https://frontend-project-gym-v2-test.vercel.app",
   );
 
   await app
     .getHttpAdapter()
     .getInstance()
     .register(fastifyCors, {
-      origin: front_url,
+      origin: [front_url, "http://localhost:4200"],
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
       allowedHeaders: ["Authorization", "Content-Type"],
       credentials: true,
