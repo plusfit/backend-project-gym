@@ -57,10 +57,10 @@ export class CreateRoutineDto {
   @IsString({ each: true })
   @ApiProperty({
     description: "Indica los tipos de la rutina",
-    type: [String],
-    example: ["66d75350be595041c1c2fe4d"],
+    type: String,
+    example: "Hombre",
   })
-  type!: string[];
+  type!: string;
 
   @ApiProperty({
     description: "Indica las subrutinas de la rutina",

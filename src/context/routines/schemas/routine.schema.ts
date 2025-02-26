@@ -18,8 +18,8 @@ export class Routine extends Document {
   @Prop({ required: true, default: false })
   isGeneral!: boolean;
 
-  @Prop({ type: [{ type: SchemaMongo.Types.ObjectId, ref: "Type" }] })
-  types!: Types.ObjectId[];
+  @Prop({ required: true })
+  type!: string;
 
   @Prop({ type: [{ type: SchemaMongo.Types.ObjectId, ref: "SubRoutine" }] })
   subRoutines!: Types.ObjectId[];
