@@ -6,6 +6,7 @@ import {
   IsMongoId,
   IsOptional,
   IsString,
+  ValidateIf,
 } from "class-validator";
 
 export class CreateRoutineDto {
@@ -29,14 +30,6 @@ export class CreateRoutineDto {
   })
   description!: string;
 
-  // @Expose()
-  // @IsString()
-  // @ApiProperty({
-  //   description: "The category of the routine",
-  //   example: "Cardio",
-  // })
-  // category!: string;
-
   @Expose()
   @IsBoolean()
   @ApiProperty({
@@ -54,7 +47,8 @@ export class CreateRoutineDto {
   isGeneral!: boolean;
 
   @Expose()
-  @IsString({ each: true })
+  @ValidateIf((o: CreateRoutineDto) => o.isGeneral)
+  @IsString()
   @ApiProperty({
     description: "Indica los tipos de la rutina",
     type: String,
