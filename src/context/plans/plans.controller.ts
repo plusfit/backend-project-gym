@@ -82,6 +82,7 @@ export class PlansController {
       getClientsAssignalDto.email,
       getClientsAssignalDto.name,
       getClientsAssignalDto.CI,
+      getClientsAssignalDto.hourId,
     );
   }
 
