@@ -80,6 +80,8 @@ export class PlansController {
       getClientsAssignalDto.page,
       getClientsAssignalDto.limit,
       getClientsAssignalDto.email,
+      getClientsAssignalDto.name,
+      getClientsAssignalDto.CI,
     );
   }
 
