@@ -20,6 +20,7 @@ import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
 
 import { ClientsIdsDto } from "./dto/clients-ids.dto";
 import { CreateClientDto } from "./dto/create-client.dto";
+import { ClientFilters } from "./interfaces/clients.interface";
 
 @ApiTags("clients")
 @Controller("clients")
@@ -34,14 +35,17 @@ export class ClientsController {
   // @Roles(Role.Admin)
   // @UseGuards(RolesGuard)
   findAll(@Query() getClientsDto: GetClientsDto) {
+    const filters: ClientFilters = {
+      name: getClientsDto.name,
+      email: getClientsDto.email,
+      CI: getClientsDto.CI,
+      role: getClientsDto.role,
+      withoutPlan: getClientsDto.withoutPlan,
+    };
     return this.clientsService.findAll(
       getClientsDto.page,
       getClientsDto.limit,
-      getClientsDto.name,
-      getClientsDto.email,
-      getClientsDto.CI,
-      getClientsDto.role,
-      getClientsDto.withoutPlan,
+      filters,
     );
   }
 

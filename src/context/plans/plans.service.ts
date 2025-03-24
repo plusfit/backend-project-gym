@@ -68,23 +68,20 @@ export class PlansService {
     return this.clientsService.assignPlanToClient(clientId, planId);
   }
 
-  async getClientsWithPlansAndSchedules(
-    filters: any,
-    offset: number,
-    limit: number,
-  ) {
-    // Obtener los clientes paginados
-    const clients = await this.clientsService.findAll(offset, limit, filters);
+  async getClientsWithPlansAndSchedules(filters: any) {
+    // Obtener todos los clientes que coincidan con los filtros
+    const clients = await this.clientsService.findAll(
+      undefined,
+      undefined,
+      filters,
+    );
 
     const clientsWithDetails = await Promise.all(
-      // eslint-disable-next-line @typescript-eslint/require-await
       clients.data.map(async (client: any) => {
-        // Obtener el plan del cliente basado en su planId
         const plan = client.planId
           ? await this.plansRepository.findOne(client.planId)
           : undefined;
 
-        // Obtener los días asignados en los schedules
         const schedules = await this.scheduleRepository.getSchedules();
         const assignedSchedules = schedules.filter((s: any) =>
           s.clients.includes(client._id),
@@ -102,38 +99,61 @@ export class PlansService {
   }
 
   async findAssignableClientsBasedOnPlan(
-    offset: number,
+    page: number,
     limit: number,
+    name?: string,
     email?: string,
+    CI?: string,
   ) {
     const filters: any = {};
+    const offset = (page - 1) * limit;
 
     if (email) {
       filters.email = { $regex: email, $options: "i" };
     }
-    const clients = await this.getClientsWithPlansAndSchedules(
-      filters,
-      offset,
-      limit,
-    );
 
-    const clientsFilter = clients.filter((client: any) => {
-      // Días definidos en el plan
+    if (name) {
+      filters.name = { $regex: name, $options: "i" };
+    }
+
+    if (CI) {
+      filters.CI = { $regex: CI, $options: "i" };
+    }
+
+    // Obtener todos los clientes con sus planes y schedules (sin paginar aún)
+    const clients = await this.getClientsWithPlansAndSchedules(filters);
+
+    // Filtrar clientes asignables
+    const assignableClients = clients.filter((client: any) => {
       const planDays = client.plan?.days || 0;
-      // Días asignados al cliente en los schedules
       const assignedDays =
         client.assignedSchedules?.map((s: any) => s.day) || [];
 
-      // Si la cantidad de días asignados es menor que los días del plan, el cliente es asignable
       return assignedDays.length < planDays && client._doc.role === "User";
     });
 
-    return clientsFilter.map((client: any) => ({
-      _id: client._doc._id,
-      name: client._doc.userInfo.name,
-      CI: client._doc.userInfo.CI,
-      email: client._doc.email,
-    }));
+    // **IMPORTANTE:** Obtener el total antes de la paginación
+    const total = assignableClients.length;
+
+    // **Verificar si el offset es válido** (para evitar errores si se pasa del total)
+    if (offset >= total) {
+      return { data: [], total, page: Math.floor(offset / limit) + 1, limit };
+    }
+
+    // Aplicar paginación manual correctamente
+    const paginatedClients = assignableClients.slice(offset, offset + limit);
+
+    return {
+      data: paginatedClients.map((client: any) => ({
+        _id: client._doc._id,
+        name: client._doc.userInfo.name,
+        CI: client._doc.userInfo.CI,
+        email: client._doc.email,
+      })),
+      total, // Total de clientes asignables
+      page: page, // Página actual
+      limit, // Límite por página
+    };
   }
 
   getClientsByPlanId(planId: string) {

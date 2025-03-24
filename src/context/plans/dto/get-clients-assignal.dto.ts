@@ -27,4 +27,12 @@ export class GetClientsAssignalDto {
   @IsOptional()
   @IsString()
   email?: string;
+
+  @ApiPropertyOptional({
+    description: "CI filter",
+    example: "12345678",
+  })
+  @IsOptional()
+  @IsString()
+  CI?: string;
 }

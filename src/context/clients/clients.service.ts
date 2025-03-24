@@ -15,6 +15,7 @@ import { Plan } from "@/src/context/plans/schemas/plan.schema";
 import { Routine } from "@/src/context/routines/schemas/routine.schema";
 
 import { CreateClientDto } from "./dto/create-client.dto";
+import { ClientFilters } from "./interfaces/clients.interface";
 
 @Injectable()
 export class ClientsService {
@@ -25,17 +26,18 @@ export class ClientsService {
     private readonly plansService: any,
   ) {}
 
-  async findAll(
-    page: number,
-    limit: number,
-    name?: string,
-    email?: string,
-    CI?: string,
-    role?: string,
-    withoutPlan?: boolean,
-  ) {
+  addFilter = (field: string, value: any, target: any) => {
+    if (typeof value === "string" && value.trim() !== "") {
+      target.$or.push({ [field]: { $regex: value, $options: "i" } });
+    } else if (value) {
+      target.$or.push({ [field]: value });
+    }
+  };
+
+  async findAll(page: number, limit: number, clientFilters: ClientFilters) {
     const offset = (page - 1) * limit;
-    const filters: any = {};
+    const { name, email, CI, role, withoutPlan } = clientFilters;
+    const filters: any = { $or: [] };
 
     if (role) {
       filters.role = role;
@@ -44,17 +46,9 @@ export class ClientsService {
     if (name || email || CI) {
       filters.$or = [];
 
-      if (typeof name === "string" && name.trim() !== "") {
-        filters.$or.push({ "userInfo.name": { $regex: name, $options: "i" } });
-      }
-
-      if (typeof email === "string" && email.trim() !== "") {
-        filters.$or.push({ email: { $regex: email, $options: "i" } });
-      }
-
-      if (typeof CI === "string" && CI.trim() !== "") {
-        filters.$or.push({ "userInfo.CI": { $regex: CI, $options: "i" } });
-      }
+      this.addFilter("userInfo.name", name, filters);
+      this.addFilter("email", email, filters);
+      this.addFilter("userInfo.CI", CI, filters);
     }
 
     if (withoutPlan) {
@@ -110,7 +104,8 @@ export class ClientsService {
     return this.clientRepository.updateClient(id, updateClientDto);
   }
 
-  remove(id: string) {
+  async remove(id: string) {
+    await this.clientRepository.removeClientFirebase(id);
     return this.clientRepository.removeClient(id);
   }
 
