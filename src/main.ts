@@ -8,6 +8,7 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import fastifyMultipart from "fastify-multipart";
 import { Logger } from "nestjs-pino";
 
 import { AppModule } from "@/app/app.module";
@@ -17,7 +18,9 @@ import { ResponseInterceptor } from "@/src/context/shared/interceptors/response-
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter(),
+    new FastifyAdapter({
+      bodyLimit: 50 * 1024 * 1024, // 50MB
+    }),
   );
   const configService = app.get(ConfigService);
 
@@ -25,6 +28,16 @@ async function bootstrap() {
     "FRONT_URL",
     "https://frontend-project-gym-v2-test.vercel.app",
   );
+
+  // Registra fastify-multipart
+  await app
+    .getHttpAdapter()
+    .getInstance()
+    .register(fastifyMultipart, {
+      limits: {
+        fileSize: 50 * 1024 * 1024, // 50MB
+      },
+    });
 
   await app
     .getHttpAdapter()
