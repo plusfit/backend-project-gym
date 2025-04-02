@@ -22,18 +22,26 @@ export class ExercisesService {
     categrie?: string,
   ) {
     const offset = (page - 1) * limit;
-    const filters: any = {};
+    const filters: any = { $or: [] };
 
+    // Si 'name' tiene valor, agrega un filtro con $or
     if (name) {
-      filters.name = { $regex: name, $options: "i" };
+      filters.$or.push({ name: { $regex: name, $options: "i" } });
     }
 
+    // Si 'type' tiene valor, agrega un filtro con $or
     if (type) {
-      filters.type = type;
+      filters.$or.push({ type: type });
     }
 
+    // Si 'categrie' tiene valor, agrega un filtro con $or
     if (categrie) {
-      filters.categorie = categrie;
+      filters.$or.push({ categorie: { $regex: categrie, $options: "i" } });
+    }
+
+    // Si no hay filtros en $or, eliminamos el campo $or
+    if (filters.$or.length === 0) {
+      delete filters.$or;
     }
 
     const [data, total] = await Promise.all([

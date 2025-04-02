@@ -14,6 +14,10 @@ export class GetExerciseDto {
   @IsString()
   mode?: string;
 
+  @IsOptional()
+  @IsString()
+  categorie?: string;
+
   @Type(() => Number)
   @IsNumber()
   @Min(1)
