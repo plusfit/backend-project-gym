@@ -104,6 +104,7 @@ export class PlansService {
     name?: string,
     email?: string,
     CI?: string,
+    hourId?: string,
   ) {
     const filters: any = {};
     const offset = (page - 1) * limit;
@@ -120,6 +121,8 @@ export class PlansService {
       filters.CI = { $regex: CI, $options: "i" };
     }
 
+    const hour = await this.scheduleRepository.findById(hourId);
+
     // Obtener todos los clientes con sus planes y schedules (sin paginar aún)
     const clients = await this.getClientsWithPlansAndSchedules(filters);
 
@@ -128,8 +131,13 @@ export class PlansService {
       const planDays = client.plan?.days || 0;
       const assignedDays =
         client.assignedSchedules?.map((s: any) => s.day) || [];
+      const hourClients = hour._doc.clients || [];
 
-      return assignedDays.length < planDays && client._doc.role === "User";
+      return (
+        assignedDays.length < planDays &&
+        client._doc.role === "User" &&
+        !hourClients.includes(client._doc._id)
+      );
     });
 
     // **IMPORTANTE:** Obtener el total antes de la paginación

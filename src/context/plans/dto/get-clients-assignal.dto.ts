@@ -35,4 +35,8 @@ export class GetClientsAssignalDto {
   @IsOptional()
   @IsString()
   CI?: string;
+
+  @IsOptional()
+  @IsString()
+  hourId?: string;
 }
