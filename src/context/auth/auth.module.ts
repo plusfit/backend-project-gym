@@ -8,15 +8,15 @@ import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
 
 @Module({
-  controllers: [AuthController],
+	controllers: [AuthController],
 
-  providers: [
-    AuthService,
-    {
-      provide: AUTH_REPOSITORY,
-      useClass: MongoAuthRepository,
-    },
-  ],
-  imports: [ClientsModule],
+	providers: [
+		AuthService,
+		{
+			provide: AUTH_REPOSITORY,
+			useClass: MongoAuthRepository,
+		},
+	],
+	imports: [ClientsModule],
 })
 export class AuthModule {}

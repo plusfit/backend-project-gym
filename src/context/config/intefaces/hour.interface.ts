@@ -1,5 +1,5 @@
 export interface Hour {
-  day: string;
-  hours: number[];
-  maxCount: number;
+	day: string;
+	hours: number[];
+	maxCount: number;
 }

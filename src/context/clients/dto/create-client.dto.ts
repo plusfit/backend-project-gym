@@ -1,29 +1,29 @@
 import {
-  IsEmail,
-  IsEnum,
-  IsMongoId,
-  IsNotEmpty,
-  IsString,
+	IsEmail,
+	IsEnum,
+	IsMongoId,
+	IsNotEmpty,
+	IsString,
 } from "class-validator";
 
 import { EClientRole } from "@/src/context/shared/enums/clients-role.enum";
 
 export class CreateClientDto {
-  @IsEnum(EClientRole)
-  role!: EClientRole;
+	@IsEnum(EClientRole)
+	role!: EClientRole;
 
-  @IsMongoId()
-  planId?: string;
+	@IsMongoId()
+	planId?: string;
 
-  @IsMongoId()
-  routineId?: string;
+	@IsMongoId()
+	routineId?: string;
 
-  @IsEmail()
-  email!: string;
+	@IsEmail()
+	email!: string;
 
-  @IsNotEmpty()
-  userInfo?: []; //TODO: Create userInfoDTO
+	@IsNotEmpty()
+	userInfo?: []; //TODO: Create userInfoDTO
 
-  @IsString()
-  refreshToken?: string;
+	@IsString()
+	refreshToken?: string;
 }

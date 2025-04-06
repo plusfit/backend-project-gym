@@ -6,27 +6,27 @@ import { ProductRepository } from "@/src/context/products/product-repository";
 import { Product } from "@/src/context/products/schemas/product.schema";
 
 export class MongoProductsRepository implements ProductRepository {
-  constructor(
-    @InjectModel(Product.name) private readonly productModel: Model<Product>,
-  ) {}
+	constructor(
+		@InjectModel(Product.name) private readonly productModel: Model<Product>,
+	) {}
 
-  async createProduct(product: CreateProductDto): Promise<Product> {
-    return await this.productModel.create(product);
-  }
+	async createProduct(product: CreateProductDto): Promise<Product> {
+		return await this.productModel.create(product);
+	}
 
-  async getProducts(
-    offset: number,
-    limit: number,
-    filters: { name?: string; productType?: string } = {},
-  ): Promise<Product[]> {
-    return await this.productModel
-      .find(filters)
-      .skip(offset)
-      .limit(limit)
-      .exec();
-  }
+	async getProducts(
+		offset: number,
+		limit: number,
+		filters: { name?: string; productType?: string } = {},
+	): Promise<Product[]> {
+		return await this.productModel
+			.find(filters)
+			.skip(offset)
+			.limit(limit)
+			.exec();
+	}
 
-  async countProducts(filters: any = {}): Promise<number> {
-    return await this.productModel.countDocuments(filters).exec();
-  }
+	async countProducts(filters: any = {}): Promise<number> {
+		return await this.productModel.countDocuments(filters).exec();
+	}
 }

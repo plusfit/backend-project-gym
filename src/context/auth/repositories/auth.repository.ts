@@ -3,11 +3,11 @@ import { Client } from "@/src/context/clients/schemas/client.schema";
 
 export const AUTH_REPOSITORY = "AuthRepository";
 export interface AuthRepository {
-  register(registerDto: RegisterAuthDto): Promise<Client>;
+	register(registerDto: RegisterAuthDto): Promise<Client>;
 
-  login(email: string): Promise<Client>;
+	login(email: string): Promise<Client>;
 
-  saveRefreshToken(userId: string, refreshToken: string): Promise<void>;
+	saveRefreshToken(userId: string, refreshToken: string): Promise<void>;
 
-  getRefreshToken(userId: string): Promise<string>;
+	getRefreshToken(userId: string): Promise<string>;
 }

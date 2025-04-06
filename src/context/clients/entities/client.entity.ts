@@ -1,3 +1,3 @@
 export class Client {
-  token!: string;
+	token!: string;
 }

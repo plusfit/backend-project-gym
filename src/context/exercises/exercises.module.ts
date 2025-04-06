@@ -9,17 +9,17 @@ import { ExercisesController } from "./exercises.controller";
 import { ExercisesService } from "./exercises.service";
 
 @Module({
-  controllers: [ExercisesController],
-  imports: [
-    MongooseModule.forFeature([{ name: "Exercise", schema: ExerciseSchema }]),
-  ],
-  providers: [
-    ExercisesService,
-    {
-      provide: EXERCISE_REPOSITORY,
-      useClass: MongoExercisesRepository,
-    },
-  ],
-  exports: [EXERCISE_REPOSITORY],
+	controllers: [ExercisesController],
+	imports: [
+		MongooseModule.forFeature([{ name: "Exercise", schema: ExerciseSchema }]),
+	],
+	providers: [
+		ExercisesService,
+		{
+			provide: EXERCISE_REPOSITORY,
+			useClass: MongoExercisesRepository,
+		},
+	],
+	exports: [EXERCISE_REPOSITORY],
 })
 export class ExercisesModule {}

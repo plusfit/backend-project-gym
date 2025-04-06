@@ -8,70 +8,74 @@ import { ScheduleRepository } from "./schedule.repository";
 export const SCHEDULE_REPOSITORY = "ScheduleRepository";
 
 export class MongoScheduleRepository implements ScheduleRepository {
-  constructor(
-    @InjectModel(Schedule.name) private scheduleModel: Model<Schedule>,
-  ) {}
+	constructor(
+		@InjectModel(Schedule.name) private scheduleModel: Model<Schedule>,
+	) {}
 
-  async findById(id: string): Promise<Schedule | null> {
-    return this.scheduleModel.findById(id).exec();
-  }
+	async findById(id: string): Promise<Schedule | null> {
+		return this.scheduleModel.findById(id).exec();
+	}
 
-  async updateSchedule(id: string, updateData: any): Promise<Schedule | null> {
-    return this.scheduleModel
-      .findByIdAndUpdate(id, updateData, { new: true })
-      .exec();
-  }
+	async updateSchedule(id: string, updateData: any): Promise<Schedule | null> {
+		return this.scheduleModel
+			.findByIdAndUpdate(id, updateData, { new: true })
+			.exec();
+	}
 
-  async createSchedule(schedule: CreateScheduleDto): Promise<Schedule> {
-    const newSchedule = new this.scheduleModel(schedule);
-    return newSchedule.save();
-  }
+	async createSchedule(schedule: CreateScheduleDto): Promise<Schedule> {
+		const newSchedule = new this.scheduleModel(schedule);
+		return newSchedule.save();
+	}
 
-  async deleteSchedule(id: string): Promise<void> {
-    await this.scheduleModel.findByIdAndDelete(id).exec();
-  }
+	async deleteSchedule(id: string): Promise<void> {
+		await this.scheduleModel.findByIdAndDelete(id).exec();
+	}
 
-  async getSchedules(): Promise<Schedule[]> {
-    return await this.scheduleModel.find().exec();
-  }
+	async getSchedules(): Promise<Schedule[]> {
+		return await this.scheduleModel.find().exec();
+	}
 
-  async countSchedules(filters: any): Promise<number> {
-    return await this.scheduleModel.countDocuments(filters).exec();
-  }
+	async countSchedules(filters: any): Promise<number> {
+		return await this.scheduleModel.countDocuments(filters).exec();
+	}
 
-  async deleteAllClientSchedules(
-    clientId: string,
-  ): Promise<UpdateWriteOpResult> {
-    return await this.scheduleModel
-      .updateMany({ clients: clientId }, { $pull: { clients: clientId } })
-      .exec();
-  }
+	async deleteAllClientSchedules(
+		clientId: string,
+	): Promise<UpdateWriteOpResult> {
+		return await this.scheduleModel
+			.updateMany({ clients: clientId }, { $pull: { clients: clientId } })
+			.exec();
+	}
 
-  async assignClientToSchedule(
-    scheduleId: string,
-    clientId: { clients: string[] },
-  ) {
-    return this.scheduleModel
-      .findByIdAndUpdate(
-        scheduleId,
-        { $push: { clients: { $each: clientId.clients } } },
-        { new: true },
-      )
-      .exec();
-  }
-  deleteClientFromSchedule(scheduleId: string, clientId: string): Promise<any> {
-    return this.scheduleModel
-      .findByIdAndUpdate(
-        scheduleId,
-        { $pull: { clients: clientId } },
-        { new: true },
-      )
-      .exec();
-  }
+	async assignClientToSchedule(
+		scheduleId: string,
+		clientId: { clients: string[] },
+	) {
+		return this.scheduleModel
+			.findByIdAndUpdate(
+				scheduleId,
+				{ $push: { clients: { $each: clientId.clients } } },
+				{ new: true },
+			)
+			.exec();
+	}
+	deleteClientFromSchedule(scheduleId: string, clientId: string): Promise<any> {
+		return this.scheduleModel
+			.findByIdAndUpdate(
+				scheduleId,
+				{ $pull: { clients: clientId } },
+				{ new: true },
+			)
+			.exec();
+	}
 
-  updateScheduleConfig(schedule: string): Promise<any> {
-    return this.scheduleModel
-      .findByIdAndUpdate(schedule, { $set: { config: schedule } })
-      .exec();
-  }
+	updateScheduleConfig(schedule: string): Promise<any> {
+		return this.scheduleModel
+			.findByIdAndUpdate(schedule, { $set: { config: schedule } })
+			.exec();
+	}
+
+	async getSchedulesByUserId(userId: string): Promise<Schedule[]> {
+		return this.scheduleModel.find({ clients: userId }).exec();
+	}
 }
