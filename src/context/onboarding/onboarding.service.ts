@@ -2,15 +2,25 @@ import {
 	BadRequestException,
 	Injectable,
 	NotFoundException,
+	Inject,
+	forwardRef,
 } from "@nestjs/common";
 import { CreateOnboardingDto } from "./dto/create-onboarding.dto";
 import { UpdateOnboardingDto } from "./dto/update-onboarding.dto";
 import { OnboardingRepository } from "./repositories/onboarding.repository";
 import { Onboarding, StepData } from "./schemas/onboarding.schema";
+import { PlanRecommendationService } from "./services/plan-recommendation.service";
+import { ClientsService } from "../clients/clients.service";
+import { Plan } from "../plans/schemas/plan.schema";
 
 @Injectable()
 export class OnboardingService {
-	constructor(private readonly onboardingRepository: OnboardingRepository) {}
+	constructor(
+		private readonly onboardingRepository: OnboardingRepository,
+		private readonly planRecommendationService: PlanRecommendationService,
+		@Inject(forwardRef(() => ClientsService))
+		private readonly clientsService: ClientsService,
+	) {}
 
 	async create(createOnboardingDto: CreateOnboardingDto): Promise<Onboarding> {
 		const existingOnboarding = await this.onboardingRepository.findByUserId(
@@ -143,5 +153,68 @@ export class OnboardingService {
 		}
 
 		return updatedOnboarding;
+	}
+
+	/**
+	 * Asigna automáticamente un plan al usuario basado en los datos de onboarding
+	 */
+	async assignPlanBasedOnOnboarding(
+		userId: string,
+	): Promise<{ client: any; plan: Plan }> {
+		// Obtener los datos de onboarding del usuario
+		const onboarding = await this.findByUserId(userId);
+
+		if (!onboarding.completed) {
+			throw new BadRequestException(
+				"El proceso de onboarding debe estar completo para asignar un plan",
+			);
+		}
+
+		if (!onboarding.data || !onboarding.data.step3) {
+			throw new BadRequestException(
+				"Faltan datos de entrenamiento necesarios para asignar un plan",
+			);
+		}
+
+		// Obtener el cliente asociado al userId
+		const client = await this.clientsService.findOne(userId);
+
+		if (!client) {
+			throw new NotFoundException(`No se encontró el cliente con ID ${userId}`);
+		}
+
+		// Encontrar el plan que mejor se adapta a las preferencias del usuario
+		const recommendedPlan =
+			await this.planRecommendationService.findBestMatchingPlan(
+				onboarding.data,
+			);
+
+		if (!recommendedPlan) {
+			throw new NotFoundException(
+				"No se pudo encontrar un plan adecuado para tus preferencias",
+			);
+		}
+
+		// Asignar el plan al cliente
+		const planId = recommendedPlan._id
+			? recommendedPlan._id.toString()
+			: recommendedPlan.id?.toString();
+
+		if (!planId) {
+			throw new BadRequestException(
+				"El plan recomendado no tiene un ID válido",
+			);
+		}
+
+		const updatedClient = await this.clientsService.assignPlanToClient(
+			userId,
+			planId,
+		);
+
+		// Devolver tanto el cliente actualizado como el plan asignado
+		return {
+			client: updatedClient,
+			plan: recommendedPlan,
+		};
 	}
 }

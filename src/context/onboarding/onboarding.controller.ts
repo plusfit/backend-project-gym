@@ -155,6 +155,36 @@ export class OnboardingController {
 		return this.onboardingService.updateStep(userId, 3, trainingPreferences);
 	}
 
+	@Post(":userId/assign-plan")
+	@ApiOperation({
+		summary: "Assign a plan automatically based on onboarding data",
+	})
+	@ApiParam({
+		name: "userId",
+		description: "User ID to assign a plan for",
+		required: true,
+	})
+	@ApiOkResponse({
+		description:
+			"Returns the client with the assigned plan and the plan details",
+		schema: {
+			type: "object",
+			properties: {
+				client: {
+					type: "object",
+					description: "Updated client information",
+				},
+				plan: {
+					type: "object",
+					description: "Details of the assigned plan",
+				},
+			},
+		},
+	})
+	assignPlan(@Param("userId") userId: string) {
+		return this.onboardingService.assignPlanBasedOnOnboarding(userId);
+	}
+
 	@Delete(":userId")
 	@ApiOperation({ summary: "Delete an onboarding record" })
 	@ApiParam({
