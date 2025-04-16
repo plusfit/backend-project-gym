@@ -37,13 +37,13 @@ export class OnboardingService {
 		return this.onboardingRepository.findAll();
 	}
 
-	async findByUserId(userId: string): Promise<Onboarding> {
+	async findByUserId(userId: string): Promise<Onboarding | null> {
 		this.ensureUserIdProvided(userId);
 		const onboarding = await this.onboardingRepository.findByUserId(userId);
-		if (!onboarding) {
-			throw new NotFoundException(`Onboarding not found for user ${userId}`);
-		}
-		return onboarding;
+		// if (!onboarding) {
+		// 	throw new NotFoundException(`Onboarding not found for user ${userId}`);
+		// }
+		return onboarding || null;
 	}
 
 	async update(userId: string, dto: UpdateOnboardingDto): Promise<Onboarding> {
@@ -74,7 +74,7 @@ export class OnboardingService {
 
 		const onboarding = await this.findByUserId(userId);
 		const updatedData = this.mergeStepData(
-			onboarding.data || {},
+			onboarding?.data || {},
 			step,
 			stepData,
 		);
@@ -111,13 +111,13 @@ export class OnboardingService {
 		}
 
 		// Update client userInfo with onboarding data
-		const onboardingData = onboarding.data || {};
+		const onboardingData = onboarding?.data || {};
 		const userInfoFromOnboarding =
 			this.extractUserInfoFromOnboarding(onboardingData);
 		await this.clientsService.updateUserInfo(userId, userInfoFromOnboarding);
 
 		const recommendedPlan = await this.planRecommendationService.recommendPlan(
-			onboarding.data || {},
+			onboarding?.data || {},
 		);
 		this.ensurePlanIsValid(recommendedPlan);
 
@@ -195,8 +195,8 @@ export class OnboardingService {
 		return Boolean(data.step1 && data.step2 && data.step3);
 	}
 
-	private ensureOnboardingCompleted(onboarding: Onboarding): void {
-		if (!onboarding.completed || !onboarding.data?.step3) {
+	private ensureOnboardingCompleted(onboarding: Onboarding | null): void {
+		if (!onboarding || !onboarding.completed || !onboarding.data?.step3) {
 			throw new BadRequestException(
 				"Onboarding must be completed to assign a plan",
 			);

@@ -8,13 +8,16 @@ import { LoginAuthDto } from "@/src/context/auth/dto/login-auth.dto";
 import { RefreshTokenAuthDto } from "@/src/context/auth/dto/refresh-token-auth-dto";
 import { RegisterAuthDto } from "@/src/context/auth/dto/register-auth.dto";
 import { AUTH_REPOSITORY } from "@/src/context/auth/repositories/auth.repository";
+import { OnboardingService } from "../onboarding/onboarding.service";
 
 @Injectable()
 export class AuthService {
 	constructor(
 		@Inject(AUTH_REPOSITORY)
 		private readonly authRepository: any,
+		private readonly onboardingService: OnboardingService,
 		private readonly configService: ConfigService,
+		
 	) {}
 
 	async register(registerDto: RegisterAuthDto) {
@@ -34,9 +37,21 @@ export class AuthService {
 			const response = await this.authRepository.login(email);
 			//me quedo con lo importante
 			const { _doc } = response;
-			//elimino el refresh token
+
+			//elimino el refresh tokenS
 			delete _doc.refreshToken;
 
+			 const onboarding = await this.onboardingService.findByUserId(
+                _doc._id,
+            );
+
+			_doc.onboardingCompleted = false;
+
+			//verifico si el onboarding esta completo
+			if (onboarding && onboarding.completed) {
+				_doc.onboardingCompleted = true;
+			}
+			
 			const payload = {
 				..._doc,
 			};

@@ -6,6 +6,7 @@ import { ClientsModule } from "@/src/context/clients/clients.module";
 
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
+import { OnboardingModule } from "../onboarding/onboarding.module";
 
 @Module({
 	controllers: [AuthController],
@@ -17,6 +18,6 @@ import { AuthService } from "./auth.service";
 			useClass: MongoAuthRepository,
 		},
 	],
-	imports: [ClientsModule],
+	imports: [ClientsModule, OnboardingModule],
 })
 export class AuthModule {}
