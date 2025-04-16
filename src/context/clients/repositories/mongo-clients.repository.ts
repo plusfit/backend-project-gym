@@ -1,8 +1,9 @@
 import { InjectModel } from "@nestjs/mongoose";
-import { Error, Model } from "mongoose";
+import { Model } from "mongoose";
 
 import { ClientsRepository } from "@/src/context/clients/repositories/clients.repository";
 import { Client } from "@/src/context/clients/schemas/client.schema";
+import { Plan } from "../../plans/schemas/plan.schema";
 
 export class MongoClientsRepository implements ClientsRepository {
 	constructor(
@@ -100,11 +101,11 @@ export class MongoClientsRepository implements ClientsRepository {
 
 	async assignPlanToClient(
 		clientId: string,
-		planId: string,
+		planId: Plan
 	): Promise<Client | null> {
 		return this.clientModel.findByIdAndUpdate(
 			clientId,
-			{ planId: planId },
+			{ planId: planId.id, routineId: planId.defaultRoutine },
 			{ new: true },
 		);
 	}

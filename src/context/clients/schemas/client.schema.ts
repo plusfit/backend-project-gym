@@ -50,6 +50,9 @@ export class UserInfo extends Document {
 
 	@Prop()
 	CI?: string;
+
+	@Prop()
+	avatarUrl?: string;
 }
 
 @Schema()

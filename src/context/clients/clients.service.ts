@@ -56,7 +56,8 @@ export class ClientsService {
 		}
 
 		if (filters.$or && filters.$or.length === 0) {
-			delete filters.$or;
+			// check if filters.$or is empty
+			filters.$or = undefined;
 		}
 
 		const [data, total] = await Promise.all([
@@ -139,7 +140,7 @@ export class ClientsService {
 		);
 	}
 
-	async assignPlanToClient(clientId: string, planId: string) {
+	async assignPlanToClient(clientId: string, planId: Plan) {
 		try {
 			return await this.clientRepository.assignPlanToClient(clientId, planId);
 		} catch (error: any) {
@@ -156,6 +157,27 @@ export class ClientsService {
 		} catch (error: any) {
 			throw new HttpException(
 				`Error al obtener los clientes por plan: ${error.message}`,
+				error.status || 500,
+			);
+		}
+	}
+
+	async updateUserInfo(clientId: string, userInfo: any) {
+		try {
+			const client = await this.findOne(clientId);
+			if (!client) {
+				throw new NotFoundException(`Client with ID ${clientId} not found`);
+			}
+
+			// Merge existing userInfo with new userInfo
+			const updatedUserInfo = { ...userInfo };
+
+			// Update client with new userInfo
+			console.log("updatedUserInfo", updatedUserInfo);
+			return this.update(clientId, { userInfo: updatedUserInfo });
+		} catch (error: any) {
+			throw new HttpException(
+				`Error updating client userInfo: ${error.message}`,
 				error.status || 500,
 			);
 		}

@@ -13,7 +13,11 @@
 		"type": "git",
 		"url": "git+https://github.com/AlbertHernandez/nestjs-service-template.git"
 	},
-	"keywords": ["typescript", "nestjs", "template"],
+	"keywords": [
+		"typescript",
+		"nestjs",
+		"template"
+	],
 	"engines": {
 		"node": ">=18.x",
 		"npm": ">=9.x"
@@ -48,6 +52,7 @@
 		"axios": "^1.7.6",
 		"class-transformer": "^0.5.1",
 		"class-validator": "^0.14.1",
+		"express": "^5.1.0",
 		"firebase-admin": "^13.1.0",
 		"jsonwebtoken": "^9.0.2",
 		"mongoose": "^8.5.2",

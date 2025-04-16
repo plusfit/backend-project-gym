@@ -23,12 +23,11 @@ export class OnboardingService {
 	) {}
 
 	async create(createOnboardingDto: CreateOnboardingDto): Promise<Onboarding> {
-		const existingOnboarding = await this.onboardingRepository.findByUserId(
+		const existing = await this.onboardingRepository.findByUserId(
 			createOnboardingDto.userId,
 		);
-
-		if (existingOnboarding) {
-			throw new BadRequestException("Onboarding for this user already exists");
+		if (existing) {
+			throw new BadRequestException("Onboarding already exists for user");
 		}
 
 		return this.onboardingRepository.create(createOnboardingDto);
@@ -39,57 +38,30 @@ export class OnboardingService {
 	}
 
 	async findByUserId(userId: string): Promise<Onboarding> {
-		if (!userId) {
-			throw new BadRequestException("User ID is required");
-		}
-
+		this.ensureUserIdProvided(userId);
 		const onboarding = await this.onboardingRepository.findByUserId(userId);
-
 		if (!onboarding) {
-			throw new NotFoundException(
-				`Onboarding for user with ID ${userId} not found`,
-			);
+			throw new NotFoundException(`Onboarding not found for user ${userId}`);
 		}
-
 		return onboarding;
 	}
 
-	async update(
-		userId: string,
-		updateOnboardingDto: UpdateOnboardingDto,
-	): Promise<Onboarding> {
-		if (!userId) {
-			throw new BadRequestException("User ID is required");
+	async update(userId: string, dto: UpdateOnboardingDto): Promise<Onboarding> {
+		this.ensureUserIdProvided(userId);
+		const onboarding = await this.onboardingRepository.update(userId, dto);
+		if (!onboarding) {
+			throw new NotFoundException(`Onboarding not found for user ${userId}`);
 		}
-
-		const updatedOnboarding = await this.onboardingRepository.update(
-			userId,
-			updateOnboardingDto,
-		);
-
-		if (!updatedOnboarding) {
-			throw new NotFoundException(
-				`Onboarding for user with ID ${userId} not found`,
-			);
-		}
-
-		return updatedOnboarding;
+		return onboarding;
 	}
 
 	async remove(userId: string): Promise<Onboarding> {
-		if (!userId) {
-			throw new BadRequestException("User ID is required");
+		this.ensureUserIdProvided(userId);
+		const onboarding = await this.onboardingRepository.remove(userId);
+		if (!onboarding) {
+			throw new NotFoundException(`Onboarding not found for user ${userId}`);
 		}
-
-		const deletedOnboarding = await this.onboardingRepository.remove(userId);
-
-		if (!deletedOnboarding) {
-			throw new NotFoundException(
-				`Onboarding for user with ID ${userId} not found`,
-			);
-		}
-
-		return deletedOnboarding;
+		return onboarding;
 	}
 
 	async updateStep(
@@ -97,45 +69,18 @@ export class OnboardingService {
 		step: number,
 		stepData?: any,
 	): Promise<Onboarding> {
-		if (!userId) {
-			throw new BadRequestException("User ID is required");
-		}
-
-		if (step < 1 || step > 3) {
-			throw new BadRequestException("Step must be between 1 and 3");
-		}
+		this.ensureUserIdProvided(userId);
+		this.ensureStepIsValid(step);
 
 		const onboarding = await this.findByUserId(userId);
-		let updatedData: StepData = onboarding.data || {};
+		const updatedData = this.mergeStepData(
+			onboarding.data || {},
+			step,
+			stepData,
+		);
+		const isCompleted = this.checkCompletion(updatedData);
 
-		// Update the appropriate step data
-		if (stepData) {
-			if (step === 1 && "fullName" in stepData) {
-				updatedData = {
-					...updatedData,
-					step1: stepData,
-				};
-			} else if (step === 2 && "bloodPressure" in stepData) {
-				updatedData = {
-					...updatedData,
-					step2: stepData,
-				};
-			} else if (step === 3 && "trainingDays" in stepData) {
-				updatedData = {
-					...updatedData,
-					step3: stepData,
-				};
-			}
-		}
-
-		// Check if all steps are completed
-		const isCompleted =
-			step === 3 &&
-			!!updatedData.step1 &&
-			!!updatedData.step2 &&
-			!!updatedData.step3;
-
-		const updateData: UpdateOnboardingDto = {
+		const updateDto: UpdateOnboardingDto = {
 			step,
 			completed: isCompleted,
 			data: updatedData,
@@ -143,78 +88,124 @@ export class OnboardingService {
 
 		const updatedOnboarding = await this.onboardingRepository.update(
 			userId,
-			updateData,
+			updateDto,
 		);
-
 		if (!updatedOnboarding) {
 			throw new NotFoundException(
-				`Failed to update onboarding for user with ID ${userId}`,
+				`Failed to update onboarding for user ${userId}`,
 			);
 		}
 
 		return updatedOnboarding;
 	}
 
-	/**
-	 * Asigna automáticamente un plan al usuario basado en los datos de onboarding
-	 */
 	async assignPlanBasedOnOnboarding(
 		userId: string,
 	): Promise<{ client: any; plan: Plan }> {
-		// Obtener los datos de onboarding del usuario
 		const onboarding = await this.findByUserId(userId);
+		this.ensureOnboardingCompleted(onboarding);
 
-		if (!onboarding.completed) {
-			throw new BadRequestException(
-				"El proceso de onboarding debe estar completo para asignar un plan",
-			);
-		}
-
-		if (!onboarding.data || !onboarding.data.step3) {
-			throw new BadRequestException(
-				"Faltan datos de entrenamiento necesarios para asignar un plan",
-			);
-		}
-
-		// Obtener el cliente asociado al userId
 		const client = await this.clientsService.findOne(userId);
-
 		if (!client) {
-			throw new NotFoundException(`No se encontró el cliente con ID ${userId}`);
+			throw new NotFoundException(`Client not found for user ${userId}`);
 		}
 
-		// Encontrar el plan que mejor se adapta a las preferencias del usuario
-		const recommendedPlan =
-			await this.planRecommendationService.findBestMatchingPlan(
-				onboarding.data,
-			);
+		// Update client userInfo with onboarding data
+		const onboardingData = onboarding.data || {};
+		const userInfoFromOnboarding =
+			this.extractUserInfoFromOnboarding(onboardingData);
+		await this.clientsService.updateUserInfo(userId, userInfoFromOnboarding);
 
-		if (!recommendedPlan) {
-			throw new NotFoundException(
-				"No se pudo encontrar un plan adecuado para tus preferencias",
-			);
-		}
-
-		// Asignar el plan al cliente
-		const planId = recommendedPlan._id
-			? recommendedPlan._id.toString()
-			: recommendedPlan.id?.toString();
-
-		if (!planId) {
-			throw new BadRequestException(
-				"El plan recomendado no tiene un ID válido",
-			);
-		}
+		const recommendedPlan = await this.planRecommendationService.recommendPlan(
+			onboarding.data || {},
+		);
+		this.ensurePlanIsValid(recommendedPlan);
 
 		const updatedClient = await this.clientsService.assignPlanToClient(
 			userId,
-			planId,
+			(recommendedPlan._id as any).toString(),
 		);
 
-		// Devolver tanto el cliente actualizado como el plan asignado
-		return {
-			client: updatedClient,
-			plan: recommendedPlan,
-		};
+		return { client: updatedClient, plan: recommendedPlan };
+	}
+
+	private extractUserInfoFromOnboarding(onboardingData: StepData): any {
+		const userInfo: any = {};
+
+		// Extract data from step1 (Personal Info)
+		if (onboardingData.step1) {
+			userInfo.name = onboardingData.step1.fullName;
+			userInfo.address = onboardingData.step1.address;
+			userInfo.phone = onboardingData.step1.phone;
+			userInfo.medicalSociety = onboardingData.step1.mutual;
+			userInfo.dateBirthday = new Date(onboardingData.step1.dateOfBirth);
+			userInfo.sex = onboardingData.step1.sex;
+			userInfo.CI = onboardingData.step1.ci;
+
+			// Handle avatarUrl if present
+			if (onboardingData.step1.avatarUrl) {
+				userInfo.avatarUrl = onboardingData.step1.avatarUrl;
+			}
+		}
+
+		// Extract data from step2 (Health Info)
+		if (onboardingData.step2) {
+			userInfo.bloodPressure = onboardingData.step2.bloodPressure;
+			userInfo.respiratoryHistory = onboardingData.step2.history.respiratory;
+			userInfo.cardiacHistory = onboardingData.step2.history.cardiac;
+			userInfo.surgicalHistory = onboardingData.step2.history.chirurgical;
+			userInfo.historyofPathologicalLesions =
+				onboardingData.step2.history.injuries;
+		}
+
+		// Extract data from step3 (Training Preferences)
+		if (onboardingData.step3) {
+			userInfo.frequencyOfPhysicalExercise =
+				onboardingData.step3.trainingDays.toString();
+		}
+
+		return userInfo;
+	}
+
+	// Métodos auxiliares para validaciones y claridad
+	private ensureUserIdProvided(userId: string): void {
+		if (!userId) {
+			throw new BadRequestException("User ID is required");
+		}
+	}
+
+	private ensureStepIsValid(step: number): void {
+		if (step < 1 || step > 3) {
+			throw new BadRequestException("Step must be between 1 and 3");
+		}
+	}
+
+	private mergeStepData(
+		currentData: StepData,
+		step: number,
+		newStepData?: any,
+	): StepData {
+		if (!newStepData) return currentData;
+
+		const stepKey = `step${step}`;
+		return { ...currentData, [stepKey]: newStepData };
+	}
+
+	private checkCompletion(data: StepData): boolean {
+		return Boolean(data.step1 && data.step2 && data.step3);
+	}
+
+	private ensureOnboardingCompleted(onboarding: Onboarding): void {
+		if (!onboarding.completed || !onboarding.data?.step3) {
+			throw new BadRequestException(
+				"Onboarding must be completed to assign a plan",
+			);
+		}
+	}
+
+	private ensurePlanIsValid(plan: Plan): void {
+		if (!plan || !plan._id) {
+			throw new NotFoundException("No suitable plan found");
+		}
 	}
 }

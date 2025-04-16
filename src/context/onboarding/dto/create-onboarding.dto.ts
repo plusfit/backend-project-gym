@@ -62,6 +62,15 @@ export class PersonalInfoDto {
 	@IsNotEmpty()
 	@Matches(/^\d{8}$/, { message: "CI must be exactly 8 digits" })
 	ci!: string;
+
+	@ApiProperty({
+		example: "https://example.com/avatar.jpg",
+		description: "URL to user's avatar image",
+		required: false,
+	})
+	@IsString()
+	@IsOptional()
+	avatarUrl?: string;
 }
 
 // Step 2: Health Information

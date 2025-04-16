@@ -1,7 +1,12 @@
 import { Injectable, Inject, NotFoundException } from "@nestjs/common";
-import { StepData } from "../schemas/onboarding.schema";
+import { StepData, TrainingPreferences } from "../schemas/onboarding.schema";
 import { PLAN_REPOSITORY } from "../../plans/repositories/plans.repository";
-import { PlanGoal, ExperienceLevel } from "../../shared/enums/plan.enum";
+import {
+	PlanGoal,
+	ExperienceLevel,
+	PlanCategory,
+	PlanType,
+} from "../../shared/enums/plan.enum";
 import { Plan } from "../../plans/schemas/plan.schema";
 
 @Injectable()
@@ -11,145 +16,184 @@ export class PlanRecommendationService {
 		private readonly plansRepository: any,
 	) {}
 
-	/**
-	 * Encuentra el plan más adecuado basado en los datos de onboarding del usuario
-	 */
-	async findBestMatchingPlan(onboardingData: StepData): Promise<Plan> {
-		if (!onboardingData || !onboardingData.step3) {
+	async recommendPlan(onboardingData: StepData): Promise<Plan> {
+		this.validateOnboardingData(onboardingData);
+
+		const criteria = this.buildSearchCriteria(onboardingData);
+		let plans = await this.findMatchingPlans(criteria);
+
+		if (plans.length === 0) {
+			plans = await this.findRelaxedPlans(
+				onboardingData.step3?.trainingDays || 0,
+			);
+		}
+
+		return this.selectBestPlan(plans, onboardingData);
+	}
+
+	private validateOnboardingData(onboardingData: StepData): void {
+		if (!onboardingData?.step3) {
 			throw new NotFoundException(
 				"No se encontraron datos de entrenamiento para recomendar un plan",
 			);
 		}
 
-		// Extraer datos relevantes del onboarding
-		const { trainingDays, goal, trainingLevel } = onboardingData.step3;
-
-		// Mapear el objetivo del formulario de onboarding al enum PlanGoal
-		let planGoal = PlanGoal.GENERAL_FITNESS;
-		switch (goal.toLowerCase()) {
-			case "perder peso":
-			case "bajar de peso":
-			case "pérdida de peso":
-				planGoal = PlanGoal.LOSE_WEIGHT;
-				break;
-			case "aumentar masa muscular":
-			case "ganar músculo":
-			case "hipertrofia":
-				planGoal = PlanGoal.BUILD_MUSCLE;
-				break;
-			case "mejorar resistencia":
-			case "resistencia cardiovascular":
-				planGoal = PlanGoal.IMPROVE_CARDIO;
-				break;
-			case "aumentar flexibilidad":
-			case "mejorar flexibilidad":
-				planGoal = PlanGoal.INCREASE_FLEXIBILITY;
-				break;
-		}
-
-		// Mapear el nivel de entrenamiento
-		let experienceLevel = ExperienceLevel.BEGINNER;
-		switch (trainingLevel.toLowerCase()) {
-			case "principiante":
-			case "beginner":
-				experienceLevel = ExperienceLevel.BEGINNER;
-				break;
-			case "intermedio":
-			case "intermediate":
-				experienceLevel = ExperienceLevel.INTERMEDIATE;
-				break;
-			case "avanzado":
-			case "advanced":
-				experienceLevel = ExperienceLevel.ADVANCED;
-				break;
-		}
-
-		// Construir los criterios de búsqueda para encontrar planes que coincidan
-		const criteria = {
-			days: { $lte: trainingDays }, // Planes con días menores o iguales a los días de entrenamiento deseados
-			goal: planGoal,
-			experienceLevel: experienceLevel,
-		};
-
-		// Obtener todos los planes que coincidan con los criterios
-		const matchingPlans = await this.plansRepository.findPlans(criteria);
-
-		if (!matchingPlans || matchingPlans.length === 0) {
-			// Si no hay coincidencias exactas, buscar con criterios más relajados
-			const relaxedCriteria = {
-				days: { $lte: trainingDays + 1 }, // Permitir un día más
-			};
-
-			// Intentar encontrar planes con criterios relajados
-			const alternativePlans =
-				await this.plansRepository.findPlans(relaxedCriteria);
-
-			if (!alternativePlans || alternativePlans.length === 0) {
-				throw new NotFoundException(
-					"No se encontraron planes que coincidan con tus preferencias",
-				);
-			}
-
-			// De los planes alternativos, tomar el que mejor se ajuste al nivel y objetivo
-			return this.rankPlans(
-				alternativePlans,
-				planGoal,
-				experienceLevel,
-				trainingDays,
+		if (!onboardingData?.step1?.dateOfBirth) {
+			throw new NotFoundException(
+				"No se encontró la fecha de nacimiento para recomendar un plan",
 			);
 		}
+	}
 
-		// De los planes que coinciden, tomar el que mejor se ajuste
-		return this.rankPlans(
-			matchingPlans,
-			planGoal,
-			experienceLevel,
-			trainingDays,
+	private buildSearchCriteria(onboardingData: StepData): Record<string, any> {
+		const step3 = onboardingData.step3 as TrainingPreferences;
+		const dateOfBirth = onboardingData.step1?.dateOfBirth || "";
+		const clientAge = this.calculateAge(dateOfBirth);
+
+		const goalMap: Record<string, PlanGoal> = {
+			"perder peso": PlanGoal.LOSE_WEIGHT,
+			"aumentar masa muscular": PlanGoal.BUILD_MUSCLE,
+			"mejorar resistencia": PlanGoal.IMPROVE_CARDIO,
+			"aumentar flexibilidad": PlanGoal.INCREASE_FLEXIBILITY,
+		};
+
+		const levelMap: Record<string, ExperienceLevel> = {
+			principiante: ExperienceLevel.BEGINNER,
+			intermedio: ExperienceLevel.INTERMEDIATE,
+			avanzado: ExperienceLevel.ADVANCED,
+		};
+
+		// Determinar el tipo de plan preferido basado en el tipo de entrenamiento
+		const trainingType = step3.trainingType || "";
+		const preferredType = trainingType.toLowerCase().includes("cardio")
+			? PlanType.CARDIO
+			: PlanType.ROOM;
+
+		return {
+			days: { $lte: step3.trainingDays },
+			goal:
+				goalMap[step3.goal?.toLowerCase() || ""] || PlanGoal.GENERAL_FITNESS,
+			experienceLevel:
+				levelMap[step3.trainingLevel?.toLowerCase() || ""] ||
+				ExperienceLevel.BEGINNER,
+			// Filtrar por edad si está especificada
+			$and: [
+				{
+					$or: [
+						{ minAge: { $exists: false } },
+						{ minAge: { $lte: clientAge } },
+					],
+				},
+				{
+					$or: [
+						{ maxAge: { $exists: false } },
+						{ maxAge: { $gte: clientAge } },
+					],
+				},
+			],
+			// Preferir el tipo de plan, pero no limitar estrictamente
+			$or: [{ type: preferredType }, { type: PlanType.MIXED }],
+		};
+	}
+
+	private async findMatchingPlans(
+		criteria: Record<string, any>,
+	): Promise<Plan[]> {
+		return this.plansRepository.getPlans(0, 100, criteria) || [];
+	}
+
+	private async findRelaxedPlans(trainingDays: number): Promise<Plan[]> {
+		return (
+			this.plansRepository.getPlans(0, 100, {
+				days: { $lte: trainingDays + 1 },
+			}) || []
 		);
 	}
 
-	/**
-	 * Ordena los planes según su relevancia para los criterios del usuario
-	 */
-	private rankPlans(
-		plans: Plan[],
-		goalPreference: string,
-		levelPreference: string,
-		daysPreference: number,
-	): Plan {
-		// Asignar puntuación a cada plan basado en qué tan bien coincide con las preferencias
-		const scoredPlans = plans.map((plan) => {
-			let score = 0;
+	private selectBestPlan(plans: Plan[], onboardingData: StepData): Plan {
+		if (plans.length === 0) {
+			throw new NotFoundException("No se encontraron planes disponibles");
+		}
 
-			// Puntaje por coincidencia de objetivo (más importante)
-			if (plan.goal === goalPreference) {
-				score += 5;
+		return plans
+			.map((plan) => ({
+				plan,
+				score: this.calculatePlanScore(plan, onboardingData),
+			}))
+			.sort((a, b) => b.score - a.score)[0].plan;
+	}
+
+	private calculatePlanScore(plan: Plan, onboardingData: StepData): number {
+		const step3 = onboardingData.step3 as TrainingPreferences;
+		const dateOfBirth = onboardingData.step1?.dateOfBirth || "";
+		const clientAge = this.calculateAge(dateOfBirth);
+		let score = 0;
+
+		// Evaluación de objetivos
+		if (plan.goal === step3.goal) score += 5;
+
+		// Evaluación de nivel de experiencia
+		if (plan.experienceLevel === step3.trainingLevel) score += 3;
+
+		// Evaluación de días de entrenamiento
+		const dayDiff = (step3.trainingDays || 0) - plan.days;
+		if (dayDiff >= 0) score += 4 - dayDiff;
+		else score -= 2; // Penaliza por requerir más días de entrenamiento.
+
+		// Evaluación de tipo de plan
+		const trainingType = step3.trainingType || "";
+		const preferredType = trainingType.toLowerCase().includes("cardio")
+			? PlanType.CARDIO
+			: PlanType.ROOM;
+		if (plan.type === preferredType) score += 4;
+		else if (plan.type === PlanType.MIXED) score += 2;
+
+		// Evaluación de categoría
+		// Mapeo de objetivos a categorías
+		const categoryMap: Record<string, PlanCategory> = {
+			[PlanGoal.LOSE_WEIGHT]: PlanCategory.WEIGHT_LOSS,
+			[PlanGoal.BUILD_MUSCLE]: PlanCategory.MUSCLE_GAIN,
+			[PlanGoal.IMPROVE_CARDIO]: PlanCategory.ENDURANCE,
+			[PlanGoal.INCREASE_FLEXIBILITY]: PlanCategory.FLEXIBILITY,
+			[PlanGoal.GENERAL_FITNESS]: PlanCategory.GENERAL_WELLNESS,
+		};
+
+		const preferredCategory =
+			categoryMap[plan.goal] || PlanCategory.GENERAL_WELLNESS;
+		if (plan.category === preferredCategory) score += 3;
+
+		// Evaluación de edad
+		if (plan.minAge !== undefined && plan.maxAge !== undefined) {
+			// Si el plan tiene un rango de edad y el cliente está dentro de ese rango
+			if (clientAge >= plan.minAge && clientAge <= plan.maxAge) {
+				score += 4;
+			} else {
+				// Penalizar si está fuera del rango pero no demasiado lejos
+				const minAgeDiff = plan.minAge ? Math.abs(clientAge - plan.minAge) : 0;
+				const maxAgeDiff = plan.maxAge ? Math.abs(clientAge - plan.maxAge) : 0;
+				const ageDiff = Math.min(minAgeDiff, maxAgeDiff);
+
+				if (ageDiff <= 5)
+					score -= 1; // Ligeramente fuera del rango
+				else if (ageDiff <= 10)
+					score -= 2; // Moderadamente fuera del rango
+				else score -= 3; // Muy fuera del rango
 			}
+		}
 
-			// Puntaje por coincidencia de nivel
-			if (plan.experienceLevel === levelPreference) {
-				score += 3;
-			}
+		return score;
+	}
 
-			// Puntaje por coincidencia de días (preferimos planes con días iguales o un poco menos)
-			const daysDiff = daysPreference - plan.days;
-			if (daysDiff === 0) {
-				score += 4; // Coincidencia exacta
-			} else if (daysDiff === 1) {
-				score += 3; // Un día menos
-			} else if (daysDiff === 2) {
-				score += 2; // Dos días menos
-			} else if (daysDiff < 0) {
-				score -= 1; // Penalizar si el plan requiere más días
-			}
+	private calculateAge(dateOfBirth: string): number {
+		const birthDate = new Date(dateOfBirth);
+		const today = new Date();
+		let age = today.getFullYear() - birthDate.getFullYear();
+		const m = today.getMonth() - birthDate.getMonth();
 
-			return { plan, score };
-		});
+		if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+			age--;
+		}
 
-		// Ordenar planes por puntuación descendente
-		scoredPlans.sort((a, b) => b.score - a.score);
-
-		// Devolver el plan con la puntuación más alta
-		return scoredPlans[0].plan;
+		return age;
 	}
 }

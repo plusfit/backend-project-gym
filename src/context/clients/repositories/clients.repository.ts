@@ -1,4 +1,5 @@
 import { Client } from "@/src/context/clients/schemas/client.schema";
+import { Plan } from "../../plans/schemas/plan.schema";
 
 export const CLIENT_REPOSITORY = "ClientsRepository";
 export interface ClientsRepository {
@@ -18,7 +19,7 @@ export interface ClientsRepository {
 		clientId: string,
 		routineId: string,
 	): Promise<Client | null>;
-	assignPlanToClient(clientId: string, planId: string): Promise<Client | null>;
+	assignPlanToClient(clientId: string, planId: Plan): Promise<Client | null>;
 	getListClients(ids: string[]): Promise<Client[]>;
 	findClientsByPlanId(planId: string): Promise<Client[]>;
 }

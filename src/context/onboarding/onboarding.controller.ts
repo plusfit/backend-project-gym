@@ -7,7 +7,8 @@ import {
 	Param,
 	Patch,
 	Post,
-	Query,
+	BadRequestException,
+	Req,
 } from "@nestjs/common";
 import {
 	ApiBody,
@@ -15,7 +16,6 @@ import {
 	ApiOkResponse,
 	ApiOperation,
 	ApiParam,
-	ApiQuery,
 	ApiTags,
 } from "@nestjs/swagger";
 import { CreateOnboardingDto } from "./dto/create-onboarding.dto";
@@ -161,7 +161,8 @@ export class OnboardingController {
 	})
 	@ApiParam({
 		name: "userId",
-		description: "User ID to assign a plan for",
+		description:
+			"User ID to assign a plan for (debe ser un ID válido de MongoDB)",
 		required: true,
 	})
 	@ApiOkResponse({
@@ -182,6 +183,46 @@ export class OnboardingController {
 		},
 	})
 	assignPlan(@Param("userId") userId: string) {
+		// Reject 'currentUser' explicitly
+		if (userId === "currentUser") {
+			throw new BadRequestException(
+				"Para el usuario actual, use el endpoint /onboarding/me/assign-plan",
+			);
+		}
+		return this.onboardingService.assignPlanBasedOnOnboarding(userId);
+	}
+
+	@Post("me/assign-plan")
+	@ApiOperation({
+		summary: "Assign a plan automatically for the current authenticated user",
+	})
+	@ApiOkResponse({
+		description:
+			"Returns the client with the assigned plan and the plan details",
+		schema: {
+			type: "object",
+			properties: {
+				client: {
+					type: "object",
+					description: "Updated client information",
+				},
+				plan: {
+					type: "object",
+					description: "Details of the assigned plan",
+				},
+			},
+		},
+	})
+	assignPlanForCurrentUser(@Req() req: any) {
+		const user = (req as any).user;
+
+		if (!user || (!user._id && !user.id)) {
+			throw new BadRequestException(
+				"No se pudo identificar al usuario autenticado",
+			);
+		}
+
+		const userId = user._id || user.id;
 		return this.onboardingService.assignPlanBasedOnOnboarding(userId);
 	}
 

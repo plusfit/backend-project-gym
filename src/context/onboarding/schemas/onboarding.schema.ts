@@ -12,6 +12,7 @@ export interface PersonalInfo {
 	dateOfBirth: string;
 	sex: string;
 	ci: string;
+	avatarUrl?: string;
 }
 
 // Step 2: Health Information
