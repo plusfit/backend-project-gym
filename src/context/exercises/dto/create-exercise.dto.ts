@@ -21,7 +21,7 @@ export class CreateExerciseDto {
 
   @IsString()
   @IsNotEmpty()
-  categorie!: string;
+  category!: string;
 
   @IsString()
   @IsNotEmpty()

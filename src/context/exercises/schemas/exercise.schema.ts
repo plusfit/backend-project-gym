@@ -14,7 +14,7 @@ export class Exercise extends Document {
 
   @Prop({ required: true })
   @IsString()
-  categorie!: string;
+  category!: string;
 
   @Prop()
   @IsString()

@@ -16,7 +16,7 @@ export class GetExerciseDto {
 
   @IsOptional()
   @IsString()
-  categorie?: string;
+  category?: string;
 
   @Type(() => Number)
   @IsNumber()

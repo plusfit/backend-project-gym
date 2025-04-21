@@ -41,7 +41,7 @@ export class ExercisesController {
       getExercisesDto.limit,
       getExercisesDto.name,
       getExercisesDto.type,
-      getExercisesDto.categorie,
+      getExercisesDto.category,
     );
   }
 

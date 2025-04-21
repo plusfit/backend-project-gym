@@ -19,27 +19,23 @@ export class ExercisesService {
     limit: number,
     name?: string,
     type?: string,
-    categrie?: string,
+    category?: string,
   ) {
     const offset = (page - 1) * limit;
     const filters: any = { $or: [] };
 
-    // Si 'name' tiene valor, agrega un filtro con $or
     if (name) {
       filters.$or.push({ name: { $regex: name, $options: "i" } });
     }
 
-    // Si 'type' tiene valor, agrega un filtro con $or
     if (type) {
       filters.$or.push({ type: type });
     }
 
-    // Si 'categrie' tiene valor, agrega un filtro con $or
-    if (categrie) {
-      filters.$or.push({ categorie: { $regex: categrie, $options: "i" } });
+    if (category) {
+      filters.$or.push({ category: { $regex: category, $options: "i" } });
     }
 
-    // Si no hay filtros en $or, eliminamos el campo $or
     if (filters.$or.length === 0) {
       delete filters.$or;
     }
