@@ -67,7 +67,7 @@ export class OnboardingController {
 		description: "Returns the onboarding record for the specified user",
 		type: Onboarding,
 	})
-	findOne(@Param("userId") userId: string): Promise<Onboarding> {
+	findOne(@Param("userId") userId: string): Promise<Onboarding | null> {
 		return this.onboardingService.findByUserId(userId);
 	}
 

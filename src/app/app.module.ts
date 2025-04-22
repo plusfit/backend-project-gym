@@ -2,8 +2,7 @@ import {
 	MiddlewareConsumer,
 	Module,
 	NestModule,
-	// RequestMethod,
-	// RequestMethod,
+	RequestMethod,
 } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { MongooseModule } from "@nestjs/mongoose";
@@ -13,7 +12,7 @@ import { CorrelationIdMiddleware } from "@/app/config/correlation-id/correlation
 import { HealthModule } from "@/app/health/health.module";
 import { LoggerMiddleware } from "@/app/middlewares/logger.middleware";
 import { AuthModule } from "@/src/context/auth/auth.module";
-// import { AuthMiddleware } from "@/src/context/auth/middlewares/auth.middleware";
+import { AuthMiddleware } from "@/src/context/auth/middlewares/auth.middleware";
 import { ClientsModule } from "@/src/context/clients/clients.module";
 import { ExercisesModule } from "@/src/context/exercises/exercises.module";
 import { OnboardingModule } from "@/src/context/onboarding/onboarding.module";
@@ -81,19 +80,19 @@ import { AppConfigModule } from "../context/config/config.module";
 })
 export class AppModule implements NestModule {
 	configure(consumer: MiddlewareConsumer): any {
-		// consumer
-		//   .apply(AuthMiddleware)
-		//   .exclude(
-		//     { path: "auth/login", method: RequestMethod.POST },
-		//     { path: "auth/login", method: RequestMethod.OPTIONS },
-		//     { path: "auth/register", method: RequestMethod.POST },
-		//     //  { path: "auth/register", method: RequestMethod.OPTIONS },
-		//     { path: "auth/refreshToken", method: RequestMethod.POST },
-		//     //  { path: "auth/refreshToken", method: RequestMethod.OPTIONS },
-		//     { path: "api", method: RequestMethod.GET },
-		//     { path: "api/(.*)", method: RequestMethod.GET },
-		//   )
-		//   .forRoutes("*");
+		consumer
+			.apply(AuthMiddleware)
+			.exclude(
+				{ path: "auth/login", method: RequestMethod.POST },
+				{ path: "auth/login", method: RequestMethod.OPTIONS },
+				{ path: "auth/register", method: RequestMethod.POST },
+				//  { path: "auth/register", method: RequestMethod.OPTIONS },
+				{ path: "auth/refreshToken", method: RequestMethod.POST },
+				//  { path: "auth/refreshToken", method: RequestMethod.OPTIONS },
+				{ path: "api", method: RequestMethod.GET },
+				{ path: "api/(.*)", method: RequestMethod.GET },
+			)
+			.forRoutes("*");
 
 		consumer.apply(LoggerMiddleware).forRoutes("*");
 		consumer.apply(CorrelationIdMiddleware).forRoutes("*");
