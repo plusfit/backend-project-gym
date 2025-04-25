@@ -9,6 +9,7 @@ import {
 } from "@nestjs/platform-fastify";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { Logger } from "nestjs-pino";
+import firebaseAdmin from "firebase-admin";
 
 import { AppModule } from "@/app/app.module";
 import { AllExceptionsFilter } from "@/src/context/shared/filters/all-exceptions.filter";
@@ -20,6 +21,19 @@ async function bootstrap() {
 		new FastifyAdapter(),
 	);
 	const configService = app.get(ConfigService);
+
+	// Inicializar Firebase Admin
+	try {
+		firebaseAdmin.initializeApp({
+			projectId: configService.get<string>("FIREBASE_PROJECT_ID")
+		});
+		// Verificar que el servicio de autenticación esté disponible
+		const auth = firebaseAdmin.auth();
+		console.log('Firebase Admin inicializado correctamente con servicio de auth');
+	} catch (error: any) {
+		// Si ya estaba inicializado, usar la app predeterminada
+		console.log('Firebase Admin ya está inicializado o ocurrió un error:', error.message);
+	}
 
 	const front_url = configService.get<string>(
 		"FRONT_URL",

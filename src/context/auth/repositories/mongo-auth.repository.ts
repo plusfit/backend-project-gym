@@ -38,4 +38,22 @@ export class MongoAuthRepository implements AuthRepository {
 		}
 		return client;
 	}
+
+	async updateUserInfo(userId: string, userInfo: any): Promise<Client> {
+		try {
+			const updatedClient = await this.clientModel.findByIdAndUpdate(
+				userId,
+				{ $set: { userInfo } },
+				{ new: true }
+			).exec();
+
+			if (!updatedClient) {
+				throw new Error(`User with ID ${userId} not found`);
+			}
+
+			return updatedClient;
+		} catch (error: any) {
+			throw new Error(`Error updating user info: ${error.message}`);
+		}
+	}
 }

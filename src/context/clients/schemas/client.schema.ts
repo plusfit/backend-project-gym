@@ -74,6 +74,9 @@ export class Client extends Document {
 
 	@Prop()
 	refreshToken?: string;
+
+	@Prop({ default: false })
+	isOnboardingCompleted?: boolean;
 }
 
 export const ClientSchema = SchemaFactory.createForClass(Client);

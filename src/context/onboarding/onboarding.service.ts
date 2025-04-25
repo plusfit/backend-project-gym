@@ -116,6 +116,9 @@ export class OnboardingService {
 			this.extractUserInfoFromOnboarding(onboardingData);
 		await this.clientsService.updateUserInfo(userId, userInfoFromOnboarding);
 
+		// Set isOnboardingCompleted to true
+		await this.clientsService.update(userId, { isOnboardingCompleted: true });
+
 		const recommendedPlan = await this.planRecommendationService.recommendPlan(
 			onboarding?.data || {},
 		);
@@ -123,8 +126,14 @@ export class OnboardingService {
 
 		const updatedClient = await this.clientsService.assignPlanToClient(
 			userId,
-			(recommendedPlan._id as any).toString(),
+			recommendedPlan,
 		);
+		console.log("updatedClient", updatedClient);
+
+		// Asegurar que el onboarding está marcado como completado en la base de datos
+		if (onboarding && !onboarding.completed) {
+			await this.onboardingRepository.update(userId, { completed: true });
+		}
 
 		return { client: updatedClient, plan: recommendedPlan };
 	}

@@ -87,9 +87,8 @@ export class RoutinesController {
 			}
 			this.logger.log(`Routine with ID: ${id} deleted successfully.`);
 			return { message: "Routine deleted successfully." };
-		} else {
-			throw new BadRequestException(`${id} is not a valid MongoDB ID`);
 		}
+			throw new BadRequestException(`${id} is not a valid MongoDB ID`);
 	}
 
 	@Get("")
