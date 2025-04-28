@@ -17,7 +17,6 @@ export class AuthService {
 		private readonly authRepository: any,
 		private readonly onboardingService: OnboardingService,
 		private readonly configService: ConfigService,
-		
 	) {}
 
 	async register(registerDto: RegisterAuthDto) {
@@ -41,9 +40,7 @@ export class AuthService {
 			//elimino el refresh tokenS
 			delete _doc.refreshToken;
 
-			 const onboarding = await this.onboardingService.findByUserId(
-                _doc._id,
-            );
+			const onboarding = await this.onboardingService.findByUserId(_doc._id);
 
 			_doc.onboardingCompleted = false;
 
@@ -51,7 +48,7 @@ export class AuthService {
 			if (onboarding && onboarding.completed) {
 				_doc.onboardingCompleted = true;
 			}
-			
+
 			const payload = {
 				..._doc,
 			};
