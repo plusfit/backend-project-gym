@@ -20,7 +20,6 @@ export class AuthService {
 		private readonly authRepository: any,
 		private readonly onboardingService: OnboardingService,
 		private readonly configService: ConfigService,
-
 	) {}
 
 	async register(registerDto: RegisterAuthDto) {
@@ -45,9 +44,7 @@ export class AuthService {
 			// biome-ignore lint/performance/noDelete: <explanation>
 			delete _doc.refreshToken;
 
-			 const onboarding = await this.onboardingService.findByUserId(
-                _doc._id,
-            );
+			const onboarding = await this.onboardingService.findByUserId(_doc._id);
 
 			_doc.onboardingCompleted = false;
 

@@ -44,7 +44,12 @@ async function bootstrap() {
 		.getHttpAdapter()
 		.getInstance()
 		.register(fastifyCors, {
-			origin: [front_url, "http://localhost:4200", "http://localhost:8100", "http://127.0.0.1:55376"],
+			origin: [
+				front_url,
+				"http://localhost:4200",
+				"http://localhost:8100",
+				"http://127.0.0.1:55376",
+			],
 			methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
 			allowedHeaders: ["Authorization", "Content-Type"],
 			credentials: true,
