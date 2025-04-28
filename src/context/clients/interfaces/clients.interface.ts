@@ -4,4 +4,5 @@ export interface ClientFilters {
 	CI?: string;
 	role?: string;
 	withoutPlan?: boolean;
+	disabled?: boolean;
 }

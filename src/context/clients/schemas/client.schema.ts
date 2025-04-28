@@ -55,25 +55,28 @@ export class UserInfo extends Document {
 	avatarUrl?: string;
 }
 
-@Schema()
+@Schema({ timestamps: true })
 export class Client extends Document {
-	@Prop({ default: "User" })
-	role!: string;
+  @Prop({ default: "User" })
+  role!: string;
 
-	@Prop()
-	planId!: string;
+  @Prop()
+  planId!: string;
 
-	@Prop()
-	routineId?: string;
+  @Prop()
+  routineId?: string;
 
-	@Prop({ required: true, unique: true })
-	email!: string;
+  @Prop({ required: true, unique: true })
+  email!: string;
 
-	@Prop({ type: SchemaFactory.createForClass(UserInfo) })
-	userInfo?: UserInfo;
+  @Prop({ type: SchemaFactory.createForClass(UserInfo) })
+  userInfo?: UserInfo;
 
-	@Prop()
-	refreshToken?: string;
+  @Prop()
+  refreshToken?: string;
+
+  @Prop({ default: false })
+  disabled!: boolean;
 }
 
 export const ClientSchema = SchemaFactory.createForClass(Client);
