@@ -101,11 +101,11 @@ export class MongoClientsRepository implements ClientsRepository {
 
 	async assignPlanToClient(
 		clientId: string,
-		planId: Plan
+		plan: Plan
 	): Promise<Client | null> {
 		return this.clientModel.findByIdAndUpdate(
 			clientId,
-			{ planId: planId.id, routineId: planId.defaultRoutine },
+			{ planId: plan.id, routineId: plan.defaultRoutine },
 			{ new: true },
 		);
 	}

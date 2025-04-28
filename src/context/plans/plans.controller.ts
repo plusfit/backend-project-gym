@@ -161,8 +161,8 @@ export class PlansController {
 	) {
 		try {
 			// Validate if plan exists
-			const planExist = await this.plansService.findOne(planId);
-			if (!planExist) {
+			const plan = await this.plansService.findOne(planId);
+			if (!plan) {
 				throw new NotFoundException(`Plan with ID ${planId} not found`);
 			}
 
@@ -171,16 +171,17 @@ export class PlansController {
 			if (!clientExist) {
 				throw new NotFoundException(`User with ID ${userId} not found`);
 			}
+			
 			const assignResponse = await this.plansService.assignPlanToClient(
 				userId,
-				planId,
+				plan,
 			);
 			if (!assignResponse) {
 				throw new Error(`Failed to assign plan to user.`);
 			}
 			if (!clientExist.routineId) {
 				await this.clientService.update(userId, {
-					routineId: planExist.defaultRoutine,
+					routineId: plan.defaultRoutine,
 				});
 			}
 
