@@ -55,10 +55,10 @@ export class ClientsService {
 			filters.planId = { $in: [undefined, undefined, ""] }; // null, undefined o vacío
 		}
 
-		if (filters.$or && filters.$or.length === 0) {
-			// check if filters.$or is empty
-			filters.$or = undefined;
-		}
+		// if (filters.$or && filters.$or.length === 0) {
+		// 	// check if filters.$or is empty
+		// 	filters.$or = undefined;
+		// }
 
 		const [data, total] = await Promise.all([
 			this.clientRepository.getClients(offset, limit, filters),

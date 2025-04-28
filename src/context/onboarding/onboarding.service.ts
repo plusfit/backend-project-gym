@@ -128,9 +128,7 @@ export class OnboardingService {
 			userId,
 			recommendedPlan,
 		);
-		console.log("updatedClient", updatedClient);
 
-		// Asegurar que el onboarding está marcado como completado en la base de datos
 		if (onboarding && !onboarding.completed) {
 			await this.onboardingRepository.update(userId, { completed: true });
 		}
@@ -141,7 +139,6 @@ export class OnboardingService {
 	private extractUserInfoFromOnboarding(onboardingData: StepData): any {
 		const userInfo: any = {};
 
-		// Extract data from step1 (Personal Info)
 		if (onboardingData.step1) {
 			userInfo.name = onboardingData.step1.fullName;
 			userInfo.address = onboardingData.step1.address;
@@ -151,13 +148,11 @@ export class OnboardingService {
 			userInfo.sex = onboardingData.step1.sex;
 			userInfo.CI = onboardingData.step1.ci;
 
-			// Handle avatarUrl if present
 			if (onboardingData.step1.avatarUrl) {
 				userInfo.avatarUrl = onboardingData.step1.avatarUrl;
 			}
 		}
 
-		// Extract data from step2 (Health Info)
 		if (onboardingData.step2) {
 			userInfo.bloodPressure = onboardingData.step2.bloodPressure;
 			userInfo.respiratoryHistory = onboardingData.step2.history.respiratory;
@@ -167,7 +162,6 @@ export class OnboardingService {
 				onboardingData.step2.history.injuries;
 		}
 
-		// Extract data from step3 (Training Preferences)
 		if (onboardingData.step3) {
 			userInfo.frequencyOfPhysicalExercise =
 				onboardingData.step3.trainingDays.toString();
@@ -176,7 +170,6 @@ export class OnboardingService {
 		return userInfo;
 	}
 
-	// Métodos auxiliares para validaciones y claridad
 	private ensureUserIdProvided(userId: string): void {
 		if (!userId) {
 			throw new BadRequestException("User ID is required");
