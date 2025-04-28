@@ -140,9 +140,9 @@ export class ClientsService {
 		);
 	}
 
-	async assignPlanToClient(clientId: string, planId: Plan) {
+	async assignPlanToClient(clientId: string, plan: Plan) {
 		try {
-			return await this.clientRepository.assignPlanToClient(clientId, planId);
+			return await this.clientRepository.assignPlanToClient(clientId, plan);
 		} catch (error: any) {
 			throw new HttpException(
 				`Error al asignar el plan al cliente: ${error.message}`,
