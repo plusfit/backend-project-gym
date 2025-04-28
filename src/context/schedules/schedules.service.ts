@@ -101,8 +101,7 @@ export class SchedulesService {
 		}
 
 		const schedule = await this.scheduleRepository.findById(scheduleId);
-		console.log("schedule", schedule);
-		console.log(clienstIds);
+
 		if (!schedule) {
 			throw new NotFoundException(`Schedule with ID ${scheduleId} not found`);
 		}
