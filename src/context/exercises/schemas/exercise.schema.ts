@@ -4,51 +4,55 @@ import { Document } from "mongoose";
 
 @Schema()
 export class Exercise extends Document {
-	@Prop({ required: true })
-	@IsString()
-	name!: string;
+  @Prop({ required: true })
+  @IsString()
+  name!: string;
 
-	@Prop({ required: true })
-	@IsString()
-	description!: string;
+  @Prop({ required: true })
+  @IsString()
+  description!: string;
 
-	@Prop()
-	@IsString()
-	gifUrl!: string;
+  @Prop({ required: true })
+  @IsString()
+  category!: string;
 
-	@Prop({ required: true })
-	@IsString()
-	type!: string;
+  @Prop()
+  @IsString()
+  gifUrl!: string;
 
-	@Prop()
-	updatedAt!: Date;
+  @Prop({ required: true })
+  @IsString()
+  type!: string;
 
-	@Prop({ default: Date.now })
-	createdAt!: Date;
+  @Prop()
+  updatedAt!: Date;
 
-	@Prop()
-	@ValidateIf((obj) => obj.type === "cardio")
-	@IsNumber()
-	@IsOptional()
-	minutes?: number;
+  @Prop({ default: Date.now })
+  createdAt!: Date;
 
-	@Prop()
-	@ValidateIf((obj) => obj.type === "cardio")
-	@IsNumber()
-	@IsOptional()
-	rest?: number;
+  @Prop()
+  @ValidateIf((obj) => obj.type === "cardio")
+  @IsNumber()
+  @IsOptional()
+  minutes?: number;
 
-	@Prop()
-	@ValidateIf((obj) => obj.type === "room")
-	@IsNumber()
-	@IsOptional()
-	reps?: number;
+  @Prop()
+  @ValidateIf((obj) => obj.type === "cardio")
+  @IsNumber()
+  @IsOptional()
+  rest?: number;
 
-	@Prop()
-	@ValidateIf((obj) => obj.type === "room")
-	@IsNumber()
-	@IsOptional()
-	series?: number;
+  @Prop()
+  @ValidateIf((obj) => obj.type === "room")
+  @IsNumber()
+  @IsOptional()
+  reps?: number;
+
+  @Prop()
+  @ValidateIf((obj) => obj.type === "room")
+  @IsNumber()
+  @IsOptional()
+  series?: number;
 }
 
 export const ExerciseSchema = SchemaFactory.createForClass(Exercise);
