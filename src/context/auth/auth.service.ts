@@ -239,8 +239,14 @@ export class AuthService {
 				await this.onboardingService.create({
 					userId: client._id.toString(),
 					step: 1,
-					completed: false
+					completed: false,
 				});
+			}
+
+			if (client && client.disabled) {
+				throw new UnauthorizedException(
+					"Usuario deshabilitado. Contacte al administrador",
+				);
 			}
 
 			// Extraemos la información que necesitamos
@@ -258,7 +264,10 @@ export class AuthService {
 
 			// Si hay nombre o avatar en el DTO y el usuario no tiene esta información,
 			// actualizamos el userInfo
-			if ((googleAuthDto.name || googleAuthDto.avatarUrl) && !_doc.userInfo?.name) {
+			if (
+				(googleAuthDto.name || googleAuthDto.avatarUrl) &&
+				!_doc.userInfo?.name
+			) {
 				const userInfo = _doc.userInfo || {};
 
 				if (googleAuthDto.name) {
@@ -290,7 +299,7 @@ export class AuthService {
 		} catch (error) {
 			console.error("Google login error:", error);
 			throw new UnauthorizedException(
-				"Error al iniciar sesión con Google, verifique su cuenta"
+				"Error al iniciar sesión con Google, verifique su cuenta",
 			);
 		}
 	}
