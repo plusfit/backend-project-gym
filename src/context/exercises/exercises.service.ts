@@ -19,16 +19,25 @@ export class ExercisesService {
     limit: number,
     name?: string,
     type?: string,
+    category?: string,
   ) {
     const offset = (page - 1) * limit;
-    const filters: any = {};
+    const filters: any = { $or: [] };
 
     if (name) {
-      filters.name = { $regex: name, $options: "i" };
+      filters.$or.push({ name: { $regex: name, $options: "i" } });
     }
 
     if (type) {
-      filters.type = type;
+      filters.$or.push({ type: type });
+    }
+
+    if (category) {
+      filters.$or.push({ category: { $regex: category, $options: "i" } });
+    }
+
+    if (filters.$or.length === 0) {
+      delete filters.$or;
     }
 
     const [data, total] = await Promise.all([

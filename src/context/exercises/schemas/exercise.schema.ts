@@ -12,6 +12,10 @@ export class Exercise extends Document {
   @IsString()
   description!: string;
 
+  @Prop({ required: true })
+  @IsString()
+  category!: string;
+
   @Prop()
   @IsString()
   gifUrl!: string;

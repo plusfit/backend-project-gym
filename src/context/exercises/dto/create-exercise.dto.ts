@@ -21,6 +21,10 @@ export class CreateExerciseDto {
 
   @IsString()
   @IsNotEmpty()
+  category!: string;
+
+  @IsString()
+  @IsNotEmpty()
   type!: string; //cardio o room
 
   @IsNumber()
