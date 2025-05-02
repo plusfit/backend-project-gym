@@ -38,14 +38,14 @@ export class AuthService {
 			const email = await this.getEmailFromJWTFirebase(loginDto.token);
 			const response = await this.authRepository.login(email);
 
-			if (response && response.disabled) {
+			//me quedo con lo importante
+			const { _doc } = response;
+
+			if (_doc.disabled) {
 				throw new UnauthorizedException(
 					"Usuario deshabilitado. Contacte al administrador",
 				);
 			}
-
-			//me quedo con lo importante
-			const { _doc } = response;
 
 			//elimino el refresh tokenS
 			// biome-ignore lint/performance/noDelete: <explanation>
@@ -243,14 +243,15 @@ export class AuthService {
 				});
 			}
 
-			if (client && client.disabled) {
+			// Extraemos la información que necesitamos
+			const { _doc } = client as any;
+
+			if (_doc.disabled) {
 				throw new UnauthorizedException(
 					"Usuario deshabilitado. Contacte al administrador",
 				);
 			}
 
-			// Extraemos la información que necesitamos
-			const { _doc } = client as any;
 			// biome-ignore lint/performance/noDelete: necesario para eliminar la propiedad
 			delete _doc.refreshToken;
 
