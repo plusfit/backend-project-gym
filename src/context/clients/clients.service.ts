@@ -36,7 +36,7 @@ export class ClientsService {
 
 	async findAll(page: number, limit: number, clientFilters: ClientFilters) {
 		const offset = (page - 1) * limit;
-		const { name, email, CI, role, withoutPlan } = clientFilters;
+		const { name, email, CI, role, withoutPlan, disabled } = clientFilters;
 		const filters: any = { $or: [] };
 
 		if (role) {
@@ -55,9 +55,12 @@ export class ClientsService {
 			filters.planId = { $in: [undefined, undefined, ""] }; // null, undefined o vacío
 		}
 
+   if (disabled !== undefined) {
+     filters.disabled = disabled;
+   }
+
 		if (filters.$or && filters.$or.length === 0) {
-			// check if filters.$or is empty
-			filters.$or = undefined;
+			delete filters.$or;
 		}
 
 		const [data, total] = await Promise.all([
@@ -182,4 +185,19 @@ export class ClientsService {
 			);
 		}
 	}
+
+  async toggleDisabled(clientId: string, disabled: boolean) {
+    try {
+      const client = await this.clientRepository.toggleDisabled(clientId, disabled);
+      if (!client) {
+        throw new NotFoundException(`Client with ID ${clientId} not found`);
+      }
+      return client;
+    } catch (error: any) {
+      throw new HttpException(
+        `Error toggling disabled status for client: ${error.message}`,
+        error.status || 500,
+      );
+    }
+  }
 }

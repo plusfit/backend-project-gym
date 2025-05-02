@@ -41,6 +41,7 @@ export class ClientsController {
       CI: getClientsDto.CI,
       role: getClientsDto.role,
       withoutPlan: getClientsDto.withoutPlan,
+      disabled: getClientsDto.disabled,
     };
     return this.clientsService.findAll(
       getClientsDto.page,
