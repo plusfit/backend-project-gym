@@ -37,6 +37,13 @@ export class AuthService {
 			//obtengo el mail
 			const email = await this.getEmailFromJWTFirebase(loginDto.token);
 			const response = await this.authRepository.login(email);
+
+			if (response && response.disabled) {
+				throw new UnauthorizedException(
+					"Usuario deshabilitado. Contacte al administrador",
+				);
+			}
+
 			//me quedo con lo importante
 			const { _doc } = response;
 
