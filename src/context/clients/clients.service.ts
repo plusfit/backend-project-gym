@@ -56,8 +56,7 @@ export class ClientsService {
 		}
 
 		if (filters.$or && filters.$or.length === 0) {
-			// check if filters.$or is empty
-			filters.$or = undefined;
+			delete filters.$or;
 		}
 
 		const [data, total] = await Promise.all([
