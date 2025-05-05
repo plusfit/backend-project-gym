@@ -19,9 +19,13 @@ export class CreateExerciseDto {
 	@IsOptional()
 	gifUrl?: string;
 
-	@IsString()
-	@IsNotEmpty()
-	type!: string; //cardio o room
+  @IsString()
+  @IsNotEmpty()
+  category!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  type!: string; //cardio o room
 
 	@IsNumber()
 	rest?: number; //descanso en segundos

@@ -32,17 +32,18 @@ export class ExercisesController {
 		return this.exercisesService.create(createExerciseDto);
 	}
 
-	@Get()
-	// @Roles(Role.Admin)
-	// @UseGuards(RolesGuard)
-	findAll(@Query() getExercisesDto: GetExerciseDto) {
-		return this.exercisesService.getExercises(
-			getExercisesDto.page,
-			getExercisesDto.limit,
-			getExercisesDto.name,
-			getExercisesDto.type,
-		);
-	}
+  @Get()
+  // @Roles(Role.Admin)
+  // @UseGuards(RolesGuard)
+  findAll(@Query() getExercisesDto: GetExerciseDto) {
+    return this.exercisesService.getExercises(
+      getExercisesDto.page,
+      getExercisesDto.limit,
+      getExercisesDto.name,
+      getExercisesDto.type,
+      getExercisesDto.category,
+    );
+  }
 
 	@Get(":id")
 	// @Roles(Role.Admin, Role.Client)
