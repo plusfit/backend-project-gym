@@ -31,6 +31,6 @@ import { SchedulesService } from "./schedules.service";
 			useClass: MongoScheduleRepository,
 		},
 	],
-	exports: [SCHEDULE_REPOSITORY],
+	exports: [SCHEDULE_REPOSITORY, SchedulesService],
 })
 export class SchedulesModule {}
