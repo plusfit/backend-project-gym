@@ -24,6 +24,7 @@ import { SchedulesModule } from "@/src/context/schedules/schedules.module";
 
 // import { AuthMiddleware } from "../context/auth/middlewares/auth.middleware";
 import { AppConfigModule } from "../context/config/config.module";
+import { CategoriesModule } from "../context/categories/categories.module";
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { AppConfigModule } from "../context/config/config.module";
     OnboardingModule,
     AppConfigModule,
     AuthModule,
+    CategoriesModule,
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       // eslint-disable-next-line @typescript-eslint/require-await

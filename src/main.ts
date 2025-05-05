@@ -8,6 +8,7 @@ import {
 	NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import fastifyMultipart from "fastify-multipart";
 import { Logger } from "nestjs-pino";
 import firebaseAdmin from "firebase-admin";
 

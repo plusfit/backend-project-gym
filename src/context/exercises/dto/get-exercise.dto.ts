@@ -14,10 +14,14 @@ export class GetExerciseDto {
 	@IsString()
 	mode?: string;
 
-	@Type(() => Number)
-	@IsNumber()
-	@Min(1)
-	page = 1;
+  @IsOptional()
+  @IsString()
+  category?: string;
+
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  page: number = 1;
 
 	@Type(() => Number)
 	@IsNumber()
