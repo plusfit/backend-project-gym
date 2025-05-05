@@ -12,7 +12,7 @@ import fastifyMultipart from "fastify-multipart";
 import { Logger } from "nestjs-pino";
 import firebaseAdmin from "firebase-admin";
 
-import { AppModule } from "@/app/app.module";
+import { AppModule } from "../src/app/app.module";
 import { AllExceptionsFilter } from "@/src/context/shared/filters/all-exceptions.filter";
 import { ResponseInterceptor } from "@/src/context/shared/interceptors/response-success.interceptor";
 

@@ -8,9 +8,9 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { MongooseModule } from "@nestjs/mongoose";
 import { LoggerModule } from "nestjs-pino";
 
-import { CorrelationIdMiddleware } from "@/app/config/correlation-id/correlation-id.middleware";
-import { HealthModule } from "@/app/health/health.module";
-import { LoggerMiddleware } from "@/app/middlewares/logger.middleware";
+import { CorrelationIdMiddleware } from "../app/config/correlation-id/correlation-id.middleware" //"@/app/config/correlation-id/correlation-id.middleware";
+import { HealthModule } from "../app/health/health.module" //@/app/health/health.module";
+import { LoggerMiddleware } from "../app/middlewares/logger.middleware" //"@/app/middlewares/logger.middleware";
 import { AuthModule } from "@/src/context/auth/auth.module";
 import { AuthMiddleware } from "@/src/context/auth/middlewares/auth.middleware";
 import { ClientsModule } from "@/src/context/clients/clients.module";
