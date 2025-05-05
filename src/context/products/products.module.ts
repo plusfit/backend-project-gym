@@ -8,16 +8,16 @@ import { ProductsService } from "@/src/context/products/products.service";
 import { ProductSchema } from "@/src/context/products/schemas/product.schema";
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([{ name: "Product", schema: ProductSchema }]),
-  ],
-  providers: [
-    ProductsService,
-    {
-      provide: PRODUCT_REPOSITORY,
-      useClass: MongoProductsRepository,
-    },
-  ],
-  controllers: [ProductsController],
+	imports: [
+		MongooseModule.forFeature([{ name: "Product", schema: ProductSchema }]),
+	],
+	providers: [
+		ProductsService,
+		{
+			provide: PRODUCT_REPOSITORY,
+			useClass: MongoProductsRepository,
+		},
+	],
+	controllers: [ProductsController],
 })
 export class ProductsModule {}

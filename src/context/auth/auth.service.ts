@@ -3,191 +3,323 @@ import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios from "axios";
 import jwt from "jsonwebtoken";
+import { OAuth2Client } from "google-auth-library";
+import firebaseAdmin from "firebase-admin";
 
 import { LoginAuthDto } from "@/src/context/auth/dto/login-auth.dto";
 import { RefreshTokenAuthDto } from "@/src/context/auth/dto/refresh-token-auth-dto";
 import { RegisterAuthDto } from "@/src/context/auth/dto/register-auth.dto";
 import { AUTH_REPOSITORY } from "@/src/context/auth/repositories/auth.repository";
+import { OnboardingService } from "../onboarding/onboarding.service";
+import { GoogleAuthDto } from "@/src/context/auth/dto/google-auth.dto";
 
 @Injectable()
 export class AuthService {
-  constructor(
-    @Inject(AUTH_REPOSITORY)
-    private readonly authRepository: any,
-    private readonly configService: ConfigService,
-  ) {}
+	constructor(
+		@Inject(AUTH_REPOSITORY)
+		private readonly authRepository: any,
+		private readonly onboardingService: OnboardingService,
+		private readonly configService: ConfigService,
+	) {}
 
-  async register(registerDto: RegisterAuthDto) {
-    try {
-      return await this.authRepository.register(registerDto);
-    } catch (error: any) {
-      console.log(error);
-      throw new UnauthorizedException("Error al registrar, verifique datos");
-    }
-  }
+	async register(registerDto: RegisterAuthDto) {
+		try {
+			return await this.authRepository.register(registerDto);
+		} catch (error: any) {
+			console.log(error);
+			throw new UnauthorizedException("Error al registrar, verifique datos");
+		}
+	}
 
-  async login(loginDto: LoginAuthDto) {
-    try {
-      this.validateLogin(loginDto);
-      //obtengo el mail
-      const email = await this.getEmailFromJWTFirebase(loginDto.token);
-      const response = await this.authRepository.login(email);
-      //me quedo con lo importante
-      const { _doc } = response;
-      //elimino el refresh token
-      delete _doc.refreshToken;
+	async login(loginDto: LoginAuthDto) {
+		try {
+			this.validateLogin(loginDto);
+			//obtengo el mail
+			const email = await this.getEmailFromJWTFirebase(loginDto.token);
+			const response = await this.authRepository.login(email);
 
-      const payload = {
-        ..._doc,
-      };
-      //genero los tokens
-      const tokens = this.createToken(payload);
+			//me quedo con lo importante
+			const { _doc } = response;
 
-      //guardo el refreshToken en la base de datos
-      await this.authRepository.saveRefreshToken(_doc._id, tokens.refreshToken);
+			if (_doc.disabled) {
+				throw new UnauthorizedException(
+					"Usuario deshabilitado. Contacte al administrador",
+				);
+			}
 
-      return {
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
-      };
-    } catch (error: any) {
-      console.log(error);
-      throw new UnauthorizedException(
-        "Error al iniciar sesión, verifique datos",
-      );
-    }
-  }
+			//elimino el refresh tokenS
+			// biome-ignore lint/performance/noDelete: <explanation>
+			delete _doc.refreshToken;
 
-  validateLogin(loginDto: LoginAuthDto) {
-    if (!loginDto.token) {
-      throw new Error("Token is required");
-    }
-  }
+			const onboarding = await this.onboardingService.findByUserId(_doc._id);
 
-  async getEmailFromJWTFirebase(token: string) {
-    try {
-      const firebasePublicKeysUrl = this.configService.get(
-        "FIREBASE_PUBLIC_KEYS_URL",
-      );
+			_doc.onboardingCompleted = false;
 
-      //Obtener claves publicas de Firebase
-      const response = await axios.get(firebasePublicKeysUrl);
-      const publicKeys = response.data;
+			//verifico si el onboarding esta completo
+			if (onboarding && onboarding.completed) {
+				_doc.onboardingCompleted = true;
+			}
 
-      //Decodificar token sin verificar la firma para obtener el kid
-      const decodedHeader: any = jwt.decode(token, { complete: true });
-      const kid = decodedHeader?.header?.kid;
+			const payload = {
+				..._doc,
+			};
+			//genero los tokens
+			const tokens = this.createToken(payload);
 
-      if (!kid || !publicKeys[kid]) {
-        throw new Error("Invalid token");
-      }
+			//guardo el refreshToken en la base de datos
+			await this.authRepository.saveRefreshToken(_doc._id, tokens.refreshToken);
 
-      //Verificar el token con la clave publica
-      const decoded = jwt.verify(token, publicKeys[kid]) as jwt.JwtPayload;
+			return {
+				accessToken: tokens.accessToken,
+				refreshToken: tokens.refreshToken,
+			};
+		} catch (error: any) {
+			console.log(error);
+			throw new UnauthorizedException(
+				"Error al iniciar sesión, verifique datos",
+			);
+		}
+	}
 
-      //Validar que venga de Firebase
-      if (decoded.aud !== this.configService.get("AUD")) {
-        //dtf-central a modo de prueba
-        throw new Error("Token is not from Firebase");
-      }
+	validateLogin(loginDto: LoginAuthDto) {
+		if (!loginDto.token) {
+			throw new Error("Token is required");
+		}
+	}
 
-      //Valido que tenga un email
-      if (
-        !decoded.email ||
-        !decoded.firebase ||
-        !decoded.firebase.identities?.email?.length
-      ) {
-        throw new Error("Invalid token");
-      }
+	async getEmailFromJWTFirebase(token: string) {
+		try {
+			const firebasePublicKeysUrl = this.configService.get(
+				"FIREBASE_PUBLIC_KEYS_URL",
+			);
 
-      return decoded.email;
-    } catch (error: any) {
-      throw new Error(error.message);
-    }
-  }
+			//Obtener claves publicas de Firebase
+			const response = await axios.get(firebasePublicKeysUrl);
+			const publicKeys = response.data;
 
-  createToken(payload: any) {
-    //género el accessToken y el refreshToken con los secrets del .env
-    const accessSecret = this.configService.get("JWT_ACCESS_SECRET");
-    const accessExpiresIn = this.configService.get("JWT_ACCESS_EXPIRES_IN");
+			//Decodificar token sin verificar la firma para obtener el kid
+			const decodedHeader: any = jwt.decode(token, { complete: true });
+			const kid = decodedHeader?.header?.kid;
 
-    const refreshSecret = this.configService.get<string>("JWT_REFRESH_SECRET");
-    if (!refreshSecret) {
-      throw new Error("JWT_REFRESH_SECRET is not set in the configuration.");
-    }
-    const refreshExpiresIn = this.configService.get("JWT_REFRESH_EXPIRES_IN");
+			if (!kid || !publicKeys[kid]) {
+				throw new Error("Invalid token");
+			}
 
-    const tokenPayload = {
-      ...payload,
-      createdAt: Date.now(),
-    };
+			//Verificar el token con la clave publica
+			const decoded = jwt.verify(token, publicKeys[kid]) as jwt.JwtPayload;
 
-    const accessToken = jwt.sign(tokenPayload, accessSecret, {
-      expiresIn: accessExpiresIn,
-    });
+			//Validar que venga de Firebase
+			if (decoded.aud !== this.configService.get("AUD")) {
+				//dtf-central a modo de prueba
+				throw new Error("Token is not from Firebase");
+			}
 
-    const refreshTokenPayload = {
-      ...payload,
-      createdAt: Date.now(),
-    };
+			//Valido que tenga un email
+			if (
+				!decoded.email ||
+				!decoded.firebase ||
+				!decoded.firebase.identities?.email?.length
+			) {
+				throw new Error("Invalid token");
+			}
 
-    const refreshToken = jwt.sign(refreshTokenPayload, refreshSecret, {
-      expiresIn: refreshExpiresIn,
-    });
+			return decoded.email;
+		} catch (error: any) {
+			throw new Error(error.message);
+		}
+	}
 
-    return {
-      accessToken: accessToken,
-      refreshToken: refreshToken,
-    };
-  }
+	createToken(payload: any) {
+		//género el accessToken y el refreshToken con los secrets del .env
+		const accessSecret = this.configService.get("JWT_ACCESS_SECRET");
+		const accessExpiresIn = this.configService.get("JWT_ACCESS_EXPIRES_IN");
 
-  async refreshToken(refreshToken: RefreshTokenAuthDto) {
-    try {
-      const _refreshToken = refreshToken.refreshToken;
-      const refreshSecret =
-        this.configService.get<string>("JWT_REFRESH_SECRET");
+		const refreshSecret = this.configService.get<string>("JWT_REFRESH_SECRET");
+		if (!refreshSecret) {
+			throw new Error("JWT_REFRESH_SECRET is not set in the configuration.");
+		}
+		const refreshExpiresIn = this.configService.get("JWT_REFRESH_EXPIRES_IN");
 
-      if (!refreshSecret) {
-        throw new Error("JWT_REFRESH_SECRET is not set in the configuration.");
-      }
+		const tokenPayload = {
+			...payload,
+			createdAt: Date.now(),
+		};
 
-      //verifico y decodifico el refresh token
-      const decoded = jwt.verify(
-        _refreshToken,
-        refreshSecret,
-      ) as jwt.JwtPayload;
-      const userId = decoded._id;
+		const accessToken = jwt.sign(tokenPayload, accessSecret, {
+			expiresIn: accessExpiresIn,
+		});
 
-      //obtengo el refresh token almacenado del usuario
-      const storedRefreshToken =
-        await this.authRepository.getRefreshToken(userId);
+		const refreshTokenPayload = {
+			...payload,
+			createdAt: Date.now(),
+		};
 
-      if (storedRefreshToken !== _refreshToken) {
-        throw new Error("Invalid refresh token");
-      }
+		const refreshToken = jwt.sign(refreshTokenPayload, refreshSecret, {
+			expiresIn: refreshExpiresIn,
+		});
 
-      // elimino los campos exp e iat para que se generen de nuevo a lo que no uso las variables tengo que comentarlas con eslint
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { exp, iat, ...payloadWithoutExp } = decoded;
+		return {
+			accessToken: accessToken,
+			refreshToken: refreshToken,
+		};
+	}
 
-      // Genero nuevos tokens
-      const newTokens = this.createToken(payloadWithoutExp);
+	async refreshToken(refreshToken: RefreshTokenAuthDto) {
+		try {
+			const _refreshToken = refreshToken.refreshToken;
+			const refreshSecret =
+				this.configService.get<string>("JWT_REFRESH_SECRET");
 
-      //guardo el nuevo refresh token
-      await this.authRepository.saveRefreshToken(
-        userId,
-        newTokens.refreshToken,
-      );
+			if (!refreshSecret) {
+				throw new Error("JWT_REFRESH_SECRET is not set in the configuration.");
+			}
 
-      return {
-        accessToken: newTokens.accessToken,
-        refreshToken: newTokens.refreshToken,
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        error: error.message,
-      };
-    }
-  }
+			//verifico y decodifico el refresh token
+			const decoded = jwt.verify(
+				_refreshToken,
+				refreshSecret,
+			) as jwt.JwtPayload;
+			const userId = decoded._id;
+
+			//obtengo el refresh token almacenado del usuario
+			const storedRefreshToken =
+				await this.authRepository.getRefreshToken(userId);
+
+			if (storedRefreshToken !== _refreshToken) {
+				throw new Error("Invalid refresh token");
+			}
+
+			// elimino los campos exp e iat para que se generen de nuevo a lo que no uso las variables tengo que comentarlas con eslint
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			const { exp, iat, ...payloadWithoutExp } = decoded;
+
+			// Genero nuevos tokens
+			const newTokens = this.createToken(payloadWithoutExp);
+
+			//guardo el nuevo refresh token
+			await this.authRepository.saveRefreshToken(
+				userId,
+				newTokens.refreshToken,
+			);
+
+			return {
+				accessToken: newTokens.accessToken,
+				refreshToken: newTokens.refreshToken,
+			};
+		} catch (error: any) {
+			return {
+				success: false,
+				error: error.message,
+			};
+		}
+	}
+
+	async googleLogin(googleAuthDto: GoogleAuthDto) {
+		try {
+			if (!googleAuthDto.idToken) {
+				throw new Error("Google ID token is required");
+			}
+
+			// Verificar el token de Google y obtener el email
+			const email = await this.verifyGoogleToken(googleAuthDto.idToken);
+
+			// Buscar usuario por email
+			// biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
+			let client: any;
+			try {
+				client = await this.authRepository.login(email);
+			} catch (error) {
+				// Si el usuario no existe, lo registramos automáticamente
+				const registerDto: RegisterAuthDto = {
+					email,
+				};
+				client = await this.authRepository.register(registerDto);
+
+				// Crear el registro de onboarding para el nuevo usuario
+				await this.onboardingService.create({
+					userId: client._id.toString(),
+					step: 1,
+					completed: false,
+				});
+			}
+
+			// Extraemos la información que necesitamos
+			const { _doc } = client as any;
+
+			if (_doc.disabled) {
+				throw new UnauthorizedException(
+					"Usuario deshabilitado. Contacte al administrador",
+				);
+			}
+
+			// biome-ignore lint/performance/noDelete: necesario para eliminar la propiedad
+			delete _doc.refreshToken;
+
+			// Verificamos el estado del onboarding
+			const onboarding = await this.onboardingService.findByUserId(_doc._id);
+			_doc.onboardingCompleted = false;
+
+			if (onboarding && onboarding.completed) {
+				_doc.onboardingCompleted = true;
+			}
+
+			// Si hay nombre o avatar en el DTO y el usuario no tiene esta información,
+			// actualizamos el userInfo
+			if (
+				(googleAuthDto.name || googleAuthDto.avatarUrl) &&
+				!_doc.userInfo?.name
+			) {
+				const userInfo = _doc.userInfo || {};
+
+				if (googleAuthDto.name) {
+					userInfo.name = googleAuthDto.name;
+				}
+
+				if (googleAuthDto.avatarUrl) {
+					userInfo.avatarUrl = googleAuthDto.avatarUrl;
+				}
+
+				// Actualizar el usuario con la información de Google
+				await this.authRepository.updateUserInfo(_doc._id, userInfo);
+			}
+
+			const payload = {
+				..._doc,
+			};
+
+			// Generar tokens
+			const tokens = this.createToken(payload);
+
+			// Guardar refresh token
+			await this.authRepository.saveRefreshToken(_doc._id, tokens.refreshToken);
+
+			return {
+				accessToken: tokens.accessToken,
+				refreshToken: tokens.refreshToken,
+			};
+		} catch (error) {
+			console.error("Google login error:", error);
+			throw new UnauthorizedException(
+				"Error al iniciar sesión con Google, verifique su cuenta",
+			);
+		}
+	}
+
+	async verifyGoogleToken(idToken: string): Promise<string> {
+		try {
+			// Verificar el token usando Firebase Admin SDK
+			const auth = firebaseAdmin.auth();
+			const decodedToken = await auth.verifyIdToken(idToken);
+
+			// Verificar que el token tenga un email
+			if (!decodedToken.email) {
+				throw new Error("Invalid email in token");
+			}
+
+			return decodedToken.email;
+		} catch (error) {
+			console.error("Firebase token verification error:", error);
+			throw new Error("Error verifying Firebase token");
+		}
+	}
 }

@@ -7,58 +7,58 @@ import { Plan } from "../schemas/plan.schema";
 import { PlanRepository } from "./plans.repository";
 
 export class MongoPlansRepository implements PlanRepository {
-  constructor(
-    @InjectModel(Plan.name) private readonly planModel: Model<Plan>,
-  ) {}
+	constructor(
+		@InjectModel(Plan.name) private readonly planModel: Model<Plan>,
+	) {}
 
-  async createPlan(plan: CreatePlanDto): Promise<Plan> {
-    return await this.planModel.create(plan);
-  }
+	async createPlan(plan: CreatePlanDto): Promise<Plan> {
+		return await this.planModel.create(plan);
+	}
 
-  async getPlans(
-    offset: number,
-    limit: number,
-    filters: { name?: string; type?: string } = {},
-  ): Promise<Plan[]> {
-    return await this.planModel.find(filters).skip(offset).limit(limit).exec();
-  }
+	async getPlans(
+		offset: number,
+		limit: number,
+		filters: { name?: string; type?: string } = {},
+	): Promise<Plan[]> {
+		return await this.planModel.find(filters).skip(offset).limit(limit).exec();
+	}
 
-  async countPlans(filters: any = {}): Promise<number> {
-    return await this.planModel.countDocuments(filters).exec();
-  }
+	async countPlans(filters: any = {}): Promise<number> {
+		return await this.planModel.countDocuments(filters).exec();
+	}
 
-  async findOne(id: string): Promise<Plan | null> {
-    return await this.planModel.findById(id).populate("defaultRoutine").exec();
-  }
+	async findOne(id: string): Promise<Plan | null> {
+		return await this.planModel.findById(id).populate("defaultRoutine").exec();
+	}
 
-  async update(id: string, plan: UpdatePlanDto): Promise<Plan | null> {
-    try {
-      return await this.planModel
-        .findByIdAndUpdate(id, plan, { new: true })
-        .exec();
-    } catch (error: any) {
-      throw new Error(`Error updating plan with id ${id}, ${error.message}`);
-    }
-  }
+	async update(id: string, plan: UpdatePlanDto): Promise<Plan | null> {
+		try {
+			return await this.planModel
+				.findByIdAndUpdate(id, plan, { new: true })
+				.exec();
+		} catch (error: any) {
+			throw new Error(`Error updating plan with id ${id}, ${error.message}`);
+		}
+	}
 
-  async remove(id: string): Promise<boolean> {
-    try {
-      await this.planModel.findByIdAndDelete(id).exec();
-      return true;
-    } catch (error: any) {
-      throw new Error(`Error deleting plan with id ${id}, ${error.message}`);
-    }
-  }
+	async remove(id: string): Promise<boolean> {
+		try {
+			await this.planModel.findByIdAndDelete(id).exec();
+			return true;
+		} catch (error: any) {
+			throw new Error(`Error deleting plan with id ${id}, ${error.message}`);
+		}
+	}
 
-  async getPlanByMode(mode: string): Promise<Plan | null> {
-    return await this.planModel.findOne({ mode }).exec();
-  }
+	async getPlanByMode(mode: string): Promise<Plan | null> {
+		return await this.planModel.findOne({ mode }).exec();
+	}
 
-  async getClientsWithPlansAndSchedules(offset: number, limit: number) {
-    return await this.planModel.find().skip(offset).limit(limit).exec();
-  }
+	async getClientsWithPlansAndSchedules(offset: number, limit: number) {
+		return await this.planModel.find().skip(offset).limit(limit).exec();
+	}
 
-  async findAssignableClientsBasedOnPlan(planId: string) {
-    return await this.planModel.find({ _id: planId }).exec();
-  }
+	async findAssignableClientsBasedOnPlan(planId: string) {
+		return await this.planModel.find({ _id: planId }).exec();
+	}
 }

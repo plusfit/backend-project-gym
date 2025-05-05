@@ -50,6 +50,9 @@ export class UserInfo extends Document {
 
   @Prop()
   CI?: string;
+
+  @Prop()
+  avatarUrl?: string;
 }
 
 @Schema()
@@ -71,6 +74,12 @@ export class Client extends Document {
 
   @Prop()
   refreshToken?: string;
+
+  @Prop({ default: false })
+  isOnboardingCompleted?: boolean;
+
+  @Prop({ default: false })
+  disabled?: boolean;
 }
 
 export const ClientSchema = SchemaFactory.createForClass(Client);

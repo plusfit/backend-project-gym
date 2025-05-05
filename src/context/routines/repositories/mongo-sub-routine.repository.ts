@@ -10,52 +10,54 @@ export const ROUTINE_REPOSITORY = "RoutineRepository";
 export const SUB_ROUTINE_REPOSITORY = "SubRoutineRepository";
 
 export class MongoSubRoutineRepository implements SubRoutineRepository {
-  constructor(
-    @InjectModel(SubRoutine.name) private routineModel: Model<SubRoutine>,
-  ) {}
+	constructor(
+		@InjectModel(SubRoutine.name) private routineModel: Model<SubRoutine>,
+	) {}
 
-  async findById(id: string): Promise<SubRoutine | null> {
-    return this.routineModel.findById(id).populate("exercises").exec();
-  }
+	async findById(id: string): Promise<SubRoutine | null> {
+		return this.routineModel.findById(id).populate("exercises").exec();
+	}
 
-  async updateSubRoutine(
-    id: string,
-    updateData: any,
-  ): Promise<SubRoutine | null> {
-    return this.routineModel
-      .findByIdAndUpdate(id, updateData, { new: true })
-      .exec();
-  }
+	async updateSubRoutine(
+		id: string,
+		updateData: any,
+	): Promise<SubRoutine | null> {
+		return this.routineModel
+			.findByIdAndUpdate(id, updateData, { new: true })
+			.populate("exercises")
+			.exec();
+	}
 
-  async createSubRoutine(routine: CreateSubRoutineDto): Promise<SubRoutine> {
-    const newRoutine = new this.routineModel(routine);
-    return newRoutine.save();
-  }
+	async createSubRoutine(routine: CreateSubRoutineDto): Promise<SubRoutine> {
+		const newRoutine = new this.routineModel(routine);
+		return newRoutine.save();
+	}
 
-  async deleteSubRoutine(id: string): Promise<any> {
-    return await this.routineModel.findByIdAndDelete(id).exec();
-  }
+	async deleteSubRoutine(id: string): Promise<any> {
+		return await this.routineModel.findByIdAndDelete(id).exec();
+	}
 
-  async getSubRoutines(
-    offset: number,
-    limit: number,
-    filters: any,
-  ): Promise<SubRoutine[]> {
-    return await this.routineModel
-      .find(filters)
-      .skip(offset)
-      .limit(limit)
-      .exec();
-  }
+	async getSubRoutines(
+		offset: number,
+		limit: number,
+		filters: any,
+	): Promise<SubRoutine[]> {
+		return await this.routineModel
+			.find(filters)
+			.skip(offset)
+			.limit(limit)
+			.populate("exercises")
+			.exec();
+	}
 
-  async countSubRoutines(filters: any): Promise<number> {
-    return await this.routineModel.countDocuments(filters).exec();
-  }
+	async countSubRoutines(filters: any): Promise<number> {
+		return await this.routineModel.countDocuments(filters).exec();
+	}
 
-  async removeExerciseFromSubRoutines(exercisesId: string): Promise<any> {
-    return await this.routineModel.updateMany(
-      { exercises: exercisesId },
-      { $pull: { exercises: exercisesId } },
-    );
-  }
+	async removeExerciseFromSubRoutines(exercisesId: string): Promise<any> {
+		return await this.routineModel.updateMany(
+			{ exercises: exercisesId },
+			{ $pull: { exercises: exercisesId } },
+		);
+	}
 }

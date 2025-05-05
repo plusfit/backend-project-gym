@@ -3,7 +3,6 @@ import {
   Module,
   NestModule,
   RequestMethod,
-  // RequestMethod,
 } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { MongooseModule } from "@nestjs/mongoose";
@@ -13,16 +12,17 @@ import { CorrelationIdMiddleware } from "@/app/config/correlation-id/correlation
 import { HealthModule } from "@/app/health/health.module";
 import { LoggerMiddleware } from "@/app/middlewares/logger.middleware";
 import { AuthModule } from "@/src/context/auth/auth.module";
-// import { AuthMiddleware } from "@/src/context/auth/middlewares/auth.middleware";
+import { AuthMiddleware } from "@/src/context/auth/middlewares/auth.middleware";
 import { ClientsModule } from "@/src/context/clients/clients.module";
 import { ExercisesModule } from "@/src/context/exercises/exercises.module";
+import { OnboardingModule } from "@/src/context/onboarding/onboarding.module";
 import { OrganizationsModule } from "@/src/context/organizations/organizations.module";
 import { PlansModule } from "@/src/context/plans/plans.module";
 import { ProductsModule } from "@/src/context/products/products.module";
 import { RoutinesModule } from "@/src/context/routines/routines.module";
 import { SchedulesModule } from "@/src/context/schedules/schedules.module";
 
-import { AuthMiddleware } from "../context/auth/middlewares/auth.middleware";
+// import { AuthMiddleware } from "../context/auth/middlewares/auth.middleware";
 import { AppConfigModule } from "../context/config/config.module";
 import { CategoriesModule } from "../context/categories/categories.module";
 
@@ -63,6 +63,7 @@ import { CategoriesModule } from "../context/categories/categories.module";
     AppConfigModule,
     SchedulesModule,
     RoutinesModule,
+    OnboardingModule,
     AppConfigModule,
     AuthModule,
     CategoriesModule,
@@ -81,14 +82,13 @@ import { CategoriesModule } from "../context/categories/categories.module";
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): any {
-    consumer.apply(CorrelationIdMiddleware).forRoutes("*");
-
     consumer
       .apply(AuthMiddleware)
       .exclude(
         { path: "auth/login", method: RequestMethod.POST },
         { path: "auth/login", method: RequestMethod.OPTIONS },
         { path: "auth/register", method: RequestMethod.POST },
+        { path: "auth/google", method: RequestMethod.POST },
         //  { path: "auth/register", method: RequestMethod.OPTIONS },
         { path: "auth/refreshToken", method: RequestMethod.POST },
         //  { path: "auth/refreshToken", method: RequestMethod.OPTIONS },

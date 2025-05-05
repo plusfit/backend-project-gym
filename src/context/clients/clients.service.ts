@@ -1,10 +1,10 @@
 import {
-  forwardRef,
   HttpException,
   HttpStatus,
   Inject,
   Injectable,
   NotFoundException,
+  forwardRef,
 } from "@nestjs/common";
 
 import { UpdateClientDto } from "@/src/context/clients/dto/update-client.dto";
@@ -56,6 +56,7 @@ export class ClientsService {
     }
 
     if (filters.$or && filters.$or.length === 0) {
+      // biome-ignore lint/performance/noDelete: <explanation>
       delete filters.$or;
     }
 
@@ -139,9 +140,9 @@ export class ClientsService {
     );
   }
 
-  async assignPlanToClient(clientId: string, planId: string) {
+  async assignPlanToClient(clientId: string, plan: Plan) {
     try {
-      return await this.clientRepository.assignPlanToClient(clientId, planId);
+      return await this.clientRepository.assignPlanToClient(clientId, plan);
     } catch (error: any) {
       throw new HttpException(
         `Error al asignar el plan al cliente: ${error.message}`,
@@ -156,6 +157,27 @@ export class ClientsService {
     } catch (error: any) {
       throw new HttpException(
         `Error al obtener los clientes por plan: ${error.message}`,
+        error.status || 500,
+      );
+    }
+  }
+
+  async updateUserInfo(clientId: string, userInfo: any) {
+    try {
+      const client = await this.findOne(clientId);
+      if (!client) {
+        throw new NotFoundException(`Client with ID ${clientId} not found`);
+      }
+
+      // Merge existing userInfo with new userInfo
+      const updatedUserInfo = { ...userInfo };
+
+      // Update client with new userInfo
+      console.log("updatedUserInfo", updatedUserInfo);
+      return this.update(clientId, { userInfo: updatedUserInfo });
+    } catch (error: any) {
+      throw new HttpException(
+        `Error updating client userInfo: ${error.message}`,
         error.status || 500,
       );
     }
