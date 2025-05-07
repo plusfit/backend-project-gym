@@ -7,6 +7,7 @@ import { SCHEDULE_REPOSITORY } from "../schedules/repositories/mongo-schedule.re
 import { CreatePlanDto } from "./dto/create-plan.dto";
 import { UpdatePlanDto } from "./dto/update-plan.dto";
 import { PLAN_REPOSITORY } from "./repositories/plans.repository";
+import { Plan } from "./schemas/plan.schema";
 
 @Injectable()
 export class PlansService {
@@ -64,8 +65,8 @@ export class PlansService {
 		await this.plansRepository.remove(id);
 	}
 
-	assignPlanToClient(clientId: string, planId: string) {
-		return this.clientsService.assignPlanToClient(clientId, planId);
+	assignPlanToClient(clientId: string, plan: Plan) {
+		return this.clientsService.assignPlanToClient(clientId, plan);
 	}
 
 	async getClientsWithPlansAndSchedules(filters: any) {

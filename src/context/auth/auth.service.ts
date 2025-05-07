@@ -3,12 +3,15 @@ import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios from "axios";
 import jwt from "jsonwebtoken";
+import { OAuth2Client } from "google-auth-library";
+import firebaseAdmin from "firebase-admin";
 
 import { LoginAuthDto } from "@/src/context/auth/dto/login-auth.dto";
 import { RefreshTokenAuthDto } from "@/src/context/auth/dto/refresh-token-auth-dto";
 import { RegisterAuthDto } from "@/src/context/auth/dto/register-auth.dto";
 import { AUTH_REPOSITORY } from "@/src/context/auth/repositories/auth.repository";
 import { OnboardingService } from "../onboarding/onboarding.service";
+import { GoogleAuthDto } from "@/src/context/auth/dto/google-auth.dto";
 
 @Injectable()
 export class AuthService {
@@ -34,10 +37,18 @@ export class AuthService {
 			//obtengo el mail
 			const email = await this.getEmailFromJWTFirebase(loginDto.token);
 			const response = await this.authRepository.login(email);
+
 			//me quedo con lo importante
 			const { _doc } = response;
 
+			if (_doc.disabled) {
+				throw new UnauthorizedException(
+					"Usuario deshabilitado. Contacte al administrador",
+				);
+			}
+
 			//elimino el refresh tokenS
+			// biome-ignore lint/performance/noDelete: <explanation>
 			delete _doc.refreshToken;
 
 			const onboarding = await this.onboardingService.findByUserId(_doc._id);
@@ -200,6 +211,115 @@ export class AuthService {
 				success: false,
 				error: error.message,
 			};
+		}
+	}
+
+	async googleLogin(googleAuthDto: GoogleAuthDto) {
+		try {
+			if (!googleAuthDto.idToken) {
+				throw new Error("Google ID token is required");
+			}
+
+			// Verificar el token de Google y obtener el email
+			const email = await this.verifyGoogleToken(googleAuthDto.idToken);
+
+			// Buscar usuario por email
+			// biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
+			let client: any;
+			try {
+				client = await this.authRepository.login(email);
+			} catch (error) {
+				// Si el usuario no existe, lo registramos automáticamente
+				const registerDto: RegisterAuthDto = {
+					email,
+				};
+				client = await this.authRepository.register(registerDto);
+
+				// Crear el registro de onboarding para el nuevo usuario
+				await this.onboardingService.create({
+					userId: client._id.toString(),
+					step: 1,
+					completed: false,
+				});
+			}
+
+			// Extraemos la información que necesitamos
+			const { _doc } = client as any;
+
+			if (_doc.disabled) {
+				throw new UnauthorizedException(
+					"Usuario deshabilitado. Contacte al administrador",
+				);
+			}
+
+			// biome-ignore lint/performance/noDelete: necesario para eliminar la propiedad
+			delete _doc.refreshToken;
+
+			// Verificamos el estado del onboarding
+			const onboarding = await this.onboardingService.findByUserId(_doc._id);
+			_doc.onboardingCompleted = false;
+
+			if (onboarding && onboarding.completed) {
+				_doc.onboardingCompleted = true;
+			}
+
+			// Si hay nombre o avatar en el DTO y el usuario no tiene esta información,
+			// actualizamos el userInfo
+			if (
+				(googleAuthDto.name || googleAuthDto.avatarUrl) &&
+				!_doc.userInfo?.name
+			) {
+				const userInfo = _doc.userInfo || {};
+
+				if (googleAuthDto.name) {
+					userInfo.name = googleAuthDto.name;
+				}
+
+				if (googleAuthDto.avatarUrl) {
+					userInfo.avatarUrl = googleAuthDto.avatarUrl;
+				}
+
+				// Actualizar el usuario con la información de Google
+				await this.authRepository.updateUserInfo(_doc._id, userInfo);
+			}
+
+			const payload = {
+				..._doc,
+			};
+
+			// Generar tokens
+			const tokens = this.createToken(payload);
+
+			// Guardar refresh token
+			await this.authRepository.saveRefreshToken(_doc._id, tokens.refreshToken);
+
+			return {
+				accessToken: tokens.accessToken,
+				refreshToken: tokens.refreshToken,
+			};
+		} catch (error) {
+			console.error("Google login error:", error);
+			throw new UnauthorizedException(
+				"Error al iniciar sesión con Google, verifique su cuenta",
+			);
+		}
+	}
+
+	async verifyGoogleToken(idToken: string): Promise<string> {
+		try {
+			// Verificar el token usando Firebase Admin SDK
+			const auth = firebaseAdmin.auth();
+			const decodedToken = await auth.verifyIdToken(idToken);
+
+			// Verificar que el token tenga un email
+			if (!decodedToken.email) {
+				throw new Error("Invalid email in token");
+			}
+
+			return decodedToken.email;
+		} catch (error) {
+			console.error("Firebase token verification error:", error);
+			throw new Error("Error verifying Firebase token");
 		}
 	}
 }

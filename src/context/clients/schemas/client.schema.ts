@@ -3,56 +3,56 @@ import { Document } from "mongoose";
 
 @Schema()
 export class UserInfo extends Document {
-	@Prop()
-	name?: string;
+  @Prop()
+  name?: string;
 
-	@Prop()
-	password?: string;
+  @Prop()
+  password?: string;
 
-	@Prop()
-	identifier?: string;
+  @Prop()
+  identifier?: string;
 
-	@Prop({ type: Date })
-	dateBirthday?: Date;
+  @Prop({ type: Date })
+  dateBirthday?: Date;
 
-	@Prop()
-	sex?: string;
+  @Prop()
+  sex?: string;
 
-	@Prop()
-	phone?: string;
+  @Prop()
+  phone?: string;
 
-	@Prop()
-	plan?: string;
+  @Prop()
+  plan?: string;
 
-	@Prop()
-	address?: string;
+  @Prop()
+  address?: string;
 
-	@Prop()
-	historyofPathologicalLesions?: string;
+  @Prop()
+  historyofPathologicalLesions?: string;
 
-	@Prop()
-	medicalSociety?: string;
+  @Prop()
+  medicalSociety?: string;
 
-	@Prop()
-	cardiacHistory?: string;
+  @Prop()
+  cardiacHistory?: string;
 
-	@Prop()
-	bloodPressure?: string;
+  @Prop()
+  bloodPressure?: string;
 
-	@Prop()
-	frequencyOfPhysicalExercise?: string;
+  @Prop()
+  frequencyOfPhysicalExercise?: string;
 
-	@Prop()
-	respiratoryHistory?: string;
+  @Prop()
+  respiratoryHistory?: string;
 
-	@Prop()
-	surgicalHistory?: string;
+  @Prop()
+  surgicalHistory?: string;
 
-	@Prop()
-	CI?: string;
+  @Prop()
+  CI?: string;
 
-	@Prop()
-	avatarUrl?: string;
+  @Prop()
+  avatarUrl?: string;
 }
 
 @Schema({ timestamps: true })
@@ -76,7 +76,10 @@ export class Client extends Document {
   refreshToken?: string;
 
   @Prop({ default: false })
-  disabled!: boolean;
+  isOnboardingCompleted?: boolean;
+
+  @Prop({ default: false })
+  disabled?: boolean;
 }
 
 export const ClientSchema = SchemaFactory.createForClass(Client);

@@ -2,12 +2,14 @@ import { RegisterAuthDto } from "@/src/context/auth/dto/register-auth.dto";
 import { Client } from "@/src/context/clients/schemas/client.schema";
 
 export const AUTH_REPOSITORY = "AuthRepository";
-export interface AuthRepository {
-	register(registerDto: RegisterAuthDto): Promise<Client>;
+export abstract class AuthRepository {
+	abstract register(registerDto: RegisterAuthDto): Promise<Client>;
 
-	login(email: string): Promise<Client>;
+	abstract login(email: string): Promise<Client>;
 
-	saveRefreshToken(userId: string, refreshToken: string): Promise<void>;
+	abstract saveRefreshToken(userId: string, refreshToken: string): Promise<void>;
 
-	getRefreshToken(userId: string): Promise<string>;
+	abstract getRefreshToken(userId: string): Promise<string>;
+
+	abstract updateUserInfo(userId: string, userInfo: any): Promise<any>;
 }

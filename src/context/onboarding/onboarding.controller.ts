@@ -183,12 +183,6 @@ export class OnboardingController {
 		},
 	})
 	assignPlan(@Param("userId") userId: string) {
-		// Reject 'currentUser' explicitly
-		if (userId === "currentUser") {
-			throw new BadRequestException(
-				"Para el usuario actual, use el endpoint /onboarding/me/assign-plan",
-			);
-		}
 		return this.onboardingService.assignPlanBasedOnOnboarding(userId);
 	}
 

@@ -5,6 +5,7 @@ import { AuthService } from "@/src/context/auth/auth.service";
 import { LoginAuthDto } from "@/src/context/auth/dto/login-auth.dto";
 import { RefreshTokenAuthDto } from "@/src/context/auth/dto/refresh-token-auth-dto";
 import { RegisterAuthDto } from "@/src/context/auth/dto/register-auth.dto";
+import { GoogleAuthDto } from "@/src/context/auth/dto/google-auth.dto";
 
 @ApiTags("auth")
 @Controller("auth")
@@ -27,5 +28,10 @@ export class AuthController {
 	@Post("refreshToken")
 	refreshToken(@Body() refreshToken: RefreshTokenAuthDto) {
 		return this.authService.refreshToken(refreshToken);
+	}
+
+	@Post("google")
+	googleLogin(@Body() googleAuthDto: GoogleAuthDto) {
+		return this.authService.googleLogin(googleAuthDto);
 	}
 }
