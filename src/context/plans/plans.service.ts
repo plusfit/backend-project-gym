@@ -136,6 +136,7 @@ export class PlansService {
 			return (
 				assignedDays.length < planDays &&
 				client._doc.role === "User" &&
+				client._doc.disabled === false &&
 				!hourClients.includes(client._doc._id)
 			);
 		});
