@@ -49,5 +49,7 @@ export enum InjuryType {
   ELBOW = "elbow",
   WRIST = "wrist",
   NECK = "neck",
+  CERVICAL = "cervical",
+  LUMBAR = "lumbar",
   OTHER = "other",
 }
