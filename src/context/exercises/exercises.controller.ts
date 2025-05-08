@@ -1,12 +1,12 @@
 import {
-	Body,
-	Controller,
-	Get,
-	Param,
-	Patch,
-	Post,
-	Query,
-	// UseGuards,
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  // UseGuards,
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 
@@ -23,14 +23,14 @@ import { ExercisesService } from "./exercises.service";
 @ApiTags("exercises")
 @Controller("exercises")
 export class ExercisesController {
-	constructor(private readonly exercisesService: ExercisesService) {}
+  constructor(private readonly exercisesService: ExercisesService) {}
 
-	@Post()
-	// @Roles(Role.Admin)
-	// @UseGuards(RolesGuard)
-	create(@Body() createExerciseDto: CreateExerciseDto) {
-		return this.exercisesService.create(createExerciseDto);
-	}
+  @Post()
+  // @Roles(Role.Admin)
+  // @UseGuards(RolesGuard)
+  create(@Body() createExerciseDto: CreateExerciseDto) {
+    return this.exercisesService.create(createExerciseDto);
+  }
 
   @Get()
   // @Roles(Role.Admin)
@@ -45,20 +45,20 @@ export class ExercisesController {
     );
   }
 
-	@Get(":id")
-	// @Roles(Role.Admin, Role.Client)
-	// @UseGuards(RolesGuard)
-	findOne(@Param("id") id: string) {
-		return this.exercisesService.findOne(id);
-	}
+  @Get(":id")
+  // @Roles(Role.Admin, Role.Client)
+  // @UseGuards(RolesGuard)
+  findOne(@Param("id") id: string) {
+    return this.exercisesService.findOne(id);
+  }
 
-	@Patch(":id")
-	// @Roles(Role.Admin)
-	// @UseGuards(RolesGuard)
-	update(
-		@Param("id") id: string,
-		@Body() updateExerciseDto: UpdateExerciseDto,
-	) {
-		return this.exercisesService.update(id, updateExerciseDto);
-	}
+  @Patch(":id")
+  // @Roles(Role.Admin)
+  // @UseGuards(RolesGuard)
+  update(
+    @Param("id") id: string,
+    @Body() updateExerciseDto: UpdateExerciseDto,
+  ) {
+    return this.exercisesService.update(id, updateExerciseDto);
+  }
 }
