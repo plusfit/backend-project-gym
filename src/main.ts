@@ -28,14 +28,12 @@ async function bootstrap() {
     firebaseAdmin.initializeApp({
       projectId: configService.get<string>("FIREBASE_PROJECT_ID"),
     });
-    // Verificar que el servicio de autenticación esté disponible
     const auth = firebaseAdmin.auth();
     console.log(
       "Firebase Admin inicializado correctamente con servicio de auth",
     );
   } catch (error: any) {
-    // Si ya estaba inicializado, usar la app predeterminada
-    console.log(
+    console.error(
       "Firebase Admin ya está inicializado o ocurrió un error:",
       error.message,
     );
