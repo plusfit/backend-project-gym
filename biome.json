@@ -27,7 +27,8 @@
 				"noExplicitAny": "warn"
 			},
 			"correctness": {
-				"noUnnecessaryContinue": "off"
+				"noUnnecessaryContinue": "off",
+				"noUnusedImports": "warn"
 			},
 			"complexity": {
 				"useOptionalChain": "off"
