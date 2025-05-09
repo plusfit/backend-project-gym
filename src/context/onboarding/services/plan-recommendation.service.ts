@@ -64,7 +64,7 @@ export class PlanRecommendationService {
       avanzado: ExperienceLevel.ADVANCED,
     };
 
-    // Determinar el tipo de plan preferido basado en el tipo de entrenamiento
+    // Determine preferred plan type based on training type
     const trainingType = step3.trainingType || "";
     const preferredType = trainingType.toLowerCase().includes("cardio")
       ? PlanType.CARDIO
@@ -77,7 +77,7 @@ export class PlanRecommendationService {
       experienceLevel:
         levelMap[step3.trainingLevel?.toLowerCase() || ""] ||
         ExperienceLevel.BEGINNER,
-      // Filtrar por edad si está especificada
+      // Filter by age if specified
       $and: [
         {
           $or: [
@@ -92,11 +92,11 @@ export class PlanRecommendationService {
           ],
         },
       ],
-      // Preferir el tipo de plan, pero no limitar estrictamente
+      // Prefer plan type, but don't strictly limit
       $or: [{ type: preferredType }, { type: PlanType.MIXED }],
     };
 
-    // Si el objetivo es recuperación de lesiones y se especificó un tipo de lesión
+    // If the goal is injury recovery and injury type is specified
     if (criteria.goal === PlanGoal.INJURY_RECOVERY && step3.injuryType) {
       criteria.injuryType = step3.injuryType;
     }
@@ -137,18 +137,18 @@ export class PlanRecommendationService {
     const clientAge = this.calculateAge(dateOfBirth);
     let score = 0;
 
-    // Evaluación de objetivos
+    // Goal evaluation
     if (plan.goal === step3.goal) score += 5;
 
-    // Evaluación de nivel de experiencia
+    // Experience level evaluation
     if (plan.experienceLevel === step3.trainingLevel) score += 3;
 
-    // Evaluación de días de entrenamiento
+    // Training days evaluation
     const dayDiff = (step3.trainingDays || 0) - plan.days;
     if (dayDiff >= 0) score += 4 - dayDiff;
-    else score -= 2; // Penaliza por requerir más días de entrenamiento.
+    else score -= 2; // Penalty for requiring more training days
 
-    // Evaluación de tipo de plan
+    // Plan type evaluation
     const trainingType = step3.trainingType || "";
     const preferredType = trainingType.toLowerCase().includes("cardio")
       ? PlanType.CARDIO
@@ -156,31 +156,31 @@ export class PlanRecommendationService {
     if (plan.type === preferredType) score += 4;
     else if (plan.type === PlanType.MIXED) score += 2;
 
-    // Evaluación de tipo de lesión (si aplica)
+    // Injury type evaluation (if applicable)
     if (
       plan.goal === PlanGoal.INJURY_RECOVERY &&
       step3.injuryType &&
       plan.injuryType === step3.injuryType
     ) {
-      score += 5; // Alta prioridad para coincidencia de tipo de lesión
+      score += 5; // High priority for injury type match
     }
 
-    // Evaluación de edad
+    // Age evaluation
     if (plan.minAge !== undefined && plan.maxAge !== undefined) {
-      // Si el plan tiene un rango de edad y el cliente está dentro de ese rango
+      // If plan has age range and client is within that range
       if (clientAge >= plan.minAge && clientAge <= plan.maxAge) {
         score += 4;
       } else {
-        // Penalizar si está fuera del rango pero no demasiado lejos
+        // Penalize if outside range but not too far
         const minAgeDiff = plan.minAge ? Math.abs(clientAge - plan.minAge) : 0;
         const maxAgeDiff = plan.maxAge ? Math.abs(clientAge - plan.maxAge) : 0;
         const ageDiff = Math.min(minAgeDiff, maxAgeDiff);
 
         if (ageDiff <= 5)
-          score -= 1; // Ligeramente fuera del rango
+          score -= 1; // Slightly outside range
         else if (ageDiff <= 10)
-          score -= 2; // Moderadamente fuera del rango
-        else score -= 3; // Muy fuera del rango
+          score -= 2; // Moderately outside range
+        else score -= 3; // Far outside range
       }
     }
 
