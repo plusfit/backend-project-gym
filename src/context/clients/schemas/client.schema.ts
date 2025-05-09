@@ -55,7 +55,7 @@ export class UserInfo extends Document {
 	avatarUrl?: string;
 }
 
-@Schema()
+@Schema({ timestamps: true })
 export class Client extends Document {
 	@Prop({ default: "User" })
 	role!: string;

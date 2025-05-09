@@ -16,6 +16,7 @@ import { Routine } from "@/src/context/routines/schemas/routine.schema";
 
 import { CreateClientDto } from "./dto/create-client.dto";
 import { ClientFilters } from "./interfaces/clients.interface";
+import { SchedulesService } from "../schedules/schedules.service";
 
 @Injectable()
 export class ClientsService {
@@ -24,6 +25,8 @@ export class ClientsService {
     private readonly clientRepository: any,
     @Inject(forwardRef(() => PlansService))
     private readonly plansService: any,
+    @Inject(forwardRef(() => SchedulesService))
+    private readonly schedulesService: SchedulesService,
   ) {}
 
   addFilter = (field: string, value: any, target: any) => {
@@ -36,7 +39,7 @@ export class ClientsService {
 
   async findAll(page: number, limit: number, clientFilters: ClientFilters) {
     const offset = (page - 1) * limit;
-    const { name, email, CI, role, withoutPlan } = clientFilters;
+    const { name, email, CI, role, withoutPlan, disabled } = clientFilters;
     const filters: any = { $or: [] };
 
     if (role) {
@@ -55,8 +58,11 @@ export class ClientsService {
       filters.planId = { $in: [undefined, undefined, ""] }; // null, undefined o vacío
     }
 
+    if (disabled !== undefined) {
+      filters.disabled = disabled;
+    }
+
     if (filters.$or && filters.$or.length === 0) {
-      // biome-ignore lint/performance/noDelete: <explanation>
       delete filters.$or;
     }
 
@@ -140,9 +146,9 @@ export class ClientsService {
     );
   }
 
-  async assignPlanToClient(clientId: string, plan: Plan) {
+  async assignPlanToClient(clientId: string, planId: Plan) {
     try {
-      return await this.clientRepository.assignPlanToClient(clientId, plan);
+      return await this.clientRepository.assignPlanToClient(clientId, planId);
     } catch (error: any) {
       throw new HttpException(
         `Error al asignar el plan al cliente: ${error.message}`,
@@ -178,6 +184,46 @@ export class ClientsService {
     } catch (error: any) {
       throw new HttpException(
         `Error updating client userInfo: ${error.message}`,
+        error.status || 500,
+      );
+    }
+  }
+
+  async toggleDisabled(clientId: string, disabled: boolean) {
+    try {
+      if (disabled) {
+        const schedules = await this.schedulesService.getAllSchedules();
+  
+        // Filtrar y actualizar solo los horarios que tengan al cliente
+        const updates = schedules
+          .filter((schedule: any) => schedule.clients.includes(clientId))
+          .map((schedule: any) => {
+              const updatedSchedule = {
+                ...schedule.toObject(), // Si es un documento de Mongoose
+                clients: schedule.clients.filter((id: string) => id !== clientId),
+              };
+  
+            return this.schedulesService.updateSchedule(
+              schedule._id,
+              updatedSchedule,
+            );
+          });
+  
+        await Promise.all(updates);
+      }
+
+      const client = await this.clientRepository.toggleDisabled(
+        clientId,
+        disabled,
+      );
+      if (!client) {
+        throw new NotFoundException(`Client with ID ${clientId} not found`);
+      }
+
+      return client;
+    } catch (error: any) {
+      throw new HttpException(
+        `Error toggling disabled status for client: ${error.message}`,
         error.status || 500,
       );
     }

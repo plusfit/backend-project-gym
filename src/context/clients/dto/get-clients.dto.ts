@@ -39,4 +39,8 @@ export class GetClientsDto {
 	@IsOptional()
 	@IsString()
 	withoutPlan?: boolean;
+
+	@IsOptional()
+	@IsString()
+	disabled?: boolean;
 }
