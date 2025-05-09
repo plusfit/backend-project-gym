@@ -4,7 +4,6 @@ import { PLAN_REPOSITORY } from "../../plans/repositories/plans.repository";
 import {
   PlanGoal,
   ExperienceLevel,
-  InjuryType,
   PlanType,
 } from "../../shared/enums/plan.enum";
 import { Plan } from "../../plans/schemas/plan.schema";
