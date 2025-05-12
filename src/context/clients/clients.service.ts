@@ -108,6 +108,7 @@ export class ClientsService {
   }
 
   update(id: string, updateClientDto: UpdateClientDto) {
+     updateClientDto.isOnboardingCompleted = true;
     return this.clientRepository.updateClient(id, updateClientDto);
   }
 
