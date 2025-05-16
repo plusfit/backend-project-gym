@@ -42,12 +42,18 @@ async function bootstrap() {
     "https://frontend-project-gym-v2-test.vercel.app",
   );
 
+  const client_url = configService.get<string>(
+    "CLIENT_URL",
+    "https://www.plusfit.uy",
+  );
+
   await app
     .getHttpAdapter()
     .getInstance()
     .register(fastifyCors, {
       origin: [
         front_url,
+        client_url,
         "http://localhost:4200",
         "http://localhost:8100",
         "http://127.0.0.1:55376",
