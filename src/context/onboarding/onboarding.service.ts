@@ -124,9 +124,14 @@ export class OnboardingService {
     );
     this.ensurePlanIsValid(recommendedPlan);
 
+    const planId = recommendedPlan._id?.toString();
+    if (!planId) {
+      throw new NotFoundException("Plan ID is missing");
+    }
+
     const updatedClient = await this.clientsService.assignPlanToClient(
       userId,
-      recommendedPlan,
+      planId,
     );
 
     if (onboarding && !onboarding.completed) {

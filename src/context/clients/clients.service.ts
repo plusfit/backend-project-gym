@@ -8,10 +8,7 @@ import {
 } from "@nestjs/common";
 
 import { UpdateClientDto } from "@/src/context/clients/dto/update-client.dto";
-import {
-  CLIENT_REPOSITORY,
-  ClientsRepositoryInterface,
-} from "@/src/context/clients/repositories/clients.repository";
+import { CLIENT_REPOSITORY } from "./repositories/clients.repository";
 import { Client } from "@/src/context/clients/schemas/client.schema";
 import { PlansService } from "@/src/context/plans/plans.service";
 import { Plan } from "@/src/context/plans/schemas/plan.schema";
@@ -23,26 +20,56 @@ import { ClientFilters } from "./interfaces/clients.interface";
 import { SchedulesService } from "../schedules/schedules.service";
 import { EntityId } from "../shared/entities/tenant-base.entity";
 
+interface IClientsRepository {
+  getClientById(id: string): Promise<Client | null>;
+  getClients(
+    offset: number,
+    limit: number,
+    filters: { name?: string; email?: string },
+  ): Promise<Client[]>;
+  createClient(client: Client): Promise<Client | null>;
+  updateClient(id: string, client: Client): Promise<Client | null>;
+  removeClient(id: string): Promise<boolean>;
+  findClientByEmail(email: string): Promise<Client | null>;
+  countClients(filters: { name?: string; type?: string }): Promise<number>;
+  findClientById(id: string): Promise<Client | null>;
+  assignRoutineToClient(
+    clientId: string,
+    routineId: string,
+  ): Promise<Client | null>;
+  assignPlanToClient(
+    clientId: string,
+    planId: EntityId,
+  ): Promise<Client | null>;
+  getListClients(ids: string[]): Promise<Client[]>;
+  findClientsByPlanId(planId: string): Promise<Client[]>;
+  toggleDisabled(id: string, disabled: boolean): Promise<Client | null>;
+  removeRoutineFromClient(clientId: string): Promise<Client | null>;
+  findClientsByRoutineId(routineId: string): Promise<Client[]>;
+  getClientsWithRoutines(): Promise<Client[]>;
+  getClientsWithoutRoutines(): Promise<Client[]>;
+}
+
 @Injectable()
 export class ClientsService {
   constructor(
     @Inject(CLIENT_REPOSITORY)
-    private readonly clientRepository: ClientsRepositoryInterface,
+    private readonly clientsRepository: IClientsRepository,
     @Inject(forwardRef(() => PlansService))
-    private readonly plansService: any,
+    private readonly plansService: PlansService,
     @Inject(forwardRef(() => SchedulesService))
     private readonly schedulesService: SchedulesService,
     @Inject(forwardRef(() => RoutinesService))
     private readonly routinesService: RoutinesService,
   ) {}
 
-  addFilter = (field: string, value: any, target: any) => {
+  addFilter(field: string, value: any, target: any) {
     if (typeof value === "string" && value.trim() !== "") {
       target.$or.push({ [field]: { $regex: value, $options: "i" } });
     } else if (value) {
       target.$or.push({ [field]: value });
     }
-  };
+  }
 
   async findAll(page: number, limit: number, clientFilters: ClientFilters) {
     const offset = (page - 1) * limit;
@@ -75,8 +102,8 @@ export class ClientsService {
     }
 
     const [data, total] = await Promise.all([
-      this.clientRepository.getClients(offset, limit, filters),
-      this.clientRepository.countClients(filters),
+      this.clientsRepository.getClients(offset, limit, filters),
+      this.clientsRepository.countClients(filters),
     ]);
 
     return { data, total, page, limit };
@@ -90,7 +117,7 @@ export class ClientsService {
       // Iteramos sobre los IDs de los clientes
       for (const id of ids) {
         // Esperamos a obtener el cliente de la base de datos
-        const client = await this.clientRepository.getClientById(id);
+        const client = await this.clientsRepository.getClientById(id);
 
         // Si el cliente existe, lo agregamos al array
         if (client) {
@@ -108,25 +135,25 @@ export class ClientsService {
   }
 
   findOne(id: string) {
-    return this.clientRepository.getClientById(id);
+    return this.clientsRepository.getClientById(id);
   }
 
   create(createClientDto: CreateClientDto) {
-    return this.clientRepository.createClient(createClientDto as Client);
+    return this.clientsRepository.createClient(createClientDto as Client);
   }
 
   update(id: string, updateClientDto: UpdateClientDto) {
     updateClientDto.isOnboardingCompleted = true;
-    return this.clientRepository.updateClient(id, updateClientDto as Client);
+    return this.clientsRepository.updateClient(id, updateClientDto as Client);
   }
 
   async remove(id: string) {
-    return this.clientRepository.removeClient(id);
+    return this.clientsRepository.removeClient(id);
   }
 
   async assignRoutineToClient(clientId: string, routineId: string) {
     const client: Client | null =
-      await this.clientRepository.getClientById(clientId);
+      await this.clientsRepository.getClientById(clientId);
     if (!client) {
       throw new NotFoundException("Client not found");
     }
@@ -137,7 +164,15 @@ export class ClientsService {
       throw new NotFoundException("Routine not found");
     }
 
-    const plan: Plan = await this.plansService.findOne(client.planId);
+    if (!client.planId) {
+      throw new NotFoundException(
+        `Client ${clientId} does not have a plan assigned`,
+      );
+    }
+
+    const plan: Plan = await this.plansService.findOne(
+      client.planId.toString(),
+    );
     if (!plan) {
       throw new NotFoundException(`Plan with ID ${client.planId} not found`);
     }
@@ -149,7 +184,7 @@ export class ClientsService {
       );
     }
 
-    return await this.clientRepository.assignRoutineToClient(
+    return await this.clientsRepository.assignRoutineToClient(
       clientId,
       routineId,
     );
@@ -157,7 +192,7 @@ export class ClientsService {
 
   async assignPlanToClient(clientId: string, planId: string) {
     try {
-      return await this.clientRepository.assignPlanToClient(clientId, planId);
+      return await this.clientsRepository.assignPlanToClient(clientId, planId);
     } catch (error: any) {
       throw new HttpException(
         `Error al asignar el plan al cliente: ${error.message}`,
@@ -168,7 +203,7 @@ export class ClientsService {
 
   async findClientsByPlanId(planId: string) {
     try {
-      return await this.clientRepository.findClientsByPlanId(planId);
+      return await this.clientsRepository.findClientsByPlanId(planId);
     } catch (error: any) {
       throw new HttpException(
         `Error al obtener los clientes por plan: ${error.message}`,
@@ -221,7 +256,7 @@ export class ClientsService {
         await Promise.all(updates);
       }
 
-      const client = await this.clientRepository.toggleDisabled(
+      const client = await this.clientsRepository.toggleDisabled(
         clientId,
         disabled,
       );

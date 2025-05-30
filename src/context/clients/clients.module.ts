@@ -12,28 +12,24 @@ import {
 import { PlansModule } from "@/src/context/plans/plans.module";
 import { RoutinesModule } from "@/src/context/routines/routines.module";
 import { SchedulesModule } from "../schedules/schedules.module";
+import { SharedModule } from "../shared/shared.module";
 
 @Module({
   imports: [
     forwardRef(() => PlansModule),
     forwardRef(() => RoutinesModule),
     SchedulesModule,
+    SharedModule,
     MongooseModule.forFeature([{ name: Client.name, schema: ClientSchema }]),
   ],
   controllers: [ClientsController],
   providers: [
     ClientsService,
-    MongoClientsRepository,
     {
       provide: CLIENT_REPOSITORY,
       useClass: MongoClientsRepository,
     },
   ],
-  exports: [
-    MongooseModule,
-    CLIENT_REPOSITORY,
-    ClientsService,
-    MongoClientsRepository,
-  ],
+  exports: [MongooseModule, CLIENT_REPOSITORY, ClientsService],
 })
 export class ClientsModule {}

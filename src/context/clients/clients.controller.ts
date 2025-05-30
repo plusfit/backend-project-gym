@@ -1,13 +1,13 @@
 import {
-	Body,
-	Controller,
-	Delete,
-	Get,
-	Param,
-	Patch,
-	Post,
-	Query,
-	UseGuards,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 
@@ -32,8 +32,8 @@ export class ClientsController {
   }
 
   @Get()
-  // @Roles(Role.Admin)
-  // @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
   findAll(@Query() getClientsDto: GetClientsDto) {
     const filters: ClientFilters = {
       name: getClientsDto.name,

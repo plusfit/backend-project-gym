@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
 
 import { ClientsModule } from "@/src/context/clients/clients.module";
@@ -32,7 +32,7 @@ import { RoutinesController } from "./routines.controller";
       { name: Routine.name, schema: RoutineSchema },
     ]),
     ExercisesModule,
-    ClientsModule,
+    forwardRef(() => ClientsModule),
     PlansModule,
     SharedModule,
   ],

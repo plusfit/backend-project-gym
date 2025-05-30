@@ -3,7 +3,7 @@ import { Client } from "../schemas/client.schema";
 
 export const CLIENT_REPOSITORY = "ClientsRepository";
 
-export interface ClientsRepositoryInterface {
+export interface ClientsRepository {
   getClientById(id: string): Promise<Client | null>;
   getClients(
     offset: number,
