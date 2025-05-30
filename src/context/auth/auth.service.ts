@@ -353,4 +353,50 @@ export class AuthService {
       throw new Error("Error verifying Firebase token");
     }
   }
+
+  async getUserProfile(userId: string) {
+    try {
+      const user = await this.authRepository.findById(userId);
+      if (!user) {
+        throw new UnauthorizedException("Usuario no encontrado");
+      }
+
+      const { _doc } = user as any;
+
+      // Destructuring para evitar propiedades sensibles
+      const { password, refreshToken, ...safeUserData } = _doc;
+
+      const onboarding = await this.onboardingService.findByUserId(_doc._id);
+      const needOnboarding = !onboarding || !onboarding.completed;
+
+      // Obtener información de la organización si existe
+      let organizationSlug = null;
+      if (safeUserData.organizationId) {
+        const organization = await this.organizationsService.findById(
+          safeUserData.organizationId.toString(),
+        );
+        organizationSlug = organization?.slug || null;
+      }
+
+      return {
+        id: safeUserData._id.toString(),
+        firstName:
+          safeUserData.userInfo?.firstName ||
+          safeUserData.userInfo?.name?.split(" ")[0] ||
+          "",
+        lastName:
+          safeUserData.userInfo?.lastName ||
+          safeUserData.userInfo?.name?.split(" ").slice(1).join(" ") ||
+          "",
+        email: safeUserData.email,
+        needOnboarding,
+        role: safeUserData.role,
+        organizationId: safeUserData.organizationId?.toString(),
+        organizationSlug,
+      };
+    } catch (error) {
+      console.error("Error getting user profile:", error);
+      throw new UnauthorizedException("Error al obtener el perfil del usuario");
+    }
+  }
 }

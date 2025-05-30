@@ -48,6 +48,6 @@ import { RoutinesController } from "./routines.controller";
       useClass: MongoSubRoutineRepository,
     },
   ],
-  exports: [ROUTINE_REPOSITORY, SUB_ROUTINE_REPOSITORY],
+  exports: [ROUTINE_REPOSITORY, SUB_ROUTINE_REPOSITORY, RoutinesService],
 })
 export class RoutinesModule {}

@@ -8,25 +8,32 @@ import {
 } from "@nestjs/common";
 
 import { UpdateClientDto } from "@/src/context/clients/dto/update-client.dto";
-import { CLIENT_REPOSITORY } from "@/src/context/clients/repositories/clients.repository";
+import {
+  CLIENT_REPOSITORY,
+  ClientsRepositoryInterface,
+} from "@/src/context/clients/repositories/clients.repository";
 import { Client } from "@/src/context/clients/schemas/client.schema";
 import { PlansService } from "@/src/context/plans/plans.service";
 import { Plan } from "@/src/context/plans/schemas/plan.schema";
 import { Routine } from "@/src/context/routines/schemas/routine.schema";
+import { RoutinesService } from "@/src/context/routines/services/routines.service";
 
 import { CreateClientDto } from "./dto/create-client.dto";
 import { ClientFilters } from "./interfaces/clients.interface";
 import { SchedulesService } from "../schedules/schedules.service";
+import { EntityId } from "../shared/entities/tenant-base.entity";
 
 @Injectable()
 export class ClientsService {
   constructor(
     @Inject(CLIENT_REPOSITORY)
-    private readonly clientRepository: any,
+    private readonly clientRepository: ClientsRepositoryInterface,
     @Inject(forwardRef(() => PlansService))
     private readonly plansService: any,
     @Inject(forwardRef(() => SchedulesService))
     private readonly schedulesService: SchedulesService,
+    @Inject(forwardRef(() => RoutinesService))
+    private readonly routinesService: RoutinesService,
   ) {}
 
   addFilter = (field: string, value: any, target: any) => {
@@ -40,7 +47,7 @@ export class ClientsService {
   async findAll(page: number, limit: number, clientFilters: ClientFilters) {
     const offset = (page - 1) * limit;
     const { name, email, CI, role, withoutPlan, disabled } = clientFilters;
-    const filters: any = { $or: [] };
+    let filters: any = { $or: [] };
 
     if (role) {
       filters.role = role;
@@ -63,7 +70,8 @@ export class ClientsService {
     }
 
     if (filters.$or && filters.$or.length === 0) {
-      delete filters.$or;
+      const { $or, ...filtersWithoutOr } = filters;
+      filters = filtersWithoutOr;
     }
 
     const [data, total] = await Promise.all([
@@ -104,27 +112,27 @@ export class ClientsService {
   }
 
   create(createClientDto: CreateClientDto) {
-    return this.clientRepository.createClient(createClientDto);
+    return this.clientRepository.createClient(createClientDto as Client);
   }
 
   update(id: string, updateClientDto: UpdateClientDto) {
-     updateClientDto.isOnboardingCompleted = true;
-    return this.clientRepository.updateClient(id, updateClientDto);
+    updateClientDto.isOnboardingCompleted = true;
+    return this.clientRepository.updateClient(id, updateClientDto as Client);
   }
 
   async remove(id: string) {
-    await this.clientRepository.removeClientFirebase(id);
     return this.clientRepository.removeClient(id);
   }
 
   async assignRoutineToClient(clientId: string, routineId: string) {
-    const client: Client = await this.clientRepository.getClientById(clientId);
+    const client: Client | null =
+      await this.clientRepository.getClientById(clientId);
     if (!client) {
       throw new NotFoundException("Client not found");
     }
 
-    const routine: Routine =
-      await this.clientRepository.getRoutineById(routineId);
+    const routine: Routine | null =
+      await this.routinesService.getRoutineById(routineId);
     if (!routine) {
       throw new NotFoundException("Routine not found");
     }
@@ -147,7 +155,7 @@ export class ClientsService {
     );
   }
 
-  async assignPlanToClient(clientId: string, planId: Plan) {
+  async assignPlanToClient(clientId: string, planId: string) {
     try {
       return await this.clientRepository.assignPlanToClient(clientId, planId);
     } catch (error: any) {
@@ -194,22 +202,22 @@ export class ClientsService {
     try {
       if (disabled) {
         const schedules = await this.schedulesService.getAllSchedules();
-  
+
         // Filtrar y actualizar solo los horarios que tengan al cliente
         const updates = schedules
           .filter((schedule: any) => schedule.clients.includes(clientId))
           .map((schedule: any) => {
-              const updatedSchedule = {
-                ...schedule.toObject(), // Si es un documento de Mongoose
-                clients: schedule.clients.filter((id: string) => id !== clientId),
-              };
-  
+            const updatedSchedule = {
+              ...schedule.toObject(), // Si es un documento de Mongoose
+              clients: schedule.clients.filter((id: string) => id !== clientId),
+            };
+
             return this.schedulesService.updateSchedule(
               schedule._id,
               updatedSchedule,
             );
           });
-  
+
         await Promise.all(updates);
       }
 

@@ -16,6 +16,7 @@ import {
   SUB_ROUTINE_REPOSITORY,
 } from "@/src/context/routines/repositories/mongo-sub-routine.repository";
 import { Routine } from "@/src/context/routines/schemas/routine.schema";
+import { EntityDocument } from "@/src/context/shared/entities/tenant-base.entity";
 
 interface ISubRoutineRepository {
   findById(id: string): Promise<any>;
@@ -88,8 +89,9 @@ export class RoutinesService {
     }
 
     if (!routine.isCustom && clientId) {
+      const routineDocument = routine as EntityDocument<Routine>;
       const updatedRoutineData = {
-        ...routine.toObject(),
+        ...routineDocument.toObject(),
         ...updateData,
         isCustom: true,
       };
@@ -126,9 +128,10 @@ export class RoutinesService {
         );
       }
 
+      const newRoutineDocument = newRoutine as EntityDocument<Routine>;
       return this.clientRepository.assignRoutineToClient(
         clientId,
-        newRoutine._id as string,
+        newRoutineDocument._id.toString(),
       );
     }
 

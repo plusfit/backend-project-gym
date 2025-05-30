@@ -9,6 +9,8 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import jwt from "jsonwebtoken";
 import { Types } from "mongoose";
 import { TenantContextService } from "../services/tenant-context.service";
+import { OrganizationsService } from "../../organizations/organizations.service";
+import { OrganizationDocument } from "../../organizations/schemas/organization.schema";
 
 interface JwtPayload {
   userId: string;
@@ -22,9 +24,10 @@ export class TenantMiddleware implements NestMiddleware {
   constructor(
     private readonly configService: ConfigService,
     private readonly tenantContext: TenantContextService,
+    private readonly organizationsService: OrganizationsService,
   ) {}
 
-  use(req: FastifyRequest, res: FastifyReply, next: () => void) {
+  async use(req: FastifyRequest, res: FastifyReply, next: () => void) {
     try {
       if (req.method === "OPTIONS") {
         return next();
@@ -49,8 +52,16 @@ export class TenantMiddleware implements NestMiddleware {
         throw new UnauthorizedException("Invalid token");
       }
 
-      if (organizationSlug && decoded.organizationId !== organizationSlug) {
-        throw new UnauthorizedException("Organization mismatch");
+      if (organizationSlug) {
+        const organization: OrganizationDocument | null =
+          await this.organizationsService.findBySlug(organizationSlug);
+        if (!organization) {
+          throw new UnauthorizedException("Organization not found");
+        }
+
+        if (decoded.organizationId !== (organization as any)._id.toString()) {
+          throw new UnauthorizedException("Organization mismatch");
+        }
       }
 
       this.tenantContext.setTenantContext(
@@ -72,13 +83,13 @@ export class TenantMiddleware implements NestMiddleware {
   }
 
   private extractOrganizationSlug(req: FastifyRequest): string | null {
-    const host = req.headers.host;
-    if (host) {
-      const subdomain = host.split(".")[0];
-      if (subdomain && subdomain !== "www" && subdomain !== "api") {
-        return subdomain;
-      }
-    }
+    // const host = req.headers.host;
+    // if (host) {
+    //   const subdomain = host.split(".")[0];
+    //   if (subdomain && subdomain !== "www" && subdomain !== "api") {
+    //     return subdomain;
+    //   }
+    // }
 
     const orgHeader = req.headers["x-organization"] as string;
     if (orgHeader) {

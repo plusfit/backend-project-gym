@@ -3,13 +3,18 @@ import { Client } from "@/src/context/clients/schemas/client.schema";
 
 export const AUTH_REPOSITORY = "AuthRepository";
 export abstract class AuthRepository {
-	abstract register(registerDto: RegisterAuthDto): Promise<Client>;
+  abstract register(registerDto: RegisterAuthDto): Promise<Client>;
 
-	abstract login(email: string): Promise<Client>;
+  abstract login(email: string): Promise<Client>;
 
-	abstract saveRefreshToken(userId: string, refreshToken: string): Promise<void>;
+  abstract findById(userId: string): Promise<Client>;
 
-	abstract getRefreshToken(userId: string): Promise<string>;
+  abstract saveRefreshToken(
+    userId: string,
+    refreshToken: string,
+  ): Promise<void>;
 
-	abstract updateUserInfo(userId: string, userInfo: any): Promise<any>;
+  abstract getRefreshToken(userId: string): Promise<string>;
+
+  abstract updateUserInfo(userId: string, userInfo: any): Promise<any>;
 }

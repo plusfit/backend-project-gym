@@ -92,6 +92,7 @@ export class AppModule implements NestModule {
         { path: "auth/register", method: RequestMethod.POST },
         { path: "auth/google", method: RequestMethod.POST },
         { path: "auth/refreshToken", method: RequestMethod.POST },
+        { path: "auth/profile", method: RequestMethod.GET },
         { path: "api", method: RequestMethod.GET },
         { path: "api/(.*)", method: RequestMethod.GET },
         { path: "health", method: RequestMethod.GET },

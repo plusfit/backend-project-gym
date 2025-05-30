@@ -59,7 +59,7 @@ async function bootstrap() {
         "http://127.0.0.1:55376",
       ],
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-      allowedHeaders: ["Authorization", "Content-Type"],
+      allowedHeaders: ["Authorization", "Content-Type", "x-organization"],
       credentials: true,
     });
 
