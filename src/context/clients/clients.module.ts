@@ -1,4 +1,4 @@
-import { forwardRef, Module } from "@nestjs/common";
+import { Module } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
 
 import { ClientsController } from "@/src/context/clients/clients.controller";
@@ -9,18 +9,24 @@ import {
   Client,
   ClientSchema,
 } from "@/src/context/clients/schemas/client.schema";
-import { PlansModule } from "@/src/context/plans/plans.module";
 import { RoutinesModule } from "@/src/context/routines/routines.module";
 import { SchedulesModule } from "../schedules/schedules.module";
 import { SharedModule } from "../shared/shared.module";
+import { Plan, PlanSchema } from "../plans/schemas/plan.schema";
+import { Schedule, ScheduleSchema } from "../schedules/schemas/schedule.schema";
+import { Routine, RoutineSchema } from "../routines/schemas/routine.schema";
 
 @Module({
   imports: [
-    forwardRef(() => PlansModule),
-    forwardRef(() => RoutinesModule),
+    RoutinesModule,
     SchedulesModule,
     SharedModule,
-    MongooseModule.forFeature([{ name: Client.name, schema: ClientSchema }]),
+    MongooseModule.forFeature([
+      { name: Client.name, schema: ClientSchema },
+      { name: Plan.name, schema: PlanSchema },
+      { name: Schedule.name, schema: ScheduleSchema },
+      { name: Routine.name, schema: RoutineSchema },
+    ]),
   ],
   controllers: [ClientsController],
   providers: [

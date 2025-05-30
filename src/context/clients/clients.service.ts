@@ -4,29 +4,22 @@ import {
   Inject,
   Injectable,
   NotFoundException,
-  forwardRef,
 } from "@nestjs/common";
 
 import { UpdateClientDto } from "@/src/context/clients/dto/update-client.dto";
 import { CLIENT_REPOSITORY } from "@/src/context/clients/repositories/clients.repository";
 import { Client } from "@/src/context/clients/schemas/client.schema";
-import { PlansService } from "@/src/context/plans/plans.service";
 import { Plan } from "@/src/context/plans/schemas/plan.schema";
 import { Routine } from "@/src/context/routines/schemas/routine.schema";
 
 import { CreateClientDto } from "./dto/create-client.dto";
 import { ClientFilters } from "./interfaces/clients.interface";
-import { SchedulesService } from "../schedules/schedules.service";
 
 @Injectable()
 export class ClientsService {
   constructor(
     @Inject(CLIENT_REPOSITORY)
     private readonly clientRepository: any,
-    @Inject(forwardRef(() => PlansService))
-    private readonly plansService: any,
-    @Inject(forwardRef(() => SchedulesService))
-    private readonly schedulesService: SchedulesService,
   ) {}
 
   addFilter = (field: string, value: any, target: any) => {
@@ -63,7 +56,7 @@ export class ClientsService {
     }
 
     if (filters.$or && filters.$or.length === 0) {
-      delete filters.$or;
+      filters.$or = undefined;
     }
 
     const [data, total] = await Promise.all([
@@ -129,7 +122,7 @@ export class ClientsService {
       throw new NotFoundException("Routine not found");
     }
 
-    const plan: Plan = await this.plansService.findOne(client.planId);
+    const plan: Plan = await this.clientRepository.getPlanById(client.planId);
     if (!plan) {
       throw new NotFoundException(`Plan with ID ${client.planId} not found`);
     }
@@ -147,9 +140,18 @@ export class ClientsService {
     );
   }
 
-  async assignPlanToClient(clientId: string, planId: Plan) {
+  async assignPlanToClient(clientId: string, planId: string | Plan) {
     try {
-      return await this.clientRepository.assignPlanToClient(clientId, planId);
+      // Si recibimos un objeto Plan, extraemos su ID
+      const finalPlanId =
+        typeof planId === "string" ? planId : planId._id?.toString();
+      if (!finalPlanId) {
+        throw new Error("Plan ID is required");
+      }
+      return await this.clientRepository.assignPlanToClient(
+        clientId,
+        finalPlanId,
+      );
     } catch (error: any) {
       throw new HttpException(
         `Error al asignar el plan al cliente: ${error.message}`,
@@ -193,7 +195,7 @@ export class ClientsService {
   async toggleDisabled(clientId: string, disabled: boolean) {
     try {
       if (disabled) {
-        const schedules = await this.schedulesService.getAllSchedules();
+        const schedules = await this.clientRepository.getAllSchedules();
 
         // Filtrar y actualizar solo los horarios que tengan al cliente
         const updates = schedules
@@ -204,7 +206,7 @@ export class ClientsService {
               clients: schedule.clients.filter((id: string) => id !== clientId),
             };
 
-            return this.schedulesService.updateSchedule(
+            return this.clientRepository.updateSchedule(
               schedule._id,
               updatedSchedule,
             );

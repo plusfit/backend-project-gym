@@ -3,7 +3,6 @@ import {
   Injectable,
   NotFoundException,
   Inject,
-  forwardRef,
 } from "@nestjs/common";
 import { CreateOnboardingDto } from "./dto/create-onboarding.dto";
 import { UpdateOnboardingDto } from "./dto/update-onboarding.dto";
@@ -18,7 +17,7 @@ export class OnboardingService {
   constructor(
     private readonly onboardingRepository: OnboardingRepository,
     private readonly planRecommendationService: PlanRecommendationService,
-    @Inject(forwardRef(() => ClientsService))
+    @Inject(ClientsService)
     private readonly clientsService: ClientsService,
   ) {}
 

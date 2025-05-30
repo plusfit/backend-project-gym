@@ -8,12 +8,23 @@ import {
   ClientDocument,
 } from "@/src/context/clients/schemas/client.schema";
 import { TenantContextService } from "@/src/context/shared/services/tenant-context.service";
-import { EntityId } from "@/src/context/shared/entities/tenant-base.entity";
+import { Plan, PlanDocument } from "../../plans/schemas/plan.schema";
+import {
+  Schedule,
+  ScheduleDocument,
+} from "../../schedules/schemas/schedule.schema";
+import {
+  Routine,
+  RoutineDocument,
+} from "../../routines/schemas/routine.schema";
 
 @Injectable()
 export class MongoClientsRepository implements ClientsRepository {
   constructor(
     @InjectModel(Client.name) private clientModel: Model<ClientDocument>,
+    @InjectModel(Plan.name) private planModel: Model<PlanDocument>,
+    @InjectModel(Schedule.name) private scheduleModel: Model<ScheduleDocument>,
+    @InjectModel(Routine.name) private routineModel: Model<RoutineDocument>,
     private readonly tenantContext: TenantContextService,
   ) {}
 
@@ -106,10 +117,9 @@ export class MongoClientsRepository implements ClientsRepository {
 
   async assignPlanToClient(
     clientId: string,
-    planId: EntityId,
+    planId: string,
   ): Promise<Client | null> {
-    const planObjectId =
-      typeof planId === "string" ? new Types.ObjectId(planId) : planId;
+    const planObjectId = new Types.ObjectId(planId);
 
     return this.clientModel
       .findOneAndUpdate(
@@ -189,6 +199,32 @@ export class MongoClientsRepository implements ClientsRepository {
       .findOne({
         email,
         organizationId,
+      })
+      .exec();
+  }
+
+  // Métodos para eliminar dependencias circulares
+  async getPlanById(planId: string): Promise<Plan | null> {
+    return this.planModel.findOne(this.addTenantFilter({ _id: planId })).exec();
+  }
+
+  async getRoutineById(routineId: string): Promise<Routine | null> {
+    return this.routineModel
+      .findOne(this.addTenantFilter({ _id: routineId }))
+      .exec();
+  }
+
+  async getAllSchedules(): Promise<Schedule[]> {
+    return this.scheduleModel.find(this.addTenantFilter()).exec();
+  }
+
+  async updateSchedule(
+    scheduleId: string,
+    updateData: any,
+  ): Promise<Schedule | null> {
+    return this.scheduleModel
+      .findOneAndUpdate(this.addTenantFilter({ _id: scheduleId }), updateData, {
+        new: true,
       })
       .exec();
   }
