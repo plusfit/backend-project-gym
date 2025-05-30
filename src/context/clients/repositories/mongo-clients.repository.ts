@@ -1,118 +1,42 @@
+import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 
 import { ClientsRepository } from "@/src/context/clients/repositories/clients.repository";
-import { Client } from "@/src/context/clients/schemas/client.schema";
+import {
+  Client,
+  ClientDocument,
+} from "@/src/context/clients/schemas/client.schema";
+import { TenantContextService } from "@/src/context/shared/services/tenant-context.service";
 import { Plan } from "../../plans/schemas/plan.schema";
 
-export class MongoClientsRepository implements ClientsRepository {
+@Injectable()
+export class MongoClientsRepository extends ClientsRepository {
   constructor(
-    @InjectModel(Client.name) private readonly clientModel: Model<Client>,
-  ) {}
-  async getClientById(id: string): Promise<Client | null> {
-    return await this.clientModel.findById(id).exec();
-  }
-
-  async getClients(
-    offset: number,
-    limit: number,
-    filters: { name?: string; email?: string } = {},
-  ): Promise<Client[]> {
-    try {
-      return await this.clientModel
-        .find(filters)
-        .skip(offset)
-        .limit(limit)
-        .exec();
-    } catch (error: any) {
-      throw new Error(`Error fetching clients: ${error.message}`);
-    }
-  }
-
-  async getListClients(ids: string[]): Promise<Client[]> {
-    try {
-      // Inicializamos un array vacío para almacenar los clientes obtenidos
-      const clients = [];
-
-      // Iteramos sobre los IDs de los clientes
-      for (const id of ids) {
-        // Esperamos a obtener el cliente de la base de datos
-        const client = await this.clientModel.findById(id).exec();
-
-        // Si el cliente existe, lo agregamos al array
-        if (client) {
-          clients.push(client);
-        }
-      }
-
-      // Devolvemos el array de clientes obtenidos
-      return clients;
-    } catch (error: any) {
-      throw new Error(`Error getting clients: ${error.message}`);
-    }
-  }
-
-  async createClient(client: Client): Promise<Client> {
-    return await this.clientModel.create(client);
-  }
-
-  async updateClient(id: string, client: Client): Promise<Client | null> {
-    return await this.clientModel
-      .findByIdAndUpdate(id, client, { new: true })
-      .exec();
-  }
-
-  async countClients(filters: any = {}): Promise<number> {
-    return await this.clientModel.countDocuments(filters).exec();
-  }
-
-  async removeClient(id: string): Promise<boolean> {
-    try {
-      await this.clientModel.findByIdAndDelete(id).exec();
-      return true;
-    } catch (error: any) {
-      throw new Error(`Error deleting plan with id ${id}, ${error.message}`);
-    }
-  }
-
-  async findClientByEmail(email: string): Promise<Client | null> {
-    return await this.clientModel.findOne({ email }).exec();
-  }
-
-  async findClientById(id: string): Promise<Client | null> {
-    return await this.clientModel.findById(id).exec();
-  }
-
-  async findClientsByPlanId(planId: string): Promise<Client[]> {
-    return await this.clientModel.find({ planId }).exec();
+    @InjectModel(Client.name) clientModel: Model<ClientDocument>,
+    tenantContext: TenantContextService,
+  ) {
+    super(clientModel, tenantContext);
   }
 
   async assignRoutineToClient(
     clientId: string,
     routineId: string,
   ): Promise<Client | null> {
-    const client = await this.clientModel.findById(clientId).exec();
-    if (!client) {
-      throw new Error(`Client with id ${clientId} not found`);
-    }
-    client.routineId = routineId;
-    return await client.save();
+    return this.update(clientId, {
+      routineId: new Types.ObjectId(routineId),
+    } as any);
   }
 
   async assignPlanToClient(
     clientId: string,
     planId: Plan,
   ): Promise<Client | null> {
-    return this.clientModel.findByIdAndUpdate(
-      clientId,
-      { planId: planId.id, routineId: planId.defaultRoutine },
-      { new: true },
-    );
-  }
-
-  async toggleDisabled(id: string, disabled: boolean): Promise<Client | null> {
-    return this.clientModel
-      .findByIdAndUpdate(id, { disabled }, { new: true })
-      .exec();
+    return this.update(clientId, {
+      planId: planId._id,
+      routineId: planId.defaultRoutine
+        ? new Types.ObjectId(planId.defaultRoutine)
+        : undefined,
+    } as any);
   }
 }

@@ -3,62 +3,109 @@ import { Model } from "mongoose";
 
 import { CreatePlanDto } from "../dto/create-plan.dto";
 import { UpdatePlanDto } from "../dto/update-plan.dto";
-import { Plan } from "../schemas/plan.schema";
+import { Plan, PlanDocument } from "../schemas/plan.schema";
 import { PlanRepository } from "./plans.repository";
+import { TenantContextService } from "@/src/context/shared/services/tenant-context.service";
 
 export class MongoPlansRepository implements PlanRepository {
-	constructor(
-		@InjectModel(Plan.name) private readonly planModel: Model<Plan>,
-	) {}
+  constructor(
+    @InjectModel(Plan.name) private readonly planModel: Model<PlanDocument>,
+    private readonly tenantContext: TenantContextService,
+  ) {}
 
-	async createPlan(plan: CreatePlanDto): Promise<Plan> {
-		return await this.planModel.create(plan);
-	}
+  private addTenantFilter<K>(filter: any = {}): any {
+    return {
+      ...filter,
+      organizationId: this.tenantContext.getOrganizationId(),
+    };
+  }
 
-	async getPlans(
-		offset: number,
-		limit: number,
-		filters: { name?: string; type?: string } = {},
-	): Promise<Plan[]> {
-		return await this.planModel.find(filters).skip(offset).limit(limit).exec();
-	}
+  async createPlan(plan: CreatePlanDto): Promise<Plan> {
+    const tenantData = {
+      ...plan,
+      organizationId: this.tenantContext.getOrganizationId(),
+    };
+    return await this.planModel.create(tenantData);
+  }
 
-	async countPlans(filters: any = {}): Promise<number> {
-		return await this.planModel.countDocuments(filters).exec();
-	}
+  async getPlans(
+    offset: number,
+    limit: number,
+    filters: { name?: string; type?: string } = {},
+  ): Promise<Plan[]> {
+    const filter: any = {};
+    if (filters.name) {
+      filter.name = { $regex: filters.name, $options: "i" };
+    }
+    if (filters.type) {
+      filter.type = filters.type;
+    }
 
-	async findOne(id: string): Promise<Plan | null> {
-		return await this.planModel.findById(id).populate("defaultRoutine").exec();
-	}
+    return await this.planModel
+      .find(this.addTenantFilter(filter))
+      .skip(offset)
+      .limit(limit)
+      .exec();
+  }
 
-	async update(id: string, plan: UpdatePlanDto): Promise<Plan | null> {
-		try {
-			return await this.planModel
-				.findByIdAndUpdate(id, plan, { new: true })
-				.exec();
-		} catch (error: any) {
-			throw new Error(`Error updating plan with id ${id}, ${error.message}`);
-		}
-	}
+  async countPlans(filters: any = {}): Promise<number> {
+    const filter: any = {};
+    if (filters.name) {
+      filter.name = { $regex: filters.name, $options: "i" };
+    }
+    if (filters.type) {
+      filter.type = filters.type;
+    }
+    return await this.planModel
+      .countDocuments(this.addTenantFilter(filter))
+      .exec();
+  }
 
-	async remove(id: string): Promise<boolean> {
-		try {
-			await this.planModel.findByIdAndDelete(id).exec();
-			return true;
-		} catch (error: any) {
-			throw new Error(`Error deleting plan with id ${id}, ${error.message}`);
-		}
-	}
+  async findOne(id: string): Promise<Plan | null> {
+    return await this.planModel
+      .findOne(this.addTenantFilter({ _id: id }))
+      .populate("defaultRoutine")
+      .exec();
+  }
 
-	async getPlanByMode(mode: string): Promise<Plan | null> {
-		return await this.planModel.findOne({ mode }).exec();
-	}
+  async update(id: string, plan: UpdatePlanDto): Promise<Plan | null> {
+    try {
+      return await this.planModel
+        .findOneAndUpdate(this.addTenantFilter({ _id: id }), plan, {
+          new: true,
+        })
+        .exec();
+    } catch (error: any) {
+      throw new Error(`Error updating plan with id ${id}, ${error.message}`);
+    }
+  }
 
-	async getClientsWithPlansAndSchedules(offset: number, limit: number) {
-		return await this.planModel.find().skip(offset).limit(limit).exec();
-	}
+  async remove(id: string): Promise<boolean> {
+    try {
+      const result = await this.planModel
+        .deleteOne(this.addTenantFilter({ _id: id }))
+        .exec();
+      return result.deletedCount > 0;
+    } catch (error: any) {
+      throw new Error(`Error deleting plan with id ${id}, ${error.message}`);
+    }
+  }
 
-	async findAssignableClientsBasedOnPlan(planId: string) {
-		return await this.planModel.find({ _id: planId }).exec();
-	}
+  async getPlanByMode(mode: string): Promise<Plan | null> {
+    return await this.planModel.findOne(this.addTenantFilter({ mode })).exec();
+  }
+
+  async getClientsWithPlansAndSchedules(offset: number, limit: number) {
+    return await this.planModel
+      .find(this.addTenantFilter())
+      .skip(offset)
+      .limit(limit)
+      .exec();
+  }
+
+  async findAssignableClientsBasedOnPlan(planId: string) {
+    return await this.planModel
+      .find(this.addTenantFilter({ _id: planId }))
+      .exec();
+  }
 }

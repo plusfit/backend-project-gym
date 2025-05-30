@@ -7,17 +7,18 @@ import { ClientsModule } from "@/src/context/clients/clients.module";
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
 import { OnboardingModule } from "../onboarding/onboarding.module";
+import { OrganizationsModule } from "../organizations/organizations.module";
 
 @Module({
-	controllers: [AuthController],
+  controllers: [AuthController],
 
-	providers: [
-		AuthService,
-		{
-			provide: AUTH_REPOSITORY,
-			useClass: MongoAuthRepository,
-		},
-	],
-	imports: [ClientsModule, OnboardingModule],
+  providers: [
+    AuthService,
+    {
+      provide: AUTH_REPOSITORY,
+      useClass: MongoAuthRepository,
+    },
+  ],
+  imports: [ClientsModule, OnboardingModule, OrganizationsModule],
 })
 export class AuthModule {}

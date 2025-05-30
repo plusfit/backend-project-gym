@@ -1,9 +1,10 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { IsNumber, IsOptional, IsString, ValidateIf } from "class-validator";
 import { Document } from "mongoose";
+import { TenantBaseEntity } from "@/src/context/shared/entities/tenant-base.entity";
 
-@Schema()
-export class Exercise extends Document {
+@Schema({ timestamps: true })
+export class Exercise extends TenantBaseEntity {
   @Prop({ required: true })
   @IsString()
   name!: string;
@@ -23,12 +24,6 @@ export class Exercise extends Document {
   @Prop({ required: true })
   @IsString()
   type!: string;
-
-  @Prop()
-  updatedAt!: Date;
-
-  @Prop({ default: Date.now })
-  createdAt!: Date;
 
   @Prop()
   @ValidateIf((obj) => obj.type === "cardio")
@@ -56,4 +51,5 @@ export class Exercise extends Document {
 }
 
 export const ExerciseSchema = SchemaFactory.createForClass(Exercise);
+ExerciseSchema.index({ organizationId: 1, name: 1 }, { unique: true });
 export type ExerciseDocument = Exercise & Document;

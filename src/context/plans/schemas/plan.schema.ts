@@ -7,9 +7,10 @@ import {
   PlanGoal,
   Tags,
 } from "@/src/context/shared/enums/plan.enum";
+import { TenantBaseEntity } from "@/src/context/shared/entities/tenant-base.entity";
 
-@Schema()
-export class Plan extends Document {
+@Schema({ timestamps: true })
+export class Plan extends TenantBaseEntity {
   @Prop({ required: true })
   name!: string;
 
@@ -42,13 +43,8 @@ export class Plan extends Document {
 
   @Prop({ required: true })
   days!: number;
-
-  @Prop({ default: Date.now })
-  updatedAt!: Date;
-
-  @Prop({ default: Date.now })
-  createdAt!: Date;
 }
 
 export const PlanSchema = SchemaFactory.createForClass(Plan);
+PlanSchema.index({ organizationId: 1, name: 1 }, { unique: true });
 export type PlanDocument = Plan & Document;

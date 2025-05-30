@@ -5,6 +5,7 @@ import axios from "axios";
 import jwt from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
 import firebaseAdmin from "firebase-admin";
+import { Types } from "mongoose";
 
 import { LoginAuthDto } from "@/src/context/auth/dto/login-auth.dto";
 import { RefreshTokenAuthDto } from "@/src/context/auth/dto/refresh-token-auth-dto";
@@ -12,314 +13,344 @@ import { RegisterAuthDto } from "@/src/context/auth/dto/register-auth.dto";
 import { AUTH_REPOSITORY } from "@/src/context/auth/repositories/auth.repository";
 import { OnboardingService } from "../onboarding/onboarding.service";
 import { GoogleAuthDto } from "@/src/context/auth/dto/google-auth.dto";
+import { OrganizationsService } from "../organizations/organizations.service";
 
 @Injectable()
 export class AuthService {
-	constructor(
-		@Inject(AUTH_REPOSITORY)
-		private readonly authRepository: any,
-		private readonly onboardingService: OnboardingService,
-		private readonly configService: ConfigService,
-	) {}
+  constructor(
+    @Inject(AUTH_REPOSITORY)
+    private readonly authRepository: any,
+    private readonly onboardingService: OnboardingService,
+    private readonly configService: ConfigService,
+    private readonly organizationsService: OrganizationsService,
+  ) {}
 
-	async register(registerDto: RegisterAuthDto) {
-		try {
-			return await this.authRepository.register(registerDto);
-		} catch (error: any) {
-			console.log(error);
-			throw new UnauthorizedException("Error al registrar, verifique datos");
-		}
-	}
+  async register(registerDto: RegisterAuthDto, organizationId?: string) {
+    try {
+      if (organizationId) {
+        const orgExists =
+          await this.organizationsService.validateOrganizationExists(
+            new Types.ObjectId(organizationId),
+          );
+        if (!orgExists) {
+          throw new UnauthorizedException("Organization not found or inactive");
+        }
+      }
 
-	async login(loginDto: LoginAuthDto) {
-		try {
-			this.validateLogin(loginDto);
-			//obtengo el mail
-			const email = await this.getEmailFromJWTFirebase(loginDto.token);
-			const response = await this.authRepository.login(email);
+      return await this.authRepository.register({
+        ...registerDto,
+        organizationId: organizationId
+          ? new Types.ObjectId(organizationId)
+          : undefined,
+      });
+    } catch (error: any) {
+      console.log(error);
+      throw new UnauthorizedException("Error al registrar, verifique datos");
+    }
+  }
 
-			//me quedo con lo importante
-			const { _doc } = response;
+  async login(loginDto: LoginAuthDto, organizationSlug?: string) {
+    try {
+      this.validateLogin(loginDto);
 
-			if (_doc.disabled) {
-				throw new UnauthorizedException(
-					"Usuario deshabilitado. Contacte al administrador",
-				);
-			}
+      let organization = null;
+      if (organizationSlug) {
+        organization =
+          await this.organizationsService.findBySlug(organizationSlug);
+        if (!organization || !organization.isActive) {
+          throw new UnauthorizedException("Organization not found or inactive");
+        }
+      }
 
-			//elimino el refresh tokenS
-			// biome-ignore lint/performance/noDelete: <explanation>
-			delete _doc.refreshToken;
+      const email = await this.getEmailFromJWTFirebase(loginDto.token);
+      const response = await this.authRepository.login(
+        email,
+        organization?._id,
+      );
 
-			const onboarding = await this.onboardingService.findByUserId(_doc._id);
+      const { _doc } = response;
 
-			_doc.onboardingCompleted = false;
+      if (_doc.disabled) {
+        throw new UnauthorizedException(
+          "Usuario deshabilitado. Contacte al administrador",
+        );
+      }
 
-			//verifico si el onboarding esta completo
-			if (onboarding && onboarding.completed) {
-				_doc.onboardingCompleted = true;
-			}
+      // biome-ignore lint/performance/noDelete: <explanation>
+      delete _doc.refreshToken;
 
-			const payload = {
-				..._doc,
-			};
-			//genero los tokens
-			const tokens = this.createToken(payload);
+      const onboarding = await this.onboardingService.findByUserId(_doc._id);
 
-			//guardo el refreshToken en la base de datos
-			await this.authRepository.saveRefreshToken(_doc._id, tokens.refreshToken);
+      _doc.onboardingCompleted = false;
 
-			return {
-				accessToken: tokens.accessToken,
-				refreshToken: tokens.refreshToken,
-			};
-		} catch (error: any) {
-			console.log(error);
-			throw new UnauthorizedException(
-				"Error al iniciar sesión, verifique datos",
-			);
-		}
-	}
+      if (onboarding && onboarding.completed) {
+        _doc.onboardingCompleted = true;
+      }
 
-	validateLogin(loginDto: LoginAuthDto) {
-		if (!loginDto.token) {
-			throw new Error("Token is required");
-		}
-	}
+      const payload = {
+        ..._doc,
+        organizationId: _doc.organizationId?.toString(),
+      };
 
-	async getEmailFromJWTFirebase(token: string) {
-		try {
-			const firebasePublicKeysUrl = this.configService.get(
-				"FIREBASE_PUBLIC_KEYS_URL",
-			);
+      const tokens = this.createToken(payload);
 
-			//Obtener claves publicas de Firebase
-			const response = await axios.get(firebasePublicKeysUrl);
-			const publicKeys = response.data;
+      await this.authRepository.saveRefreshToken(_doc._id, tokens.refreshToken);
 
-			//Decodificar token sin verificar la firma para obtener el kid
-			const decodedHeader: any = jwt.decode(token, { complete: true });
-			const kid = decodedHeader?.header?.kid;
+      return {
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        organization: organization
+          ? {
+              id: organization._id,
+              name: organization.name,
+              slug: organization.slug,
+            }
+          : null,
+      };
+    } catch (error: any) {
+      console.log(error);
+      throw new UnauthorizedException(
+        "Error al iniciar sesión, verifique datos",
+      );
+    }
+  }
 
-			if (!kid || !publicKeys[kid]) {
-				throw new Error("Invalid token");
-			}
+  validateLogin(loginDto: LoginAuthDto) {
+    if (!loginDto.token) {
+      throw new Error("Token is required");
+    }
+  }
 
-			//Verificar el token con la clave publica
-			const decoded = jwt.verify(token, publicKeys[kid]) as jwt.JwtPayload;
+  async getEmailFromJWTFirebase(token: string) {
+    try {
+      const firebasePublicKeysUrl = this.configService.get(
+        "FIREBASE_PUBLIC_KEYS_URL",
+      );
 
-			//Validar que venga de Firebase
-			if (decoded.aud !== this.configService.get("AUD")) {
-				//dtf-central a modo de prueba
-				throw new Error("Token is not from Firebase");
-			}
+      const response = await axios.get(firebasePublicKeysUrl);
+      const publicKeys = response.data;
 
-			//Valido que tenga un email
-			if (
-				!decoded.email ||
-				!decoded.firebase ||
-				!decoded.firebase.identities?.email?.length
-			) {
-				throw new Error("Invalid token");
-			}
+      const decodedHeader: any = jwt.decode(token, { complete: true });
+      const kid = decodedHeader?.header?.kid;
 
-			return decoded.email;
-		} catch (error: any) {
-			throw new Error(error.message);
-		}
-	}
+      if (!kid || !publicKeys[kid]) {
+        throw new Error("Invalid token");
+      }
 
-	createToken(payload: any) {
-		//género el accessToken y el refreshToken con los secrets del .env
-		const accessSecret = this.configService.get("JWT_ACCESS_SECRET");
-		const accessExpiresIn = this.configService.get("JWT_ACCESS_EXPIRES_IN");
+      const decoded = jwt.verify(token, publicKeys[kid]) as jwt.JwtPayload;
 
-		const refreshSecret = this.configService.get<string>("JWT_REFRESH_SECRET");
-		if (!refreshSecret) {
-			throw new Error("JWT_REFRESH_SECRET is not set in the configuration.");
-		}
-		const refreshExpiresIn = this.configService.get("JWT_REFRESH_EXPIRES_IN");
+      if (decoded.aud !== this.configService.get("AUD")) {
+        throw new Error("Token is not from Firebase");
+      }
 
-		const tokenPayload = {
-			...payload,
-			createdAt: Date.now(),
-		};
+      if (
+        !decoded.email ||
+        !decoded.firebase ||
+        !decoded.firebase.identities?.email?.length
+      ) {
+        throw new Error("Invalid token");
+      }
 
-		const accessToken = jwt.sign(tokenPayload, accessSecret, {
-			expiresIn: accessExpiresIn,
-		});
+      return decoded.email;
+    } catch (error: any) {
+      throw new Error(error.message);
+    }
+  }
 
-		const refreshTokenPayload = {
-			...payload,
-			createdAt: Date.now(),
-		};
+  createToken(payload: any) {
+    const accessSecret = this.configService.get("JWT_ACCESS_SECRET");
+    const accessExpiresIn = this.configService.get("JWT_ACCESS_EXPIRES_IN");
 
-		const refreshToken = jwt.sign(refreshTokenPayload, refreshSecret, {
-			expiresIn: refreshExpiresIn,
-		});
+    const refreshSecret = this.configService.get<string>("JWT_REFRESH_SECRET");
+    if (!refreshSecret) {
+      throw new Error("JWT_REFRESH_SECRET is not set in the configuration.");
+    }
+    const refreshExpiresIn = this.configService.get("JWT_REFRESH_EXPIRES_IN");
 
-		return {
-			accessToken: accessToken,
-			refreshToken: refreshToken,
-		};
-	}
+    const tokenPayload = {
+      userId: payload._id,
+      organizationId: payload.organizationId,
+      role: payload.role,
+      email: payload.email,
+      createdAt: Date.now(),
+    };
 
-	async refreshToken(refreshToken: RefreshTokenAuthDto) {
-		try {
-			const _refreshToken = refreshToken.refreshToken;
-			const refreshSecret =
-				this.configService.get<string>("JWT_REFRESH_SECRET");
+    const accessToken = jwt.sign(tokenPayload, accessSecret, {
+      expiresIn: accessExpiresIn,
+    });
 
-			if (!refreshSecret) {
-				throw new Error("JWT_REFRESH_SECRET is not set in the configuration.");
-			}
+    const refreshTokenPayload = {
+      ...tokenPayload,
+    };
 
-			//verifico y decodifico el refresh token
-			const decoded = jwt.verify(
-				_refreshToken,
-				refreshSecret,
-			) as jwt.JwtPayload;
-			const userId = decoded._id;
+    const refreshToken = jwt.sign(refreshTokenPayload, refreshSecret, {
+      expiresIn: refreshExpiresIn,
+    });
 
-			//obtengo el refresh token almacenado del usuario
-			const storedRefreshToken =
-				await this.authRepository.getRefreshToken(userId);
+    return {
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    };
+  }
 
-			if (storedRefreshToken !== _refreshToken) {
-				throw new Error("Invalid refresh token");
-			}
+  async refreshToken(refreshToken: RefreshTokenAuthDto) {
+    try {
+      const _refreshToken = refreshToken.refreshToken;
+      const refreshSecret =
+        this.configService.get<string>("JWT_REFRESH_SECRET");
 
-			// elimino los campos exp e iat para que se generen de nuevo a lo que no uso las variables tengo que comentarlas con eslint
-			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-			const { exp, iat, ...payloadWithoutExp } = decoded;
+      if (!refreshSecret) {
+        throw new Error("JWT_REFRESH_SECRET is not set in the configuration.");
+      }
 
-			// Genero nuevos tokens
-			const newTokens = this.createToken(payloadWithoutExp);
+      const decoded = jwt.verify(
+        _refreshToken,
+        refreshSecret,
+      ) as jwt.JwtPayload;
+      const userId = decoded.userId;
 
-			//guardo el nuevo refresh token
-			await this.authRepository.saveRefreshToken(
-				userId,
-				newTokens.refreshToken,
-			);
+      const storedRefreshToken =
+        await this.authRepository.getRefreshToken(userId);
 
-			return {
-				accessToken: newTokens.accessToken,
-				refreshToken: newTokens.refreshToken,
-			};
-		} catch (error: any) {
-			return {
-				success: false,
-				error: error.message,
-			};
-		}
-	}
+      if (storedRefreshToken !== _refreshToken) {
+        throw new Error("Invalid refresh token");
+      }
 
-	async googleLogin(googleAuthDto: GoogleAuthDto) {
-		try {
-			if (!googleAuthDto.idToken) {
-				throw new Error("Google ID token is required");
-			}
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { exp, iat, ...payloadWithoutExp } = decoded;
 
-			// Verificar el token de Google y obtener el email
-			const email = await this.verifyGoogleToken(googleAuthDto.idToken);
+      const newTokens = this.createToken(payloadWithoutExp);
 
-			// Buscar usuario por email
-			// biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
-			let client: any;
-			try {
-				client = await this.authRepository.login(email);
-			} catch (error) {
-				// Si el usuario no existe, lo registramos automáticamente
-				const registerDto: RegisterAuthDto = {
-					email,
-				};
-				client = await this.authRepository.register(registerDto);
+      await this.authRepository.saveRefreshToken(
+        userId,
+        newTokens.refreshToken,
+      );
 
-				// Crear el registro de onboarding para el nuevo usuario
-				await this.onboardingService.create({
-					userId: client._id.toString(),
-					step: 1,
-					completed: false,
-				});
-			}
+      return {
+        accessToken: newTokens.accessToken,
+        refreshToken: newTokens.refreshToken,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+  }
 
-			// Extraemos la información que necesitamos
-			const { _doc } = client as any;
+  async googleLogin(googleAuthDto: GoogleAuthDto, organizationSlug?: string) {
+    try {
+      if (!googleAuthDto.idToken) {
+        throw new Error("Google ID token is required");
+      }
 
-			if (_doc.disabled) {
-				throw new UnauthorizedException(
-					"Usuario deshabilitado. Contacte al administrador",
-				);
-			}
+      let organization = null;
+      if (organizationSlug) {
+        organization =
+          await this.organizationsService.findBySlug(organizationSlug);
+        if (!organization || !organization.isActive) {
+          throw new UnauthorizedException("Organization not found or inactive");
+        }
+      }
 
-			// biome-ignore lint/performance/noDelete: necesario para eliminar la propiedad
-			delete _doc.refreshToken;
+      const email = await this.verifyGoogleToken(googleAuthDto.idToken);
 
-			// Verificamos el estado del onboarding
-			const onboarding = await this.onboardingService.findByUserId(_doc._id);
-			_doc.onboardingCompleted = false;
+      // biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
+      let client: any;
+      try {
+        client = await this.authRepository.login(email, organization?._id);
+      } catch (error) {
+        const registerDto: RegisterAuthDto = {
+          email,
+        };
+        client = await this.authRepository.register({
+          ...registerDto,
+          organizationId: organization?._id,
+        });
 
-			if (onboarding && onboarding.completed) {
-				_doc.onboardingCompleted = true;
-			}
+        await this.onboardingService.create({
+          userId: client._id.toString(),
+          step: 1,
+          completed: false,
+        });
+      }
 
-			// Si hay nombre o avatar en el DTO y el usuario no tiene esta información,
-			// actualizamos el userInfo
-			if (
-				(googleAuthDto.name || googleAuthDto.avatarUrl) &&
-				!_doc.userInfo?.name
-			) {
-				const userInfo = _doc.userInfo || {};
+      const { _doc } = client as any;
 
-				if (googleAuthDto.name) {
-					userInfo.name = googleAuthDto.name;
-				}
+      if (_doc.disabled) {
+        throw new UnauthorizedException(
+          "Usuario deshabilitado. Contacte al administrador",
+        );
+      }
 
-				if (googleAuthDto.avatarUrl) {
-					userInfo.avatarUrl = googleAuthDto.avatarUrl;
-				}
+      // biome-ignore lint/performance/noDelete: necesario para eliminar la propiedad
+      delete _doc.refreshToken;
 
-				// Actualizar el usuario con la información de Google
-				await this.authRepository.updateUserInfo(_doc._id, userInfo);
-			}
+      const onboarding = await this.onboardingService.findByUserId(_doc._id);
+      _doc.onboardingCompleted = false;
 
-			const payload = {
-				..._doc,
-			};
+      if (onboarding && onboarding.completed) {
+        _doc.onboardingCompleted = true;
+      }
 
-			// Generar tokens
-			const tokens = this.createToken(payload);
+      if (
+        (googleAuthDto.name || googleAuthDto.avatarUrl) &&
+        !_doc.userInfo?.name
+      ) {
+        const userInfo = _doc.userInfo || {};
 
-			// Guardar refresh token
-			await this.authRepository.saveRefreshToken(_doc._id, tokens.refreshToken);
+        if (googleAuthDto.name) {
+          userInfo.name = googleAuthDto.name;
+        }
 
-			return {
-				accessToken: tokens.accessToken,
-				refreshToken: tokens.refreshToken,
-			};
-		} catch (error) {
-			console.error("Google login error:", error);
-			throw new UnauthorizedException(
-				"Error al iniciar sesión con Google, verifique su cuenta",
-			);
-		}
-	}
+        if (googleAuthDto.avatarUrl) {
+          userInfo.avatarUrl = googleAuthDto.avatarUrl;
+        }
 
-	async verifyGoogleToken(idToken: string): Promise<string> {
-		try {
-			// Verificar el token usando Firebase Admin SDK
-			const auth = firebaseAdmin.auth();
-			const decodedToken = await auth.verifyIdToken(idToken);
+        await this.authRepository.updateUserInfo(_doc._id, userInfo);
+      }
 
-			// Verificar que el token tenga un email
-			if (!decodedToken.email) {
-				throw new Error("Invalid email in token");
-			}
+      const payload = {
+        ..._doc,
+        organizationId: _doc.organizationId?.toString(),
+      };
 
-			return decodedToken.email;
-		} catch (error) {
-			console.error("Firebase token verification error:", error);
-			throw new Error("Error verifying Firebase token");
-		}
-	}
+      const tokens = this.createToken(payload);
+
+      await this.authRepository.saveRefreshToken(_doc._id, tokens.refreshToken);
+
+      return {
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        organization: organization
+          ? {
+              id: organization._id,
+              name: organization.name,
+              slug: organization.slug,
+            }
+          : null,
+      };
+    } catch (error) {
+      console.error("Google login error:", error);
+      throw new UnauthorizedException(
+        "Error al iniciar sesión con Google, verifique su cuenta",
+      );
+    }
+  }
+
+  async verifyGoogleToken(idToken: string): Promise<string> {
+    try {
+      const auth = firebaseAdmin.auth();
+      const decodedToken = await auth.verifyIdToken(idToken);
+
+      if (!decodedToken.email) {
+        throw new Error("Invalid email in token");
+      }
+
+      return decodedToken.email;
+    } catch (error) {
+      console.error("Firebase token verification error:", error);
+      throw new Error("Error verifying Firebase token");
+    }
+  }
 }

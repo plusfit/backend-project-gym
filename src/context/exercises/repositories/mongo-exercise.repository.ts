@@ -4,76 +4,111 @@ import { Model } from "mongoose";
 import { CreateExerciseDto } from "@/src/context/exercises/dto/create-exercise.dto";
 import { UpdateExerciseDto } from "@/src/context/exercises/dto/update-exercise.dto";
 import { ExerciseRepository } from "@/src/context/exercises/repositories/exercise.repository";
-import { Exercise } from "@/src/context/exercises/schemas/exercise.schema";
+import {
+  Exercise,
+  ExerciseDocument,
+} from "@/src/context/exercises/schemas/exercise.schema";
+import { TenantContextService } from "@/src/context/shared/services/tenant-context.service";
 
 export class MongoExercisesRepository implements ExerciseRepository {
-	constructor(
-		@InjectModel(Exercise.name) private readonly exerciseModel: Model<Exercise>,
-	) {}
+  constructor(
+    @InjectModel(Exercise.name)
+    private readonly exerciseModel: Model<ExerciseDocument>,
+    private readonly tenantContext: TenantContextService,
+  ) {}
 
-	async createExercise(exercise: CreateExerciseDto): Promise<Exercise> {
-		try {
-			return await this.exerciseModel.create(exercise);
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		} catch (error: any) {
-			throw new Error(`Error creating exercise: ${error.message}`);
-		}
-	}
+  private addTenantFilter<K>(filter: any = {}): any {
+    return {
+      ...filter,
+      organizationId: this.tenantContext.getOrganizationId(),
+    };
+  }
 
-	async getExercises(
-		offset: number,
-		limit: number,
-		filters: { name?: string; exerciseType?: string } = {},
-	): Promise<Exercise[]> {
-		try {
-			const exercises = await this.exerciseModel
-				.find(filters)
-				.skip(offset)
-				.limit(limit)
-				.exec();
-			return exercises;
-		} catch {
-			throw "Error fetching exercises";
-		}
-	}
+  async createExercise(exercise: CreateExerciseDto): Promise<Exercise> {
+    try {
+      const tenantData = {
+        ...exercise,
+        organizationId: this.tenantContext.getOrganizationId(),
+      };
+      return await this.exerciseModel.create(tenantData);
+    } catch (error: any) {
+      throw new Error(`Error creating exercise: ${error.message}`);
+    }
+  }
 
-	async countExercises(filters: any = {}): Promise<number> {
-		try {
-			return await this.exerciseModel.countDocuments(filters).exec();
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		} catch (error: any) {
-			throw new Error(`Error counting exercises: ${error.message}`);
-		}
-	}
+  async getExercises(
+    offset: number,
+    limit: number,
+    filters: { name?: string; exerciseType?: string } = {},
+  ): Promise<Exercise[]> {
+    try {
+      const filter: any = {};
+      if (filters.name) {
+        filter.name = { $regex: filters.name, $options: "i" };
+      }
+      if (filters.exerciseType) {
+        filter.type = filters.exerciseType;
+      }
 
-	async findOne(id: string): Promise<Exercise | undefined> {
-		try {
-			const exercise = await this.exerciseModel.findById(id).exec();
-			return exercise ?? undefined;
-		} catch (error: any) {
-			throw new Error(`Error fetching exercise: ${error.message}`);
-		}
-	}
+      return this.exerciseModel
+        .find(this.addTenantFilter(filter))
+        .skip(offset)
+        .limit(limit)
+        .exec();
+    } catch {
+      throw "Error fetching exercises";
+    }
+  }
 
-	async update(
-		id: string,
-		exercise: UpdateExerciseDto,
-	): Promise<Exercise | null> {
-		try {
-			return await this.exerciseModel
-				.findByIdAndUpdate(id, exercise, { new: true })
-				.exec();
+  async countExercises(filters: any = {}): Promise<number> {
+    try {
+      const filter: any = {};
+      if (filters.name) {
+        filter.name = { $regex: filters.name, $options: "i" };
+      }
+      if (filters.exerciseType) {
+        filter.type = filters.exerciseType;
+      }
+      return this.exerciseModel
+        .countDocuments(this.addTenantFilter(filter))
+        .exec();
+    } catch (error: any) {
+      throw new Error(`Error counting exercises: ${error.message}`);
+    }
+  }
 
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		} catch (error: any) {
-			throw new Error(
-				`Error updating exercise with id ${id}: ${error.message}`,
-			);
-		}
-	}
+  async findOne(id: string): Promise<Exercise | undefined> {
+    try {
+      const exercise = await this.exerciseModel
+        .findOne(this.addTenantFilter({ _id: id }))
+        .exec();
+      return exercise ?? undefined;
+    } catch (error: any) {
+      throw new Error(`Error fetching exercise: ${error.message}`);
+    }
+  }
 
-	async remove(id: string): Promise<boolean> {
-		const result = await this.exerciseModel.findByIdAndDelete(id).exec();
-		return result !== null;
-	}
+  async updateExercise(
+    id: string,
+    exercise: UpdateExerciseDto,
+  ): Promise<Exercise | null> {
+    try {
+      return await this.exerciseModel
+        .findOneAndUpdate(this.addTenantFilter({ _id: id }), exercise, {
+          new: true,
+        })
+        .exec();
+    } catch (error: any) {
+      throw new Error(
+        `Error updating exercise with id ${id}: ${error.message}`,
+      );
+    }
+  }
+
+  async remove(id: string): Promise<boolean> {
+    const result = await this.exerciseModel
+      .deleteOne(this.addTenantFilter({ _id: id }))
+      .exec();
+    return result.deletedCount > 0;
+  }
 }
