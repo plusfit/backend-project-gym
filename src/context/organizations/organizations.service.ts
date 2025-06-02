@@ -20,8 +20,9 @@ export class OrganizationsService {
     return organization.save();
   }
 
-  async findAll(): Promise<OrganizationDocument[]> {
-    return this.organizationModel.find({ isActive: true }).exec();
+  async findAll(includeInactive = true): Promise<OrganizationDocument[]> {
+    const filter = includeInactive ? {} : { isActive: true };
+    return this.organizationModel.find(filter).exec();
   }
 
   async findById(id: string): Promise<OrganizationDocument | null> {

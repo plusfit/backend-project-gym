@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
@@ -40,8 +41,9 @@ export class OrganizationsController {
   @UseGuards(RolesGuard)
   @ApiOperation({ summary: "Get all organizations" })
   @ApiResponse({ status: 200, description: "List of organizations" })
-  findAll() {
-    return this.organizationsService.findAll();
+  findAll(@Query("includeInactive") includeInactive?: string) {
+    const includeInactiveBool = includeInactive === "true";
+    return this.organizationsService.findAll(includeInactiveBool);
   }
 
   @Get(":id")
