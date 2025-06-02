@@ -1,10 +1,16 @@
 import {
+  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
   ValidateIf,
 } from "class-validator";
+
+export enum MediaType {
+  IMAGE = 'image',
+  VIDEO = 'video'
+}
 
 export class CreateExerciseDto {
   @IsString()
@@ -18,6 +24,10 @@ export class CreateExerciseDto {
   @IsString()
   @IsOptional()
   gifUrl?: string;
+
+  @IsEnum(MediaType)
+  @IsOptional()
+  mediaType?: MediaType;
 
   @IsString()
   @IsNotEmpty()

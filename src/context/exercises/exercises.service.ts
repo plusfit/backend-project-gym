@@ -1,6 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 
-import { CreateExerciseDto } from "@/src/context/exercises/dto/create-exercise.dto";
+import { CreateExerciseDto, MediaType } from "@/src/context/exercises/dto/create-exercise.dto";
 import { UpdateExerciseDto } from "@/src/context/exercises/dto/update-exercise.dto";
 import { EXERCISE_REPOSITORY } from "@/src/context/exercises/repositories/exercise.repository";
 
@@ -10,7 +10,37 @@ export class ExercisesService {
     @Inject(EXERCISE_REPOSITORY)
     private readonly exerciseRepository: any,
   ) {}
+
+  private detectMediaType(url: string): MediaType {
+    if (!url) return MediaType.IMAGE; // default
+    
+    const videoExtensions = ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.m4v', '.3gp', '.mkv'];
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg', '.ico', '.tiff'];
+    
+    const lowercaseUrl = url.toLowerCase();
+    
+    if (videoExtensions.some(ext => lowercaseUrl.includes(ext))) {
+      return MediaType.VIDEO;
+    }
+    
+    if (imageExtensions.some(ext => lowercaseUrl.includes(ext))) {
+      return MediaType.IMAGE;
+    }
+    
+    // Si no se puede determinar por extensión, revisar parámetros de URL o headers comunes
+    if (lowercaseUrl.includes('video') || lowercaseUrl.includes('mp4') || lowercaseUrl.includes('stream')) {
+      return MediaType.VIDEO;
+    }
+    
+    return MediaType.IMAGE; // default
+  }
+
   async create(createExcerciseDto: CreateExerciseDto) {
+    // Detectar automáticamente el mediaType si no se proporciona
+    if (!createExcerciseDto.mediaType && createExcerciseDto.gifUrl) {
+      createExcerciseDto.mediaType = this.detectMediaType(createExcerciseDto.gifUrl);
+    }
+    
     return await this.exerciseRepository.createExercise(createExcerciseDto);
   }
 
@@ -72,6 +102,12 @@ export class ExercisesService {
     try {
       const _updateExcerciseDto = { ...updateExcerciseDto };
       _updateExcerciseDto.updatedAt = new Date();
+      
+      // Detectar automáticamente el mediaType si se actualiza la gifUrl y no se proporciona mediaType
+      if (!_updateExcerciseDto.mediaType && _updateExcerciseDto.gifUrl) {
+        _updateExcerciseDto.mediaType = this.detectMediaType(_updateExcerciseDto.gifUrl);
+      }
+      
       const exercise = await this.exerciseRepository.update(
         id,
         _updateExcerciseDto,

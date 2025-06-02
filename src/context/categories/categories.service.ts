@@ -22,6 +22,7 @@ export class CategoriesService {
     { name: "Dominante de Rodilla" },
     { name: "Dominante de Cadera" },
     { name: "Estabilización" },
+    { name: "Full Body" },
   ];
 
   create() {

@@ -3,82 +3,82 @@ import { Document } from "mongoose";
 
 @Schema()
 export class UserInfo extends Document {
-	@Prop()
+	@Prop({ type: String })
 	name?: string;
 
-	@Prop()
+	@Prop({ type: String })
 	password?: string;
 
-	@Prop()
+	@Prop({ type: String })
 	identifier?: string;
 
 	@Prop({ type: Date })
 	dateBirthday?: Date;
 
-	@Prop()
+	@Prop({ type: String })
 	sex?: string;
 
-	@Prop()
+	@Prop({ type: String })
 	phone?: string;
 
-	@Prop()
+	@Prop({ type: String })
 	plan?: string;
 
-	@Prop()
+	@Prop({ type: String })
 	address?: string;
 
-	@Prop()
+	@Prop({ type: String })
 	historyofPathologicalLesions?: string;
 
-	@Prop()
+	@Prop({ type: String })
 	medicalSociety?: string;
 
-	@Prop()
+	@Prop({ type: String })
 	cardiacHistory?: string;
 
-	@Prop()
+	@Prop({ type: String })
 	bloodPressure?: string;
 
-	@Prop()
+	@Prop({ type: String })
 	frequencyOfPhysicalExercise?: string;
 
-	@Prop()
+	@Prop({ type: String })
 	respiratoryHistory?: string;
 
-	@Prop()
+	@Prop({ type: String })
 	surgicalHistory?: string;
 
-	@Prop()
+	@Prop({ type: String })
 	CI?: string;
 
-	@Prop()
+	@Prop({ type: String })
 	avatarUrl?: string;
 }
 
 @Schema({ timestamps: true })
 export class Client extends Document {
-	@Prop({ default: "User" })
+	@Prop({ default: "User", type: String })
 	role!: string;
 
-	@Prop()
+	@Prop({ type: String })
 	planId!: string;
 
-	@Prop()
+	@Prop({ type: String })
 	routineId?: string;
 
-	@Prop({ required: true, unique: true })
+	@Prop({ required: true, unique: true, type: String })
 	email!: string;
 
 	@Prop({ type: SchemaFactory.createForClass(UserInfo) })
 	userInfo?: UserInfo;
 
-	@Prop()
+	@Prop({ type: String })
 	refreshToken?: string;
 
-	@Prop({ default: false })
+	@Prop({ default: false, type: Boolean })
 	isOnboardingCompleted?: boolean;
 
-	@Prop({ default: false })
+	@Prop({ default: false, type: Boolean })
 	disabled?: boolean;
 }
 

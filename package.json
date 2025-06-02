@@ -38,7 +38,8 @@
     "lint:fix": "npm run lint -- --fix",
     "lint:yaml": "chmod +x scripts/lint_yaml.sh && ./scripts/lint_yaml.sh",
     "build:clean": "rimraf dist; exit 0",
-    "typos": "chmod +x scripts/check_typos.sh && ./scripts/check_typos.sh"
+    "typos": "chmod +x scripts/check_typos.sh && ./scripts/check_typos.sh",
+    "update-exercises-media-type": "tsx scripts/update-exercises-media-type.ts"
   },
   "dependencies": {
     "@fastify/static": "^7.0.4",

@@ -1,8 +1,14 @@
+export enum MediaType {
+	IMAGE = 'image',
+	VIDEO = 'video'
+}
+
 export class Exercise {
 	id?: string;
 	name?: string;
 	description?: string;
 	gifUrl?: string;
+	mediaType?: MediaType;
 	type?: string;
 	minutes?: number;
 	rest?: number;

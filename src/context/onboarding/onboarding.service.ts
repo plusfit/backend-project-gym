@@ -163,8 +163,7 @@ export class OnboardingService {
 		}
 
 		if (onboardingData.step3) {
-			userInfo.frequencyOfPhysicalExercise =
-				onboardingData.step3.trainingDays.toString();
+			userInfo.frequencyOfPhysicalExercise = onboardingData.step3.trainingLevel;
 		}
 
 		return userInfo;

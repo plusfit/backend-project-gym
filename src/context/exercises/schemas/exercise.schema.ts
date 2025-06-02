@@ -2,6 +2,11 @@ import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { IsNumber, IsOptional, IsString, ValidateIf } from "class-validator";
 import { Document } from "mongoose";
 
+export enum MediaType {
+  IMAGE = 'image',
+  VIDEO = 'video'
+}
+
 @Schema()
 export class Exercise extends Document {
   @Prop({ required: true })
@@ -19,6 +24,10 @@ export class Exercise extends Document {
   @Prop()
   @IsString()
   gifUrl!: string;
+
+  @Prop({ enum: MediaType, type: String })
+  @IsOptional()
+  mediaType?: MediaType;
 
   @Prop({ required: true })
   @IsString()
