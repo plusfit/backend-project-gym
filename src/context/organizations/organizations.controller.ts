@@ -24,8 +24,8 @@ export class OrganizationsController {
   constructor(private readonly organizationsService: OrganizationsService) {}
 
   @Post()
-  // @Roles(Role.Admin)
-  // @UseGuards(RolesGuard)
+  @Roles(Role.SuperAdmin)
+  @UseGuards(RolesGuard)
   @ApiOperation({ summary: "Create a new organization" })
   @ApiResponse({
     status: 201,
@@ -36,8 +36,8 @@ export class OrganizationsController {
   }
 
   @Get()
-  // @Roles(Role.Admin)
-  // @UseGuards(RolesGuard)
+  @Roles(Role.SuperAdmin)
+  @UseGuards(RolesGuard)
   @ApiOperation({ summary: "Get all organizations" })
   @ApiResponse({ status: 200, description: "List of organizations" })
   findAll() {
@@ -45,8 +45,8 @@ export class OrganizationsController {
   }
 
   @Get(":id")
-  // @Roles(Role.Admin)
-  // @UseGuards(RolesGuard)
+  @Roles(Role.SuperAdmin)
+  @UseGuards(RolesGuard)
   @ApiOperation({ summary: "Get organization by ID" })
   @ApiResponse({ status: 200, description: "Organization found" })
   @ApiResponse({ status: 404, description: "Organization not found" })
@@ -63,8 +63,8 @@ export class OrganizationsController {
   }
 
   @Patch(":id")
-  // @Roles(Role.Admin)
-  // @UseGuards(RolesGuard)
+  @Roles(Role.SuperAdmin)
+  @UseGuards(RolesGuard)
   @ApiOperation({ summary: "Update organization" })
   @ApiResponse({
     status: 200,
@@ -79,8 +79,8 @@ export class OrganizationsController {
   }
 
   @Delete(":id")
-  // @Roles(Role.Admin)
-  // @UseGuards(RolesGuard)
+  @Roles(Role.SuperAdmin)
+  @UseGuards(RolesGuard)
   @ApiOperation({ summary: "Delete organization (soft delete)" })
   @ApiResponse({
     status: 200,

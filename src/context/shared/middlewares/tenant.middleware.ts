@@ -64,6 +64,8 @@ export class TenantMiddleware implements NestMiddleware {
         }
       }
 
+      // TODO: Check if the organization is active and has a valid subscription
+
       this.tenantContext.setTenantContext(
         new Types.ObjectId(decoded.organizationId),
         new Types.ObjectId(decoded.userId),

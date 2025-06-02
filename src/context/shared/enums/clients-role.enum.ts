@@ -1,4 +1,5 @@
 export enum EClientRole {
-	ADMIN = "Admin",
-	CLIENT = "Client",
+  SUPER_ADMIN = "SuperAdmin",
+  ADMIN = "Admin",
+  CLIENT = "Client",
 }
