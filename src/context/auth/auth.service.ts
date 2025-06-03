@@ -371,11 +371,27 @@ export class AuthService {
 
       // Obtener información de la organización si existe
       let organizationSlug = null;
+      let permissions = [];
+
       if (safeUserData.organizationId) {
         const organization = await this.organizationsService.findById(
           safeUserData.organizationId.toString(),
         );
         organizationSlug = organization?.slug || null;
+
+        // Si el usuario tiene una organización, obtener los permisos de la organización
+        if (organization) {
+          permissions = organization.permissions || [];
+        }
+      }
+
+      // Si el usuario es SuperAdmin, tiene todos los permisos
+      if (safeUserData.role === "SuperAdmin") {
+        // Importar Permission enum para obtener todos los permisos
+        const { Permission } = await import(
+          "@/src/context/shared/enums/permissions.enum"
+        );
+        permissions = Object.values(Permission);
       }
 
       return {
@@ -393,6 +409,7 @@ export class AuthService {
         role: safeUserData.role,
         organizationId: safeUserData.organizationId?.toString(),
         organizationSlug,
+        permissions,
       };
     } catch (error) {
       console.error("Error getting user profile:", error);
