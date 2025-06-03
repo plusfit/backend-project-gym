@@ -11,6 +11,7 @@ import { Types } from "mongoose";
 import { TenantContextService } from "../services/tenant-context.service";
 import { OrganizationsService } from "../../organizations/organizations.service";
 import { OrganizationDocument } from "../../organizations/schemas/organization.schema";
+import { Role } from "../constants/roles.constant";
 
 interface JwtPayload {
   userId: string;
@@ -50,6 +51,39 @@ export class TenantMiddleware implements NestMiddleware {
 
       if (!decoded) {
         throw new UnauthorizedException("Invalid token");
+      }
+
+      // Special handling for SuperAdmin users
+      if (decoded.role === Role.SuperAdmin) {
+        if (organizationSlug) {
+          // If SuperAdmin is accessing a specific organization, validate it exists
+          const organization: OrganizationDocument | null =
+            await this.organizationsService.findBySlug(organizationSlug);
+          if (!organization) {
+            throw new UnauthorizedException("Organization not found");
+          }
+
+          // Set context with the specified organization
+          this.tenantContext.setTenantContext(
+            new Types.ObjectId((organization as any)._id),
+            new Types.ObjectId(decoded.userId),
+            decoded.role,
+          );
+        } else {
+          // SuperAdmin accessing without specific organization context
+          // Set context with minimal required data
+          this.tenantContext.setTenantContext(
+            undefined as any, // Allow undefined organizationId for SuperAdmin
+            new Types.ObjectId(decoded.userId),
+            decoded.role,
+          );
+        }
+        return next();
+      }
+
+      // For non-SuperAdmin users, require organization context
+      if (!decoded.organizationId) {
+        throw new UnauthorizedException("Organization context required");
       }
 
       if (organizationSlug) {

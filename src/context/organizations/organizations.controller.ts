@@ -17,7 +17,9 @@ import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
 
 import { CreateOrganizationDto } from "./dto/create-organization.dto";
 import { UpdateOrganizationDto } from "./dto/update-organization.dto";
+import { UpdateOrganizationPermissionsDto } from "./dto/update-organization-permissions.dto";
 import { OrganizationsService } from "./organizations.service";
+import { Module } from "@/src/context/shared/enums/permissions.enum";
 
 @ApiTags("organizations")
 @Controller("organizations")
@@ -56,6 +58,36 @@ export class OrganizationsController {
     return this.organizationsService.findById(id);
   }
 
+  @Get(":id/plans")
+  @Roles(Role.SuperAdmin)
+  @UseGuards(RolesGuard)
+  @ApiOperation({ summary: "Get all plans for an organization" })
+  @ApiResponse({ status: 200, description: "List of organization plans" })
+  @ApiResponse({ status: 404, description: "Organization not found" })
+  getOrganizationPlans(@Param("id") id: string) {
+    return this.organizationsService.getOrganizationPlans(id);
+  }
+
+  @Get(":id/clients")
+  @Roles(Role.SuperAdmin)
+  @UseGuards(RolesGuard)
+  @ApiOperation({ summary: "Get all clients for an organization" })
+  @ApiResponse({ status: 200, description: "List of organization clients" })
+  @ApiResponse({ status: 404, description: "Organization not found" })
+  getOrganizationClients(@Param("id") id: string) {
+    return this.organizationsService.getOrganizationClients(id);
+  }
+
+  @Get(":id/routines")
+  @Roles(Role.SuperAdmin)
+  @UseGuards(RolesGuard)
+  @ApiOperation({ summary: "Get all routines for an organization" })
+  @ApiResponse({ status: 200, description: "List of organization routines" })
+  @ApiResponse({ status: 404, description: "Organization not found" })
+  getOrganizationRoutines(@Param("id") id: string) {
+    return this.organizationsService.getOrganizationRoutines(id);
+  }
+
   @Get("slug/:slug")
   @ApiOperation({ summary: "Get organization by slug" })
   @ApiResponse({ status: 200, description: "Organization found" })
@@ -91,5 +123,50 @@ export class OrganizationsController {
   @ApiResponse({ status: 404, description: "Organization not found" })
   remove(@Param("id") id: string) {
     return this.organizationsService.delete(id);
+  }
+
+  @Patch(":id/permissions")
+  @Roles(Role.SuperAdmin)
+  @UseGuards(RolesGuard)
+  @ApiOperation({ summary: "Update organization permissions" })
+  @ApiResponse({
+    status: 200,
+    description: "Organization permissions updated successfully",
+  })
+  @ApiResponse({ status: 404, description: "Organization not found" })
+  updatePermissions(
+    @Param("id") id: string,
+    @Body() updatePermissionsDto: UpdateOrganizationPermissionsDto,
+  ) {
+    return this.organizationsService.updateOrganizationPermissions(
+      id,
+      updatePermissionsDto,
+    );
+  }
+
+  @Get(":id/permissions")
+  @Roles(Role.SuperAdmin, Role.Admin)
+  @UseGuards(RolesGuard)
+  @ApiOperation({ summary: "Get organization permissions" })
+  @ApiResponse({ status: 200, description: "Organization permissions" })
+  @ApiResponse({ status: 404, description: "Organization not found" })
+  getPermissions(@Param("id") id: string) {
+    return this.organizationsService.getOrganizationPermissions(id);
+  }
+
+  @Get(":id/permissions/:module")
+  @Roles(Role.SuperAdmin, Role.Admin)
+  @UseGuards(RolesGuard)
+  @ApiOperation({ summary: "Get organization permissions by module" })
+  @ApiResponse({
+    status: 200,
+    description: "Organization permissions for specific module",
+  })
+  @ApiResponse({ status: 404, description: "Organization not found" })
+  getPermissionsByModule(
+    @Param("id") id: string,
+    @Param("module") module: Module,
+  ) {
+    return this.organizationsService.getPermissionsByModule(id, module);
   }
 }

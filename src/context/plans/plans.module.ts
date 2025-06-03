@@ -1,8 +1,9 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
 
 import { SchedulesModule } from "../schedules/schedules.module";
 import { SharedModule } from "@/src/context/shared/shared.module";
+import { OrganizationsModule } from "../organizations/organizations.module";
 import { PlansController } from "./plans.controller";
 import { PlansService } from "./plans.service";
 import { MongoPlansRepository } from "./repositories/mongo-plans.repository";
@@ -20,6 +21,7 @@ import { Schedule, ScheduleSchema } from "../schedules/schemas/schedule.schema";
     ]),
     SchedulesModule,
     SharedModule,
+    forwardRef(() => OrganizationsModule),
   ],
   providers: [
     PlansService,

@@ -1,9 +1,10 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
 
 import { AppConfigModule } from "@/src/context/config/config.module";
 import { ConfigService } from "@/src/context/config/config.service";
 import { SharedModule } from "@/src/context/shared/shared.module";
+import { OrganizationsModule } from "@/src/context/organizations/organizations.module";
 import {
   MongoScheduleRepository,
   SCHEDULE_REPOSITORY,
@@ -24,6 +25,7 @@ import { SchedulesService } from "./schedules.service";
     ]),
     AppConfigModule,
     SharedModule,
+    forwardRef(() => OrganizationsModule),
   ],
   providers: [
     SchedulesService,

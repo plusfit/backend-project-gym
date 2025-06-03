@@ -5,6 +5,7 @@ import { ClientsModule } from "@/src/context/clients/clients.module";
 import { ExercisesModule } from "@/src/context/exercises/exercises.module";
 import { PlansModule } from "@/src/context/plans/plans.module";
 import { SharedModule } from "@/src/context/shared/shared.module";
+import { OrganizationsModule } from "@/src/context/organizations/organizations.module";
 import { MongoRoutineRepository } from "@/src/context/routines/repositories/mongo-routine.repository";
 import {
   MongoSubRoutineRepository,
@@ -35,6 +36,7 @@ import { RoutinesController } from "./routines.controller";
     forwardRef(() => ClientsModule),
     PlansModule,
     SharedModule,
+    OrganizationsModule,
   ],
   providers: [
     SubRoutinesService,

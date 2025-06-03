@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 
 import { AUTH_REPOSITORY } from "@/src/context/auth/repositories/auth.repository";
 import { MongoAuthRepository } from "@/src/context/auth/repositories/mongo-auth.repository";
@@ -21,6 +21,10 @@ import { OrganizationsModule } from "../organizations/organizations.module";
       useClass: MongoAuthRepository,
     },
   ],
-  imports: [ClientsModule, OnboardingModule, OrganizationsModule],
+  imports: [
+    ClientsModule,
+    OnboardingModule,
+    forwardRef(() => OrganizationsModule),
+  ],
 })
 export class AuthModule {}

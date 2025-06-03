@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
+import { Permission } from "@/src/context/shared/enums/permissions.enum";
 
 @Schema({ timestamps: true })
 export class Organization extends Document {
@@ -45,6 +46,13 @@ export class Organization extends Document {
     maxAdmins: number;
     features: string[];
   };
+
+  @Prop({
+    type: [String],
+    enum: Object.values(Permission),
+    default: Object.values(Permission),
+  })
+  permissions!: Permission[];
 }
 
 export const OrganizationSchema = SchemaFactory.createForClass(Organization);

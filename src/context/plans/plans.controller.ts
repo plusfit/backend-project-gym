@@ -17,6 +17,9 @@ import { GetPlansDto } from "@/src/context/plans/dto/get-plans.dto";
 import { Role } from "@/src/context/shared/constants/roles.constant";
 import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
 import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
+import { Permissions } from "@/src/context/shared/guards/permissions/permissions.decorator";
+import { PermissionsGuard } from "@/src/context/shared/guards/permissions/permissions.guard";
+import { Permission } from "@/src/context/shared/enums/permissions.enum";
 
 import { CreatePlanDto } from "./dto/create-plan.dto";
 import { GetClientsAssignalDto } from "./dto/get-clients-assignal.dto";
@@ -38,8 +41,9 @@ export class PlansController {
     type: CreatePlanDto,
   })
   @Post("create")
-  // @Roles(Role.Admin)
-  // @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard, PermissionsGuard)
+  @Permissions(Permission.PLAN_CREATE)
   create(@Body() createPlanDto: CreatePlanDto) {
     this.logger.log("Creating a new Plan");
     return this.plansService.create(createPlanDto);
@@ -52,6 +56,9 @@ export class PlansController {
   @ApiResponse({ status: 400, description: "Invalid input parameters." })
   @ApiResponse({ status: 500, description: "Internal server error." })
   @Get()
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard, PermissionsGuard)
+  @Permissions(Permission.PLAN_READ)
   async getPlans(@Query() getPlansDto: GetPlansDto) {
     this.logger.log(
       `Retrieved plans with data: ${JSON.stringify(getPlansDto)}`,
@@ -112,6 +119,9 @@ export class PlansController {
   @ApiResponse({ status: 404, description: "Plan not found." })
   @ApiResponse({ status: 500, description: "Internal server error." })
   @Patch(":id")
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard, PermissionsGuard)
+  @Permissions(Permission.PLAN_UPDATE)
   async update(@Param("id") id: string, @Body() updatePlanDto: UpdatePlanDto) {
     this.logger.log(`Updating plan with ID: ${id}`);
     const plan = await this.plansService.update(id, updatePlanDto);
@@ -130,8 +140,9 @@ export class PlansController {
   @ApiResponse({ status: 404, description: "Plan not found." })
   @ApiResponse({ status: 500, description: "Internal server error." })
   @Delete(":id")
-  // @Roles(Role.Admin)
-  // @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard, PermissionsGuard)
+  @Permissions(Permission.PLAN_DELETE)
   remove(@Param("id") id: string) {
     return this.plansService.remove(id);
   }

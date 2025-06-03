@@ -6,7 +6,9 @@ import {
   IsObject,
   IsNumber,
   IsArray,
+  IsEnum,
 } from "class-validator";
+import { Permission } from "@/src/context/shared/enums/permissions.enum";
 
 interface OrganizationLimits {
   maxClients: number;
@@ -55,4 +57,9 @@ export class CreateOrganizationDto {
   @IsOptional()
   @IsObject()
   limits?: OrganizationLimits;
+
+  @IsOptional()
+  @IsArray()
+  @IsEnum(Permission, { each: true })
+  permissions?: Permission[];
 }

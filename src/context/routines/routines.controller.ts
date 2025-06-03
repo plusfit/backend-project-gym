@@ -10,6 +10,7 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
   UsePipes,
   ValidationPipe,
 } from "@nestjs/common";
@@ -29,9 +30,12 @@ import { UpdateRoutineDto } from "@/src/context/routines/dto/update-routine.dto"
 import { UpdateSubRoutineDto } from "@/src/context/routines/dto/update-sub-routine.dto";
 import { RoutinesService } from "@/src/context/routines/services/routines.service";
 import { SubRoutinesService } from "@/src/context/routines/services/sub-routines.service";
-// import { Role } from "@/src/context/shared/constants/roles.constant";
-// import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
-// import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
+import { Role } from "@/src/context/shared/constants/roles.constant";
+import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
+import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
+import { Permissions } from "@/src/context/shared/guards/permissions/permissions.decorator";
+import { PermissionsGuard } from "@/src/context/shared/guards/permissions/permissions.guard";
+import { Permission } from "@/src/context/shared/enums/permissions.enum";
 import { validateMongoId } from "@/src/context/shared/utils/validateMongoId.validator";
 
 import { CreateRoutineDto } from "./dto/create-routine.dto";
@@ -48,8 +52,9 @@ export class RoutinesController {
   ) {}
 
   @Post()
-  // @Roles(Role.Admin)
-  // @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard, PermissionsGuard)
+  @Permissions(Permission.ROUTINE_CREATE)
   @ApiOperation({ summary: "Crear una nueva rutina" })
   @ApiResponse({ status: 201, description: "Rutina creada exitosamente." })
   @ApiResponse({ status: 400, description: "Datos inválidos." })
@@ -68,8 +73,9 @@ export class RoutinesController {
   }
 
   @Delete(":id")
-  // @Roles(Role.Admin)
-  // @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard, PermissionsGuard)
+  @Permissions(Permission.ROUTINE_DELETE)
   @ApiOperation({ summary: "Eliminar una rutina por ID" })
   @ApiResponse({ status: 200, description: "Rutina eliminada exitosamente." })
   @ApiResponse({ status: 404, description: "Rutina no encontrada." })
@@ -90,8 +96,9 @@ export class RoutinesController {
   }
 
   @Get("")
-  // @Roles(Role.Admin)
-  // @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard, PermissionsGuard)
+  @Permissions(Permission.ROUTINE_READ)
   @ApiOperation({
     summary: "Obtener todas las rutinas con paginación y filtros",
   })
@@ -166,8 +173,9 @@ export class RoutinesController {
   }
 
   @Put(":id")
-  // @Roles(Role.Admin)
-  // @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard, PermissionsGuard)
+  @Permissions(Permission.ROUTINE_UPDATE)
   @ApiOperation({ summary: "Actualizar una rutina por ID" })
   @ApiResponse({ status: 200, description: "Rutina actualizada exitosamente." })
   @ApiResponse({ status: 404, description: "Rutina no encontrada." })

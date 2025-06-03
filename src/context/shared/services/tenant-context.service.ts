@@ -8,7 +8,7 @@ export class TenantContextService {
   private _userRole?: string;
 
   setTenantContext(
-    organizationId: Types.ObjectId,
+    organizationId?: Types.ObjectId,
     userId?: Types.ObjectId,
     userRole?: string,
   ) {
@@ -18,6 +18,11 @@ export class TenantContextService {
   }
 
   getOrganizationId(): Types.ObjectId {
+    // Allow SuperAdmin to operate without organization context
+    if (this._userRole === "SuperAdmin") {
+      return this._organizationId as Types.ObjectId;
+    }
+
     if (!this._organizationId) {
       throw new Error("Organization context not set");
     }
@@ -34,5 +39,9 @@ export class TenantContextService {
 
   isAdmin(): boolean {
     return this._userRole === "Admin" || this._userRole === "SuperAdmin";
+  }
+
+  isSuperAdmin(): boolean {
+    return this._userRole === "SuperAdmin";
   }
 }
