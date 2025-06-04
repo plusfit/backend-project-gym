@@ -28,6 +28,9 @@ export class Organization extends Document {
   @Prop({ default: true })
   isActive!: boolean;
 
+  @Prop({ type: Number, default: 50 })
+  maxClients?: number;
+
   @Prop()
   subscriptionPlan?: string;
 

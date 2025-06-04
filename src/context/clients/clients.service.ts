@@ -4,6 +4,7 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  forwardRef,
 } from "@nestjs/common";
 
 import { UpdateClientDto } from "@/src/context/clients/dto/update-client.dto";
@@ -11,6 +12,8 @@ import { CLIENT_REPOSITORY } from "@/src/context/clients/repositories/clients.re
 import { Client } from "@/src/context/clients/schemas/client.schema";
 import { Plan } from "@/src/context/plans/schemas/plan.schema";
 import { Routine } from "@/src/context/routines/schemas/routine.schema";
+import { OrganizationsService } from "@/src/context/organizations/organizations.service";
+import { TenantContextService } from "@/src/context/shared/services/tenant-context.service";
 
 import { CreateClientDto } from "./dto/create-client.dto";
 import { ClientFilters } from "./interfaces/clients.interface";
@@ -20,6 +23,9 @@ export class ClientsService {
   constructor(
     @Inject(CLIENT_REPOSITORY)
     private readonly clientRepository: any,
+    @Inject(forwardRef(() => OrganizationsService))
+    private readonly organizationsService: OrganizationsService,
+    private readonly tenantContext: TenantContextService,
   ) {}
 
   addFilter = (field: string, value: any, target: any) => {
@@ -96,7 +102,40 @@ export class ClientsService {
     return this.clientRepository.getClientById(id);
   }
 
-  create(createClientDto: CreateClientDto) {
+  async create(createClientDto: CreateClientDto) {
+    // Obtener el ID de la organización actual del contexto tenant
+    const organizationId = this.tenantContext.getOrganizationId();
+    
+    if (!organizationId) {
+      throw new HttpException(
+        "Organization context is required",
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // Obtener información de la organización para verificar el límite
+    const organization = await this.organizationsService.findById(
+      organizationId.toString(),
+    );
+    
+    if (!organization) {
+      throw new NotFoundException("Organization not found");
+    }
+
+    // Contar clientes actuales en la organización
+    const currentClientCount = await this.clientRepository.countClients({});
+    
+    // Obtener el límite máximo de clientes (por defecto 50 si no está definido)
+    const maxClients = organization.maxClients || 50;
+    
+    // Verificar si se alcanzó el límite máximo
+    if (currentClientCount >= maxClients) {
+      throw new HttpException(
+        `No se pueden crear más clientes. Límite máximo alcanzado: ${maxClients} clientes`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     return this.clientRepository.createClient(createClientDto);
   }
 

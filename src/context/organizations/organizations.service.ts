@@ -40,6 +40,11 @@ export class OrganizationsService {
       organizationData.permissions = Object.values(Permission);
     }
 
+    // Si no se especifica maxClients, usar el valor por defecto
+    if (!organizationData.maxClients) {
+      organizationData.maxClients = 50;
+    }
+
     const { adminUser, ...orgData } = organizationData;
     
     const organization = new this.organizationModel(orgData);
@@ -209,5 +214,34 @@ export class OrganizationsService {
     // Get routines directly by organization ID using service method
     // This bypasses tenant context for SuperAdmin operations
     return await this.routinesService.getRoutinesByOrganizationId(organizationId);
+  }
+
+  async getOrganizationClientStats(organizationId: string): Promise<{
+    currentClients: number;
+    maxClients: number;
+    available: number;
+    percentage: number;
+  }> {
+    // Verify organization exists
+    const organization = await this.findById(organizationId);
+    if (!organization) {
+      throw new NotFoundException(
+        `Organization with ID ${organizationId} not found`,
+      );
+    }
+
+    // Get current client count
+    const clients = await this.getOrganizationClients(organizationId);
+    const currentClients = clients.length;
+    const maxClients = organization.maxClients || 50;
+    const available = Math.max(0, maxClients - currentClients);
+    const percentage = maxClients > 0 ? (currentClients / maxClients) * 100 : 0;
+
+    return {
+      currentClients,
+      maxClients,
+      available,
+      percentage: Math.round(percentage * 100) / 100, // Round to 2 decimal places
+    };
   }
 }

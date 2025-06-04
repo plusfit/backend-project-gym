@@ -65,6 +65,10 @@ export class CreateOrganizationDto {
   isActive?: boolean;
 
   @IsOptional()
+  @IsNumber()
+  maxClients?: number;
+
+  @IsOptional()
   @IsString()
   subscriptionPlan?: string;
 

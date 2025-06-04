@@ -169,4 +169,17 @@ export class OrganizationsController {
   ) {
     return this.organizationsService.getPermissionsByModule(id, module);
   }
+
+  @Get(":id/client-stats")
+  @Roles(Role.SuperAdmin)
+  @UseGuards(RolesGuard)
+  @ApiOperation({ summary: "Get organization client statistics" })
+  @ApiResponse({
+    status: 200,
+    description: "Organization client statistics retrieved successfully",
+  })
+  @ApiResponse({ status: 404, description: "Organization not found" })
+  getClientStats(@Param("id") id: string) {
+    return this.organizationsService.getOrganizationClientStats(id);
+  }
 }
