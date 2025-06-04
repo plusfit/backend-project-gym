@@ -27,9 +27,6 @@ async function bootstrap() {
       projectId: configService.get<string>("FIREBASE_PROJECT_ID"),
     });
     const auth = firebaseAdmin.auth();
-    console.log(
-      "Firebase Admin inicializado correctamente con servicio de auth",
-    );
   } catch (error: any) {
     console.error(
       "Firebase Admin ya está inicializado o ocurrió un error:",

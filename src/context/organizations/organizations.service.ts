@@ -145,19 +145,11 @@ export class OrganizationsService {
     organizationId: string,
     updatePermissionsDto: UpdateOrganizationPermissionsDto,
   ): Promise<OrganizationDocument> {
-    console.log(
-      "🔍 DEBUG - updateOrganizationPermissions called with ID:",
-      organizationId,
-    );
-    console.log("🔍 DEBUG - Update DTO:", updatePermissionsDto);
-
-    // Validate ObjectId
     if (
       !organizationId ||
       organizationId === "undefined" ||
       !Types.ObjectId.isValid(organizationId)
     ) {
-      console.error("🔍 DEBUG - Invalid organization ID:", organizationId);
       throw new NotFoundException(`Invalid organization ID: ${organizationId}`);
     }
 
@@ -175,7 +167,6 @@ export class OrganizationsService {
       );
     }
 
-    console.log("🔍 DEBUG - Organization permissions updated successfully");
     return organization;
   }
 

@@ -45,7 +45,6 @@ export class AuthService {
           : undefined,
       });
     } catch (error: any) {
-      console.log(error);
       throw new UnauthorizedException("Error al registrar, verifique datos");
     }
   }
@@ -109,7 +108,6 @@ export class AuthService {
           : null,
       };
     } catch (error: any) {
-      console.log(error);
       throw new UnauthorizedException(
         "Error al iniciar sesión, verifique datos",
       );

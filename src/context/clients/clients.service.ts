@@ -182,7 +182,7 @@ export class ClientsService {
       const updatedUserInfo = { ...userInfo };
 
       // Update client with new userInfo
-      console.log("updatedUserInfo", updatedUserInfo);
+  
       return this.update(clientId, { userInfo: updatedUserInfo });
     } catch (error: any) {
       throw new HttpException(
