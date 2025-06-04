@@ -9,7 +9,7 @@ import { PlansService } from "@/src/context/plans/plans.service";
 import { ClientsService } from "@/src/context/clients/clients.service";
 import { RoutinesService } from "@/src/context/routines/services/routines.service";
 import { Plan } from "@/src/context/plans/schemas/plan.schema";
-import { Client } from "@/src/context/clients/schemas/client.schema";
+import { Client, ClientDocument } from "@/src/context/clients/schemas/client.schema";
 import { Routine } from "@/src/context/routines/schemas/routine.schema";
 import {
   Permission,
@@ -17,25 +17,51 @@ import {
   Module,
 } from "@/src/context/shared/enums/permissions.enum";
 import { UpdateOrganizationPermissionsDto } from "./dto/update-organization-permissions.dto";
+import { CreateOrganizationDto } from "./dto/create-organization.dto";
 
 @Injectable()
 export class OrganizationsService {
   constructor(
     @InjectModel(Organization.name)
     private readonly organizationModel: Model<OrganizationDocument>,
+    @InjectModel(Client.name)
+    private readonly clientModel: Model<ClientDocument>,
     private readonly plansService: PlansService,
     private readonly clientsService: ClientsService,
     private readonly routinesService: RoutinesService,
   ) {}
 
   async create(
-    organizationData: Partial<Organization>,
-  ): Promise<OrganizationDocument> {
+    organizationData: CreateOrganizationDto,
+  ): Promise<{ organization: OrganizationDocument; admin: ClientDocument }> {
     if (!organizationData.permissions) {
       organizationData.permissions = Object.values(Permission);
     }
-    const organization = new this.organizationModel(organizationData);
-    return organization.save();
+
+    const { adminUser, ...orgData } = organizationData;
+    
+    const organization = new this.organizationModel(orgData);
+    const savedOrganization = await organization.save();
+
+    const adminData = {
+      email: adminUser.email,
+      role: "Admin",
+      organizationId: savedOrganization._id,
+      userInfo: {
+        name: adminUser.name,
+        phone: adminUser.phone || null,
+      },
+      isOnboardingCompleted: false,
+      disabled: false,
+    };
+
+    const admin = new this.clientModel(adminData);
+    const savedAdmin = await admin.save();
+
+    return {
+      organization: savedOrganization,
+      admin: savedAdmin,
+    };
   }
 
   async findAll(includeInactive = true): Promise<OrganizationDocument[]> {

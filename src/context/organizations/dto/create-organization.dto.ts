@@ -7,13 +7,30 @@ import {
   IsNumber,
   IsArray,
   IsEnum,
+  ValidateNested,
+  IsNotEmpty,
 } from "class-validator";
+import { Type } from "class-transformer";
 import { Permission } from "@/src/context/shared/enums/permissions.enum";
 
 interface OrganizationLimits {
   maxClients: number;
   maxAdmins: number;
   features: string[];
+}
+
+export class AdminUserDto {
+  @IsEmail()
+  @IsNotEmpty()
+  email!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  name!: string;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
 }
 
 export class CreateOrganizationDto {
@@ -62,4 +79,8 @@ export class CreateOrganizationDto {
   @IsArray()
   @IsEnum(Permission, { each: true })
   permissions?: Permission[];
+
+  @ValidateNested()
+  @Type(() => AdminUserDto)
+  adminUser!: AdminUserDto;
 }

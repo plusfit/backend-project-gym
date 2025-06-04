@@ -14,6 +14,7 @@ import { AUTH_REPOSITORY } from "@/src/context/auth/repositories/auth.repository
 import { OnboardingService } from "../onboarding/onboarding.service";
 import { GoogleAuthDto } from "@/src/context/auth/dto/google-auth.dto";
 import { OrganizationsService } from "../organizations/organizations.service";
+import { Permission } from "@/src/context/shared/enums/permissions.enum";
 
 @Injectable()
 export class AuthService {
@@ -371,7 +372,7 @@ export class AuthService {
 
       // Obtener información de la organización si existe
       let organizationSlug = null;
-      let permissions = [];
+      let permissions: Permission[] = [];
 
       if (safeUserData.organizationId) {
         const organization = await this.organizationsService.findById(
