@@ -18,6 +18,7 @@ import {
 } from "@/src/context/shared/enums/permissions.enum";
 import { UpdateOrganizationPermissionsDto } from "./dto/update-organization-permissions.dto";
 import { CreateOrganizationDto } from "./dto/create-organization.dto";
+import { TenantContextService } from "@/src/context/shared/services/tenant-context.service";
 
 @Injectable()
 export class OrganizationsService {
@@ -29,6 +30,7 @@ export class OrganizationsService {
     private readonly plansService: PlansService,
     private readonly clientsService: ClientsService,
     private readonly routinesService: RoutinesService,
+    private readonly tenantContext: TenantContextService,
   ) {}
 
   async create(
@@ -122,6 +124,13 @@ export class OrganizationsService {
       );
     }
 
+    // Set tenant context to filter plans by organization
+    this.tenantContext.setTenantContext(
+      new Types.ObjectId(organizationId),
+      undefined,
+      'SuperAdmin'
+    );
+    
     // Get all plans for this organization with high limit to get all
     const result = await this.plansService.getPlans(1, 1000);
     return result.data;
@@ -135,6 +144,13 @@ export class OrganizationsService {
         `Organization with ID ${organizationId} not found`,
       );
     }
+
+    // Set tenant context to filter clients by organization
+    this.tenantContext.setTenantContext(
+      new Types.ObjectId(organizationId),
+      undefined,
+      'SuperAdmin'
+    );
 
     // Get all clients for this organization with high limit to get all
     const result = await this.clientsService.findAll(1, 1000, {});
@@ -203,6 +219,13 @@ export class OrganizationsService {
         `Organization with ID ${organizationId} not found`,
       );
     }
+
+    // Set tenant context to filter routines by organization
+    this.tenantContext.setTenantContext(
+      new Types.ObjectId(organizationId),
+      undefined,
+      'SuperAdmin'
+    );
 
     // Get all routines for this organization with high limit to get all
     const result = await this.routinesService.getRoutines(1, 1000);
