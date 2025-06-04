@@ -30,6 +30,7 @@ interface IRoutineRepository {
   getRoutinesBySubRoutine(subRoutineId: string): Promise<Routine[]>;
   getRoutines(offset: number, limit: number, filters: any): Promise<Routine[]>;
   countRoutines(filters: any): Promise<number>;
+  getRoutinesByOrganizationId(organizationId: string): Promise<Routine[]>;
 }
 
 interface IClientRepository {
@@ -203,5 +204,10 @@ export class RoutinesService {
     ]);
 
     return { data, total, page, limit };
+  }
+
+  // Método seguro para SuperAdmin: obtiene rutinas por organizationId sin contexto tenant
+  async getRoutinesByOrganizationId(organizationId: string): Promise<Routine[]> {
+    return await this.routineRepository.getRoutinesByOrganizationId(organizationId);
   }
 }

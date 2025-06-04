@@ -185,4 +185,9 @@ export class PlansService {
   updateClientRoutine(clientId: string, routineId: string) {
     return this.plansRepository.updateClientRoutine(clientId, routineId);
   }
+
+  // Método seguro para SuperAdmin: obtiene planes por organizationId sin contexto tenant
+  async getPlansByOrganizationId(organizationId: string): Promise<Plan[]> {
+    return await this.plansRepository.getPlansByOrganizationId(organizationId);
+  }
 }

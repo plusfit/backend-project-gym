@@ -38,4 +38,7 @@ export interface ClientsRepository {
   getRoutineById(routineId: string): Promise<Routine | null>;
   getAllSchedules(): Promise<Schedule[]>;
   updateSchedule(scheduleId: string, updateData: any): Promise<Schedule | null>;
+  
+  // Método seguro para SuperAdmin: obtiene clientes por organizationId directamente
+  getClientsByOrganizationId(organizationId: string): Promise<Client[]>;
 }

@@ -190,4 +190,11 @@ export class MongoPlansRepository implements PlanRepository {
       )
       .exec();
   }
+
+  // Método seguro para SuperAdmin: obtiene planes por organizationId sin tenant context
+  async getPlansByOrganizationId(organizationId: string): Promise<Plan[]> {
+    return await this.planModel
+      .find({ organizationId: new Types.ObjectId(organizationId) })
+      .exec();
+  }
 }

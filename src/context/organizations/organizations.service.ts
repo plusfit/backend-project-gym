@@ -124,16 +124,9 @@ export class OrganizationsService {
       );
     }
 
-    // Set tenant context to filter plans by organization
-    this.tenantContext.setTenantContext(
-      new Types.ObjectId(organizationId),
-      undefined,
-      'SuperAdmin'
-    );
-    
-    // Get all plans for this organization with high limit to get all
-    const result = await this.plansService.getPlans(1, 1000);
-    return result.data;
+    // Get plans directly by organization ID using repository method
+    // This bypasses tenant context for SuperAdmin operations
+    return await this.plansService.getPlansByOrganizationId(organizationId);
   }
 
   async getOrganizationClients(organizationId: string): Promise<Client[]> {
@@ -145,16 +138,9 @@ export class OrganizationsService {
       );
     }
 
-    // Set tenant context to filter clients by organization
-    this.tenantContext.setTenantContext(
-      new Types.ObjectId(organizationId),
-      undefined,
-      'SuperAdmin'
-    );
-
-    // Get all clients for this organization with high limit to get all
-    const result = await this.clientsService.findAll(1, 1000, {});
-    return result.data;
+    // Get clients directly by organization ID using service method
+    // This bypasses tenant context for SuperAdmin operations
+    return await this.clientsService.getClientsByOrganizationId(organizationId);
   }
 
   async updateOrganizationPermissions(
@@ -220,15 +206,8 @@ export class OrganizationsService {
       );
     }
 
-    // Set tenant context to filter routines by organization
-    this.tenantContext.setTenantContext(
-      new Types.ObjectId(organizationId),
-      undefined,
-      'SuperAdmin'
-    );
-
-    // Get all routines for this organization with high limit to get all
-    const result = await this.routinesService.getRoutines(1, 1000);
-    return result.data;
+    // Get routines directly by organization ID using service method
+    // This bypasses tenant context for SuperAdmin operations
+    return await this.routinesService.getRoutinesByOrganizationId(organizationId);
   }
 }

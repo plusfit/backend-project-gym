@@ -12,4 +12,5 @@ export interface RoutineRepository {
 	countRoutines(filters: any): Promise<number>;
 	getRoutines(offset: number, limit: number, filters: any): Promise<Routine[]>;
 	removeSubRoutineFromRoutines(subRoutineId: string): Promise<any[]>;
+	getRoutinesByOrganizationId(organizationId: string): Promise<Routine[]>;
 }

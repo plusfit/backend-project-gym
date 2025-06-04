@@ -228,4 +228,11 @@ export class MongoClientsRepository implements ClientsRepository {
       })
       .exec();
   }
+
+  // Método seguro para SuperAdmin: obtiene clientes por organizationId sin tenant context
+  async getClientsByOrganizationId(organizationId: string): Promise<Client[]> {
+    return await this.clientModel
+      .find({ organizationId: new Types.ObjectId(organizationId) })
+      .exec();
+  }
 }

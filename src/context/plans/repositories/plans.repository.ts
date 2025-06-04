@@ -38,4 +38,7 @@ export interface PlanRepository {
     clientId: string,
     routineId: string,
   ): Promise<Client | null>;
+  
+  // Método seguro para SuperAdmin: obtiene planes por organizationId directamente
+  getPlansByOrganizationId(organizationId: string): Promise<Plan[]>;
 }

@@ -231,4 +231,9 @@ export class ClientsService {
       );
     }
   }
+
+  // Método seguro para SuperAdmin: obtiene clientes por organizationId sin contexto tenant
+  async getClientsByOrganizationId(organizationId: string): Promise<Client[]> {
+    return await this.clientRepository.getClientsByOrganizationId(organizationId);
+  }
 }

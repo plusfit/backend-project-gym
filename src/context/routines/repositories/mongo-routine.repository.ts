@@ -1,6 +1,6 @@
 import { HttpException, Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 
 import { CreateRoutineDto } from "@/src/context/routines/dto/create-routine.dto";
 import { RoutineRepository } from "@/src/context/routines/repositories/routine.repository";
@@ -132,12 +132,25 @@ export class MongoRoutineRepository implements RoutineRepository {
             path: "exercises",
           },
         })
-        .exec();
+        .exec(      );
     } catch (error: any) {
       throw new HttpException(
         `Error al remover la subroutine de las rutinas: ${error.message}`,
         error.status || 500,
       );
     }
+  }
+
+  // Método seguro para SuperAdmin: obtiene rutinas por organizationId sin tenant context
+  async getRoutinesByOrganizationId(organizationId: string): Promise<Routine[]> {
+    return await this.routineModel
+      .find({ organizationId: new Types.ObjectId(organizationId) })
+      .populate({
+        path: "subRoutines",
+        populate: {
+          path: "exercises",
+        },
+      })
+      .exec();
   }
 }
