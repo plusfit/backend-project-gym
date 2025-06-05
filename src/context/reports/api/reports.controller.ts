@@ -11,14 +11,19 @@ import { Response } from 'express';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ReportsService } from '../services/reports.service';
 import { DashboardMetricsDto, GetReportDto } from '../dto/reports.dto';
+import { PermissionsGuard } from '../../shared/guards/permissions/permissions.guard';
+import { RequirePermissions } from '../../shared/guards/permissions/permissions.decorator';
+import { Permission, Module } from '../../shared/enums/permissions.enum';
 
 @ApiTags('Reports')
 @ApiBearerAuth('access-token')
+@UseGuards(PermissionsGuard)
 @Controller('api/reports')
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
   @Get('dashboard/:organizationId')
+  @RequirePermissions(Module.REPORTS, [Permission.REPORTS_VIEW])
   @ApiOperation({ summary: 'Get dashboard metrics for organization' })
   @ApiResponse({ status: 200, description: 'Dashboard metrics retrieved successfully' })
   async getDashboardMetrics(
@@ -29,6 +34,7 @@ export class ReportsController {
   }
 
   @Get('export/:organizationId')
+  @RequirePermissions(Module.REPORTS, [Permission.REPORTS_EXPORT])
   @ApiOperation({ summary: 'Export specific report data' })
   @ApiResponse({ status: 200, description: 'Report data exported successfully' })
   async exportReport(
@@ -50,6 +56,7 @@ export class ReportsController {
   }
 
   @Get('clients/:organizationId')
+  @RequirePermissions(Module.REPORTS, [Permission.REPORTS_VIEW])
   @ApiOperation({ summary: 'Get detailed client analytics' })
   @ApiResponse({ status: 200, description: 'Client analytics retrieved successfully' })
   async getClientAnalytics(
@@ -65,6 +72,7 @@ export class ReportsController {
   }
 
   @Get('financial/:organizationId')
+  @RequirePermissions(Module.REPORTS, [Permission.REPORTS_ADVANCED])
   @ApiOperation({ summary: 'Get financial analytics' })
   @ApiResponse({ status: 200, description: 'Financial analytics retrieved successfully' })
   async getFinancialAnalytics(
@@ -80,6 +88,7 @@ export class ReportsController {
   }
 
   @Get('occupancy/:organizationId')
+  @RequirePermissions(Module.REPORTS, [Permission.REPORTS_VIEW])
   @ApiOperation({ summary: 'Get occupancy analytics' })
   @ApiResponse({ status: 200, description: 'Occupancy analytics retrieved successfully' })
   async getOccupancyAnalytics(
@@ -95,6 +104,7 @@ export class ReportsController {
   }
 
   @Get('routines/:organizationId')
+  @RequirePermissions(Module.REPORTS, [Permission.REPORTS_VIEW])
   @ApiOperation({ summary: 'Get routine analytics' })
   @ApiResponse({ status: 200, description: 'Routine analytics retrieved successfully' })
   async getRoutineAnalytics(

@@ -31,6 +31,11 @@ export enum Permission {
 
   // Organization Management
   ORGANIZATION_ADMIN = "organization:admin",
+
+  // Reports Permissions
+  REPORTS_VIEW = "reports:view",
+  REPORTS_EXPORT = "reports:export",
+  REPORTS_ADVANCED = "reports:advanced",
 }
 
 export enum Module {
@@ -39,6 +44,7 @@ export enum Module {
   PLANS = "plans",
   SCHEDULES = "schedules",
   EXERCISES = "exercises",
+  REPORTS = "reports",
 }
 
 export const DEFAULT_PERMISSIONS = {
@@ -71,5 +77,10 @@ export const DEFAULT_PERMISSIONS = {
     Permission.EXERCISE_READ,
     Permission.EXERCISE_UPDATE,
     Permission.EXERCISE_DELETE,
+  ],
+  [Module.REPORTS]: [
+    Permission.REPORTS_VIEW,
+    Permission.REPORTS_EXPORT,
+    Permission.REPORTS_ADVANCED,
   ],
 };
