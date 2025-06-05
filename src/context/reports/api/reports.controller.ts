@@ -7,10 +7,10 @@ import {
   ValidationPipe,
   Res 
 } from '@nestjs/common';
-import { Response } from 'express';
+
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ReportsService } from '../services/reports.service';
-import { DashboardMetricsDto, GetReportDto } from '../dto/reports.dto';
+import { DashboardMetricsDto, GetReportDto, DateRange } from '../dto/reports.dto';
 import { PermissionsGuard } from '../../shared/guards/permissions/permissions.guard';
 import { RequirePermissions } from '../../shared/guards/permissions/permissions.decorator';
 import { Permission, Module } from '../../shared/enums/permissions.enum';
@@ -40,19 +40,17 @@ export class ReportsController {
   async exportReport(
     @Param('organizationId') organizationId: string,
     @Query(ValidationPipe) dto: GetReportDto,
-    @Res() res: Response
+    @Res() res: any
   ) {
     const buffer = await this.reportsService.exportReport(organizationId, dto);
     
     const fileName = `reporte-${dto.type}-${new Date().toISOString().split('T')[0]}.xlsx`;
     
-    res.set({
-      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'Content-Disposition': `attachment; filename="${fileName}"`,
-      'Content-Length': buffer.length,
-    });
-    
-    res.send(buffer);
+    res
+      .type('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+      .header('Content-Disposition', `attachment; filename="${fileName}"`)
+      .header('Content-Length', buffer.length.toString())
+      .send(buffer);
   }
 
   @Get('clients/:organizationId')
@@ -64,7 +62,7 @@ export class ReportsController {
     @Query(ValidationPipe) dto: DashboardMetricsDto
   ) {
     const dateFilter = this.reportsService['getDateFilter'](
-      dto.dateRange || 'last_30_days', 
+      dto.dateRange || DateRange.LAST_30_DAYS, 
       dto.startDate, 
       dto.endDate
     );
@@ -80,7 +78,7 @@ export class ReportsController {
     @Query(ValidationPipe) dto: DashboardMetricsDto
   ) {
     const dateFilter = this.reportsService['getDateFilter'](
-      dto.dateRange || 'last_30_days', 
+      dto.dateRange || DateRange.LAST_30_DAYS, 
       dto.startDate, 
       dto.endDate
     );
@@ -96,7 +94,7 @@ export class ReportsController {
     @Query(ValidationPipe) dto: DashboardMetricsDto
   ) {
     const dateFilter = this.reportsService['getDateFilter'](
-      dto.dateRange || 'last_30_days', 
+      dto.dateRange || DateRange.LAST_30_DAYS, 
       dto.startDate, 
       dto.endDate
     );
@@ -112,7 +110,7 @@ export class ReportsController {
     @Query(ValidationPipe) dto: DashboardMetricsDto
   ) {
     const dateFilter = this.reportsService['getDateFilter'](
-      dto.dateRange || 'last_30_days', 
+      dto.dateRange || DateRange.LAST_30_DAYS, 
       dto.startDate, 
       dto.endDate
     );

@@ -68,10 +68,22 @@ export class PermissionsGuard implements CanActivate {
   private getRequiredPermissions(
     context: ExecutionContext,
   ): Permission[] | undefined {
-    return this.reflector.getAllAndOverride<Permission[]>(PERMISSIONS_KEY, [
+    const metadata = this.reflector.getAllAndOverride<any>(PERMISSIONS_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
+
+    // Si el metadata tiene la estructura del nuevo decorador RequirePermissions
+    if (metadata && typeof metadata === 'object' && 'permissions' in metadata) {
+      return (metadata as any).permissions;
+    }
+
+    // Si es el formato anterior (array directo)
+    if (Array.isArray(metadata)) {
+      return metadata;
+    }
+
+    return undefined;
   }
 
   private extractTokenFromHeader(authHeader: string | undefined): string {

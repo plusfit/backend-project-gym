@@ -445,7 +445,7 @@ export class ReportsService {
     // Métricas principales
     worksheet.getCell('A3').value = 'Métrica';
     worksheet.getCell('B3').value = 'Valor';
-    worksheet.getRow(3).eachCell(cell => cell.style = headerStyle);
+    worksheet.getRow(3).eachCell((cell: any) => cell.style = headerStyle);
 
     const metrics = [
       ['Total de Clientes', data.totalClients],
@@ -460,7 +460,7 @@ export class ReportsService {
       const row = index + 4;
       worksheet.getCell(`A${row}`).value = metric[0];
       worksheet.getCell(`B${row}`).value = metric[1];
-      worksheet.getRow(row).eachCell(cell => cell.style = cellStyle);
+      worksheet.getRow(row).eachCell((cell: any) => cell.style = cellStyle);
     });
 
     // Distribución por género
@@ -469,7 +469,7 @@ export class ReportsService {
     
     worksheet.getCell('A14').value = 'Género';
     worksheet.getCell('B14').value = 'Cantidad';
-    worksheet.getRow(14).eachCell(cell => cell.style = headerStyle);
+    worksheet.getRow(14).eachCell((cell: any) => cell.style = headerStyle);
 
     const genderData = [
       ['Masculino', data.genderDistribution.male],
@@ -481,7 +481,7 @@ export class ReportsService {
       const row = index + 15;
       worksheet.getCell(`A${row}`).value = item[0];
       worksheet.getCell(`B${row}`).value = item[1];
-      worksheet.getRow(row).eachCell(cell => cell.style = cellStyle);
+      worksheet.getRow(row).eachCell((cell: any) => cell.style = cellStyle);
     });
 
     // Ajustar ancho de columnas
@@ -502,7 +502,7 @@ export class ReportsService {
     // Métricas principales
     worksheet.getCell('A3').value = 'Métrica';
     worksheet.getCell('B3').value = 'Valor';
-    worksheet.getRow(3).eachCell(cell => cell.style = headerStyle);
+    worksheet.getRow(3).eachCell((cell: any) => cell.style = headerStyle);
 
     const metrics = [
       ['Ingresos Totales', `$${data.totalRevenue.toLocaleString()}`],
@@ -517,7 +517,7 @@ export class ReportsService {
       const row = index + 4;
       worksheet.getCell(`A${row}`).value = metric[0];
       worksheet.getCell(`B${row}`).value = metric[1];
-      worksheet.getRow(row).eachCell(cell => cell.style = cellStyle);
+      worksheet.getRow(row).eachCell((cell: any) => cell.style = cellStyle);
     });
 
     // Ingresos por plan
@@ -527,14 +527,14 @@ export class ReportsService {
     worksheet.getCell('A14').value = 'Plan';
     worksheet.getCell('B14').value = 'Ingresos';
     worksheet.getCell('C14').value = 'Porcentaje';
-    worksheet.getRow(14).eachCell(cell => cell.style = headerStyle);
+    worksheet.getRow(14).eachCell((cell: any) => cell.style = headerStyle);
 
     data.revenueByPlan.forEach((plan: any, index: number) => {
       const row = index + 15;
       worksheet.getCell(`A${row}`).value = plan.planName;
       worksheet.getCell(`B${row}`).value = `$${plan.revenue.toLocaleString()}`;
       worksheet.getCell(`C${row}`).value = `${plan.percentage.toFixed(2)}%`;
-      worksheet.getRow(row).eachCell(cell => cell.style = cellStyle);
+      worksheet.getRow(row).eachCell((cell: any) => cell.style = cellStyle);
     });
 
     worksheet.columns = [
@@ -554,7 +554,7 @@ export class ReportsService {
     // Métricas principales
     worksheet.getCell('A3').value = 'Ocupación Promedio (%)';
     worksheet.getCell('B3').value = data.averageOccupancy.toFixed(2);
-    worksheet.getRow(3).eachCell(cell => cell.style = headerStyle);
+    worksheet.getRow(3).eachCell((cell: any) => cell.style = headerStyle);
 
     // Horarios pico
     worksheet.getCell('A6').value = 'HORARIOS DE MAYOR DEMANDA';
@@ -562,13 +562,13 @@ export class ReportsService {
     
     worksheet.getCell('A8').value = 'Hora';
     worksheet.getCell('B8').value = 'Ocupación (%)';
-    worksheet.getRow(8).eachCell(cell => cell.style = headerStyle);
+    worksheet.getRow(8).eachCell((cell: any) => cell.style = headerStyle);
 
     data.peakHours.forEach((hour: any, index: number) => {
       const row = index + 9;
       worksheet.getCell(`A${row}`).value = `${hour.hour}:00`;
       worksheet.getCell(`B${row}`).value = hour.occupancy.toFixed(2);
-      worksheet.getRow(row).eachCell(cell => cell.style = cellStyle);
+      worksheet.getRow(row).eachCell((cell: any) => cell.style = cellStyle);
     });
 
     worksheet.columns = [
@@ -592,14 +592,14 @@ export class ReportsService {
     worksheet.getCell('A5').value = 'Ejercicio';
     worksheet.getCell('B5').value = 'Categoría';
     worksheet.getCell('C5').value = 'Usos';
-    worksheet.getRow(5).eachCell(cell => cell.style = headerStyle);
+    worksheet.getRow(5).eachCell((cell: any) => cell.style = headerStyle);
 
     data.mostPopularExercises.forEach((exercise: any, index: number) => {
       const row = index + 6;
       worksheet.getCell(`A${row}`).value = exercise.name;
       worksheet.getCell(`B${row}`).value = exercise.category;
       worksheet.getCell(`C${row}`).value = exercise.count;
-      worksheet.getRow(row).eachCell(cell => cell.style = cellStyle);
+      worksheet.getRow(row).eachCell((cell: any) => cell.style = cellStyle);
     });
 
     worksheet.columns = [

@@ -24,6 +24,7 @@ import { SchedulesModule } from "@/src/context/schedules/schedules.module";
 // import { AuthMiddleware } from "../context/auth/middlewares/auth.middleware";
 import { AppConfigModule } from "../context/config/config.module";
 import { CategoriesModule } from "../context/categories/categories.module";
+import { ReportsModule } from "../context/reports/reports.module";
 import { SharedModule } from "@/src/context/shared/shared.module";
 import { TenantMiddleware } from "@/src/context/shared/middlewares/tenant.middleware";
 
@@ -69,6 +70,7 @@ import { TenantMiddleware } from "@/src/context/shared/middlewares/tenant.middle
     AppConfigModule,
     AuthModule,
     CategoriesModule,
+    ReportsModule,
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       // eslint-disable-next-line @typescript-eslint/require-await

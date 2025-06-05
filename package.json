@@ -41,6 +41,7 @@
     "typos": "chmod +x scripts/check_typos.sh && ./scripts/check_typos.sh"
   },
   "dependencies": {
+    "@fastify/cors": "^8.5.0",
     "@fastify/static": "^7.0.4",
     "@nestjs/cli": "^10.4.2",
     "@nestjs/common": "^10.3.10",
@@ -53,6 +54,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "exceljs": "^4.4.0",
+    "fastify": "^5.3.3",
     "fastify-multipart": "^5.3.1",
     "firebase-admin": "^13.1.0",
     "jsonwebtoken": "^9.0.2",
@@ -73,7 +75,7 @@
     "@swc/core": "^1.7.6",
     "@types/fs-extra": "^11.0.4",
     "@types/jsonwebtoken": "^9.0.6",
-    "@types/node": "^20.14.12",
+    "@types/node": "^20.17.57",
     "@types/supertest": "^6.0.2",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",

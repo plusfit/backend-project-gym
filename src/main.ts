@@ -47,14 +47,27 @@ async function bootstrap() {
   await app
     .getHttpAdapter()
     .getInstance()
-    .register(fastifyCors, {
-      origin: [
-        front_url,
-        client_url,
-        "http://localhost:4200",
-        "http://localhost:8100",
-        "http://127.0.0.1:55376",
-      ],
+    .register(fastifyCors as any, {
+      origin: (origin: any, callback: any) => {
+        const allowedOrigins = [
+          front_url,
+          client_url,
+          "http://localhost:3000",
+          "http://localhost:4200",
+          "http://localhost:8100",
+          "http://127.0.0.1:55376",
+        ];
+        
+        // Permitir requests sin origin (como Postman) en desarrollo
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          console.log(`CORS: Origin ${origin} not allowed`);
+          callback(null, false);
+        }
+      },
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
       allowedHeaders: ["Authorization", "Content-Type", "x-organization"],
       credentials: true,
