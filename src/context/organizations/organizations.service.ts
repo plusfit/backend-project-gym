@@ -6,10 +6,9 @@ import {
   OrganizationDocument,
 } from "./schemas/organization.schema";
 import { PlansService } from "@/src/context/plans/plans.service";
-import { ClientsService } from "@/src/context/clients/clients.service";
 import { RoutinesService } from "@/src/context/routines/services/routines.service";
 import { Plan } from "@/src/context/plans/schemas/plan.schema";
-import { Client, ClientDocument } from "@/src/context/clients/schemas/client.schema";
+import { Client } from "@/src/context/clients/schemas/client.schema";
 import { Routine } from "@/src/context/routines/schemas/routine.schema";
 import {
   Permission,
@@ -25,17 +24,14 @@ export class OrganizationsService {
   constructor(
     @InjectModel(Organization.name)
     private readonly organizationModel: Model<OrganizationDocument>,
-    @InjectModel(Client.name)
-    private readonly clientModel: Model<ClientDocument>,
     private readonly plansService: PlansService,
-    private readonly clientsService: ClientsService,
     private readonly routinesService: RoutinesService,
     private readonly tenantContext: TenantContextService,
   ) {}
 
   async create(
     organizationData: CreateOrganizationDto,
-  ): Promise<{ organization: OrganizationDocument; admin: ClientDocument }> {
+  ): Promise<OrganizationDocument> {
     if (!organizationData.permissions) {
       organizationData.permissions = Object.values(Permission);
     }
@@ -50,24 +46,21 @@ export class OrganizationsService {
     const organization = new this.organizationModel(orgData);
     const savedOrganization = await organization.save();
 
-    const adminData = {
+    return savedOrganization;
+  }
+
+  // Método auxiliar para obtener datos del admin para crear externamente
+  getAdminDataForOrganization(organizationId: string, adminUser: any) {
+    return {
       email: adminUser.email,
       role: "Admin",
-      organizationId: savedOrganization._id,
+      organizationId,
       userInfo: {
         name: adminUser.name,
         phone: adminUser.phone || null,
       },
       isOnboardingCompleted: false,
       disabled: false,
-    };
-
-    const admin = new this.clientModel(adminData);
-    const savedAdmin = await admin.save();
-
-    return {
-      organization: savedOrganization,
-      admin: savedAdmin,
     };
   }
 
@@ -135,17 +128,9 @@ export class OrganizationsService {
   }
 
   async getOrganizationClients(organizationId: string): Promise<Client[]> {
-    // Verify organization exists
-    const organization = await this.findById(organizationId);
-    if (!organization) {
-      throw new NotFoundException(
-        `Organization with ID ${organizationId} not found`,
-      );
-    }
-
-    // Get clients directly by organization ID using service method
-    // This bypasses tenant context for SuperAdmin operations
-    return await this.clientsService.getClientsByOrganizationId(organizationId);
+    // Este método será removido temporalmente para evitar dependencia circular
+    // La funcionalidad se manejará directamente desde el controlador
+    throw new Error("Use ClientsService.getClientsByOrganizationId directly from controller");
   }
 
   async updateOrganizationPermissions(
@@ -216,7 +201,7 @@ export class OrganizationsService {
     return await this.routinesService.getRoutinesByOrganizationId(organizationId);
   }
 
-  async getOrganizationClientStats(organizationId: string): Promise<{
+  async getOrganizationClientStats(organizationId: string, clientCount: number): Promise<{
     currentClients: number;
     maxClients: number;
     available: number;
@@ -230,9 +215,8 @@ export class OrganizationsService {
       );
     }
 
-    // Get current client count
-    const clients = await this.getOrganizationClients(organizationId);
-    const currentClients = clients.length;
+    // Use provided client count instead of fetching clients
+    const currentClients = clientCount;
     const maxClients = organization.maxClients || 50;
     const available = Math.max(0, maxClients - currentClients);
     const percentage = maxClients > 0 ? (currentClients / maxClients) * 100 : 0;

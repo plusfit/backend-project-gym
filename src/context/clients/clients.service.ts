@@ -275,4 +275,9 @@ export class ClientsService {
   async getClientsByOrganizationId(organizationId: string): Promise<Client[]> {
     return await this.clientRepository.getClientsByOrganizationId(organizationId);
   }
+
+  // Método especial para crear admin durante la creación de organización
+  async createAdminForOrganization(adminData: any): Promise<any> {
+    return await this.clientRepository.createClient(adminData);
+  }
 }

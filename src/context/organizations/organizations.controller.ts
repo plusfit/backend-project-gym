@@ -14,6 +14,7 @@ import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { Role } from "@/src/context/shared/constants/roles.constant";
 import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
 import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
+import { ClientsService } from "@/src/context/clients/clients.service";
 
 import { CreateOrganizationDto } from "./dto/create-organization.dto";
 import { UpdateOrganizationDto } from "./dto/update-organization.dto";
@@ -24,7 +25,10 @@ import { Module } from "@/src/context/shared/enums/permissions.enum";
 @ApiTags("organizations")
 @Controller("organizations")
 export class OrganizationsController {
-  constructor(private readonly organizationsService: OrganizationsService) {}
+  constructor(
+    private readonly organizationsService: OrganizationsService,
+    private readonly clientsService: ClientsService,
+  ) {}
 
   @Post()
   @Roles(Role.SuperAdmin)
@@ -34,8 +38,24 @@ export class OrganizationsController {
     status: 201,
     description: "Organization created successfully",
   })
-  create(@Body() createOrganizationDto: CreateOrganizationDto) {
-    return this.organizationsService.create(createOrganizationDto);
+  async create(@Body() createOrganizationDto: CreateOrganizationDto) {
+    const { adminUser, ...orgData } = createOrganizationDto;
+    
+    // Crear la organización
+    const organization = await this.organizationsService.create(createOrganizationDto);
+    
+    // Crear el admin usando los datos auxiliares
+    const adminData = this.organizationsService.getAdminDataForOrganization(
+      (organization as any)._id.toString(),
+      adminUser
+    );
+    
+    const admin = await this.clientsService.createAdminForOrganization(adminData);
+    
+    return {
+      organization,
+      admin,
+    };
   }
 
   @Get()
@@ -75,7 +95,7 @@ export class OrganizationsController {
   @ApiResponse({ status: 200, description: "List of organization clients" })
   @ApiResponse({ status: 404, description: "Organization not found" })
   getOrganizationClients(@Param("id") id: string) {
-    return this.organizationsService.getOrganizationClients(id);
+    return this.clientsService.getClientsByOrganizationId(id);
   }
 
   @Get(":id/routines")
@@ -179,7 +199,8 @@ export class OrganizationsController {
     description: "Organization client statistics retrieved successfully",
   })
   @ApiResponse({ status: 404, description: "Organization not found" })
-  getClientStats(@Param("id") id: string) {
-    return this.organizationsService.getOrganizationClientStats(id);
+  async getClientStats(@Param("id") id: string) {
+    const clients = await this.clientsService.getClientsByOrganizationId(id);
+    return this.organizationsService.getOrganizationClientStats(id, clients.length);
   }
 }
