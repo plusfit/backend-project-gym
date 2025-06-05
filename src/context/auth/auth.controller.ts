@@ -14,15 +14,20 @@ import { RefreshTokenAuthDto } from "@/src/context/auth/dto/refresh-token-auth-d
 import { RegisterAuthDto } from "@/src/context/auth/dto/register-auth.dto";
 import { GoogleAuthDto } from "@/src/context/auth/dto/google-auth.dto";
 import { JwtAuthGuard } from "@/src/context/shared/guards/jwt-auth.guard";
+import { TenantContextService } from "@/src/context/shared/services/tenant-context.service";
 
 @ApiTags("auth")
 @Controller("auth")
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly tenantContext: TenantContextService,
+  ) {}
   @Post("register")
   register(@Body() registerDto: RegisterAuthDto) {
     try {
-      return this.authService.register(registerDto);
+      const organizationId = this.tenantContext.getOrganizationId();
+      return this.authService.register(registerDto, organizationId?.toString());
     } catch (error: any) {
       throw new Error(`Error creating client: ${error.message}`);
     }
