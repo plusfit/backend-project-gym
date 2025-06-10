@@ -8,6 +8,8 @@ import { Plan, PlanSchema } from '../plans/schemas/plan.schema';
 import { Routine, RoutineSchema } from '../routines/schemas/routine.schema';
 import { Exercise, ExerciseSchema } from '../exercises/schemas/exercise.schema';
 import { Organization, OrganizationSchema } from '../organizations/schemas/organization.schema';
+import { SubRoutine, SubRoutineSchema } from '../routines/schemas/sub-routine.schema';
+import { Product, ProductSchema } from '../products/schemas/product.schema';
 import { OrganizationsModule } from '../organizations/organizations.module';
 
 @Module({
@@ -19,6 +21,8 @@ import { OrganizationsModule } from '../organizations/organizations.module';
       { name: Routine.name, schema: RoutineSchema },
       { name: Exercise.name, schema: ExerciseSchema },
       { name: Organization.name, schema: OrganizationSchema },
+      { name: SubRoutine.name, schema: SubRoutineSchema },
+      { name: Product.name, schema: ProductSchema },
     ]),
     OrganizationsModule,
   ],

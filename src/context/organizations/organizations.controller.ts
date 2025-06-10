@@ -191,7 +191,7 @@ export class OrganizationsController {
   }
 
   @Get(":id/client-stats")
-  @Roles(Role.SuperAdmin)
+  @Roles(Role.SuperAdmin, Role.Admin)
   @UseGuards(RolesGuard)
   @ApiOperation({ summary: "Get organization client statistics" })
   @ApiResponse({

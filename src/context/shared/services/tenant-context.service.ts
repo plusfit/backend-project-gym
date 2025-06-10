@@ -1,5 +1,6 @@
 import { Injectable, Scope } from "@nestjs/common";
 import { Types } from "mongoose";
+import { Role } from "../constants/roles.constant";
 
 @Injectable({ scope: Scope.REQUEST })
 export class TenantContextService {
@@ -19,7 +20,7 @@ export class TenantContextService {
 
   getOrganizationId(): Types.ObjectId {
     // Allow SuperAdmin to operate without organization context
-    if (this._userRole === "SuperAdmin") {
+    if (this._userRole === Role.SuperAdmin) {
       return this._organizationId as Types.ObjectId;
     }
 
@@ -38,10 +39,10 @@ export class TenantContextService {
   }
 
   isAdmin(): boolean {
-    return this._userRole === "Admin" || this._userRole === "SuperAdmin";
+    return this._userRole === Role.Admin || this._userRole === Role.SuperAdmin;
   }
 
   isSuperAdmin(): boolean {
-    return this._userRole === "SuperAdmin";
+    return this._userRole === Role.SuperAdmin;
   }
 }
