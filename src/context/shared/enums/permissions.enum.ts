@@ -36,6 +36,10 @@ export enum Permission {
   REPORTS_VIEW = "reports:view",
   REPORTS_EXPORT = "reports:export",
   REPORTS_ADVANCED = "reports:advanced",
+
+  // Screen Permissions
+  SCREEN_VIEW = "screen:view",
+  SCREEN_MANAGE = "screen:manage",
 }
 
 export enum Module {
@@ -45,6 +49,7 @@ export enum Module {
   SCHEDULES = "schedules",
   EXERCISES = "exercises",
   REPORTS = "reports",
+  SCREEN = "screen",
 }
 
 export const DEFAULT_PERMISSIONS = {
@@ -82,5 +87,9 @@ export const DEFAULT_PERMISSIONS = {
     Permission.REPORTS_VIEW,
     Permission.REPORTS_EXPORT,
     Permission.REPORTS_ADVANCED,
+  ],
+  [Module.SCREEN]: [
+    Permission.SCREEN_VIEW,
+    Permission.SCREEN_MANAGE,
   ],
 };

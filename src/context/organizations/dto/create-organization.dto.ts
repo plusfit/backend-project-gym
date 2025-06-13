@@ -28,6 +28,10 @@ export class AdminUserDto {
   @IsNotEmpty()
   name!: string;
 
+  @IsString()
+  @IsNotEmpty()
+  password!: string;
+
   @IsOptional()
   @IsString()
   phone?: string;

@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
+import firebaseAdmin from "firebase-admin";
 import {
   Organization,
   OrganizationDocument,
@@ -62,6 +63,26 @@ export class OrganizationsService {
       isOnboardingCompleted: false,
       disabled: false,
     };
+  }
+
+  // Método para crear usuario administrador en Firebase
+  async createAdminInFirebase(email: string, password: string, displayName: string): Promise<any> {
+    try {
+      const auth = firebaseAdmin.auth();
+      
+      const userRecord = await auth.createUser({
+        email: email,
+        password: password,
+        displayName: displayName,
+        emailVerified: true,
+      });
+
+      console.log('Usuario administrador creado en Firebase:', userRecord.uid);
+      return userRecord;
+    } catch (error: any) {
+      console.error('Error creando usuario en Firebase:', error);
+      throw new Error(`Error creating admin user in Firebase: ${error.message}`);
+    }
   }
 
   async findAll(includeInactive = true): Promise<OrganizationDocument[]> {

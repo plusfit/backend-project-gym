@@ -159,3 +159,55 @@ And for trying to fix lint issues automatically, you can run:
 ```bash
 npm run lint:fix
 ```
+
+## Crear nueva organización con administrador en Firebase
+
+Cuando se crea una nueva organización, automáticamente se crea:
+
+1. **Usuario administrador en Firebase Authentication**
+   - Email y contraseña proporcionados
+   - Verificación de email activada
+   - Display name configurado
+
+2. **Organización en MongoDB**
+   - Datos básicos de la organización
+   - Permisos predeterminados
+
+3. **Cliente administrador en MongoDB**
+   - Vinculado a la organización
+   - Rol de "Admin"
+   - Información personal básica
+
+### Endpoint: `POST /organizations`
+
+```json
+{
+  "name": "Mi Gimnasio",
+  "slug": "mi-gimnasio",
+  "description": "Descripción opcional",
+  "maxClients": 100,
+  "adminUser": {
+    "email": "admin@migimnasio.com",
+    "password": "contraseñaSegura123",
+    "name": "Administrador Principal",
+    "phone": "091234567"
+  }
+}
+```
+
+### Respuesta exitosa:
+
+```json
+{
+  "organization": { /* datos de la organización */ },
+  "admin": { /* datos del cliente admin */ },
+  "firebaseUser": {
+    "uid": "firebase-uid",
+    "email": "admin@migimnasio.com"
+  }
+}
+```
+
+### Manejo de errores:
+
+Si falla la creación del usuario en Firebase, no se crea la organización para mantener consistencia de datos.

@@ -41,21 +41,37 @@ export class OrganizationsController {
   async create(@Body() createOrganizationDto: CreateOrganizationDto) {
     const { adminUser, ...orgData } = createOrganizationDto;
     
-    // Crear la organización
-    const organization = await this.organizationsService.create(createOrganizationDto);
-    
-    // Crear el admin usando los datos auxiliares
-    const adminData = this.organizationsService.getAdminDataForOrganization(
-      (organization as any)._id.toString(),
-      adminUser
-    );
-    
-    const admin = await this.clientsService.createAdminForOrganization(adminData);
-    
-    return {
-      organization,
-      admin,
-    };
+    try {
+      // 1. Crear el usuario administrador en Firebase
+      const firebaseUser = await this.organizationsService.createAdminInFirebase(
+        adminUser.email,
+        adminUser.password,
+        adminUser.name
+      );
+      
+      // 2. Crear la organización
+      const organization = await this.organizationsService.create(createOrganizationDto);
+      
+      // 3. Crear el admin en la base de datos usando los datos auxiliares
+      const adminData = this.organizationsService.getAdminDataForOrganization(
+        (organization as any)._id.toString(),
+        adminUser
+      );
+      
+      const admin = await this.clientsService.createAdminForOrganization(adminData);
+      
+      return {
+        organization,
+        admin,
+        firebaseUser: {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email
+        }
+      };
+    } catch (error: any) {
+      // Si falla la creación del usuario en Firebase, no crear la organización
+      throw new Error(`Failed to create organization: ${error.message}`);
+    }
   }
 
   @Get()

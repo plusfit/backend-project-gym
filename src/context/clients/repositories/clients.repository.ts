@@ -41,4 +41,7 @@ export interface ClientsRepository {
   
   // Método seguro para SuperAdmin: obtiene clientes por organizationId directamente
   getClientsByOrganizationId(organizationId: string): Promise<Client[]>;
+
+  // Método para eliminar cliente de Firebase (opcional - para mantener sincronización)
+  removeClientFirebase?(id: string): Promise<boolean>;
 }

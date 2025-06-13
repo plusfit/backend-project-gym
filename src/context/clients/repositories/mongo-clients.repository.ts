@@ -235,4 +235,10 @@ export class MongoClientsRepository implements ClientsRepository {
       .find({ organizationId: new Types.ObjectId(organizationId) })
       .exec();
   }
+
+  // Método opcional para eliminar cliente de Firebase (actualmente no implementado)
+  async removeClientFirebase(id: string): Promise<boolean> {
+    console.log(`removeClientFirebase called for client ${id} - not implemented`);
+    return true;
+  }
 }
