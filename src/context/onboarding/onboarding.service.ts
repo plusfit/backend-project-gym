@@ -162,10 +162,6 @@ export class OnboardingService {
 				onboardingData.step2.history.injuries;
 		}
 
-		if (onboardingData.step3) {
-			userInfo.frequencyOfPhysicalExercise = onboardingData.step3.trainingLevel;
-		}
-
 		return userInfo;
 	}
 
