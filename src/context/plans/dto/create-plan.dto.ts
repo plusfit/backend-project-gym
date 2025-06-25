@@ -19,6 +19,7 @@ import {
   InjuryType,
   PlanGoal,
   PlanType,
+  SexType,
   Tags,
 } from "@/src/context/shared/enums/plan.enum";
 
@@ -70,6 +71,15 @@ export class CreatePlanDto {
   @IsEnum(ExperienceLevel)
   @IsNotEmpty()
   experienceLevel!: ExperienceLevel;
+
+  @ApiProperty({
+    description: "The sex type for the plan",
+    example: SexType.UNISEX,
+    enum: SexType,
+  })
+  @IsEnum(SexType)
+  @IsNotEmpty()
+  sexType!: SexType;
 
   @ApiProperty({
     description: "The minimum age required for the plan",
