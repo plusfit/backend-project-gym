@@ -5,6 +5,7 @@ import {
   ExperienceLevel,
   InjuryType,
   PlanGoal,
+  SexType,
   Tags,
 } from "@/src/context/shared/enums/plan.enum";
 
@@ -21,6 +22,9 @@ export class Plan extends Document {
 
   @Prop({ required: true, enum: Object.values(ExperienceLevel) })
   experienceLevel!: string;
+
+  @Prop({ required: true, enum: Object.values(SexType) })
+  sexType!: string;
 
   @Prop({ required: false, enum: Object.values(InjuryType), default: null })
   injuryType?: string;

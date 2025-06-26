@@ -53,3 +53,9 @@ export enum InjuryType {
   LUMBAR = "lumbar",
   OTHER = "other",
 }
+
+export enum SexType {
+  MALE = "male",
+  FEMALE = "female",
+  UNISEX = "unisex",
+}
