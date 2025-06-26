@@ -2,6 +2,7 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 
 import { RegisterAuthDto } from "@/src/context/auth/dto/register-auth.dto";
+import { InternalRegisterAuthDto } from "@/src/context/auth/dto/internal-register-auth.dto";
 import { AuthRepository } from "@/src/context/auth/repositories/auth.repository";
 import { Client } from "@/src/context/clients/schemas/client.schema";
 
@@ -23,9 +24,11 @@ export class MongoAuthRepository implements AuthRepository {
 		return user?.refreshToken || "";
 	}
 
-	async register(registerDto: RegisterAuthDto): Promise<Client> {
+	async register(registerDto: RegisterAuthDto | InternalRegisterAuthDto): Promise<Client> {
 		try {
-			return await this.clientModel.create(registerDto);
+			// Solo guardar los campos que necesita la base de datos (email)
+			const clientData = { email: registerDto.email };
+			return await this.clientModel.create(clientData);
 		} catch (error: any) {
 			throw new Error(`Error creating client: ${error.message}`);
 		}
