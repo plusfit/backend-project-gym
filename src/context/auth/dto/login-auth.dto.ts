@@ -6,4 +6,12 @@ export class LoginAuthDto {
 	@IsString()
 	@IsNotEmpty()
 	token!: string;
+
+	@ApiProperty({ 
+		example: "03AGdBq25...", 
+		description: "reCAPTCHA v3 token" 
+	})
+	@IsString()
+	@IsNotEmpty()
+	recaptchaToken!: string;
 }
