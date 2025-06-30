@@ -1,9 +1,10 @@
 import { RegisterAuthDto } from "@/src/context/auth/dto/register-auth.dto";
+import { InternalRegisterAuthDto } from "@/src/context/auth/dto/internal-register-auth.dto";
 import { Client } from "@/src/context/clients/schemas/client.schema";
 
 export const AUTH_REPOSITORY = "AuthRepository";
 export abstract class AuthRepository {
-	abstract register(registerDto: RegisterAuthDto): Promise<Client>;
+	abstract register(registerDto: RegisterAuthDto | InternalRegisterAuthDto): Promise<Client>;
 
 	abstract login(email: string): Promise<Client>;
 

@@ -9,6 +9,7 @@ import firebaseAdmin from "firebase-admin";
 import { LoginAuthDto } from "@/src/context/auth/dto/login-auth.dto";
 import { RefreshTokenAuthDto } from "@/src/context/auth/dto/refresh-token-auth-dto";
 import { RegisterAuthDto } from "@/src/context/auth/dto/register-auth.dto";
+import { InternalRegisterAuthDto } from "@/src/context/auth/dto/internal-register-auth.dto";
 import { AUTH_REPOSITORY } from "@/src/context/auth/repositories/auth.repository";
 import { OnboardingService } from "../onboarding/onboarding.service";
 import { GoogleAuthDto } from "@/src/context/auth/dto/google-auth.dto";
@@ -230,7 +231,7 @@ export class AuthService {
 				client = await this.authRepository.login(email);
 			} catch (error) {
 				// Si el usuario no existe, lo registramos automáticamente
-				const registerDto: RegisterAuthDto = {
+				const registerDto: InternalRegisterAuthDto = {
 					email,
 				};
 				client = await this.authRepository.register(registerDto);
