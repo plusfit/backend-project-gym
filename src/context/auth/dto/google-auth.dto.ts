@@ -16,4 +16,13 @@ export class GoogleAuthDto {
   @IsString()
   @IsOptional()
   avatarUrl?: string;
+
+  @ApiProperty({ 
+    example: "03AGdBq25...", 
+    description: "reCAPTCHA v3 token",
+    required: false 
+  })
+  @IsString()
+  @IsOptional()
+  recaptchaToken?: string;
 }

@@ -41,6 +41,11 @@ export class AuthController {
 	}
 
 	@Post("google")
+	@UseGuards(RecaptchaGuard)
+	@RecaptchaAction('google_register')
+	@ApiResponse({ status: 200, description: 'Google login successful.' })
+	@ApiResponse({ status: 400, description: 'Invalid Google token or reCAPTCHA verification failed.' })
+	@ApiResponse({ status: 401, description: 'Unauthorized.' })
 	googleLogin(@Body() googleAuthDto: GoogleAuthDto) {
 		return this.authService.googleLogin(googleAuthDto);
 	}

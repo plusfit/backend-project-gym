@@ -53,8 +53,13 @@ export class RecaptchaService {
         return false;
       }
 
-      // Verificar que la acción coincida
-      if (data.action !== expectedAction) {
+      // Verificar que la acción coincida (flexibilidad para Google actions)
+      const isGoogleAction = expectedAction === 'google_register' || expectedAction === 'google_login';
+      const isValidGoogleAction = data.action === 'google_login' || data.action === 'google_register';
+      
+      if (isGoogleAction && isValidGoogleAction) {
+        // Para acciones de Google, aceptamos tanto google_login como google_register
+      } else if (data.action !== expectedAction) {
         console.error(`reCAPTCHA action mismatch. Expected: ${expectedAction}, Got: ${data.action}`);
         return false;
       }
@@ -65,7 +70,6 @@ export class RecaptchaService {
         return false;
       }
 
-      console.log(`reCAPTCHA verification successful. Score: ${data.score}, Action: ${data.action}`);
       return true;
     } catch (error) {
       console.error('Error verifying reCAPTCHA:', error);

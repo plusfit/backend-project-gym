@@ -23,6 +23,11 @@ export class RecaptchaGuard implements CanActivate {
 
     const { recaptchaToken } = request.body;
     
+    // Para el login con Google, el reCAPTCHA es opcional
+    if ((action === 'google_login' || action === 'google_register') && !recaptchaToken) {
+      return true;
+    }
+    
     if (!recaptchaToken) {
       throw new BadRequestException('reCAPTCHA token is required');
     }
