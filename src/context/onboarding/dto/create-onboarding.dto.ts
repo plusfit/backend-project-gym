@@ -122,23 +122,11 @@ export class TrainingPreferencesDto {
   @Max(7)
   trainingDays!: number;
 
-  @ApiProperty({ example: "Weight Loss", description: "Training goal" })
-  @IsString()
-  @IsNotEmpty()
-  goal!: string;
-
   @ApiProperty({ example: "Weightlifting", description: "Type of training" })
   @IsString()
   @IsNotEmpty()
   trainingType!: string;
 
-  @ApiProperty({
-    example: "Beginner",
-    description: "Training experience level",
-  })
-  @IsString()
-  @IsNotEmpty()
-  trainingLevel!: string;
 
   @ApiProperty({
     example: "knee",

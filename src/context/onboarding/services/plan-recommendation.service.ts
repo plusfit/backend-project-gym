@@ -5,9 +5,9 @@ import {
   PlanGoal,
   ExperienceLevel,
   PlanType,
+  SexType,
 } from "../../shared/enums/plan.enum";
 import { Plan } from "../../plans/schemas/plan.schema";
-
 @Injectable()
 export class PlanRecommendationService {
   constructor(
@@ -42,11 +42,18 @@ export class PlanRecommendationService {
         "No se encontró la fecha de nacimiento para recomendar un plan",
       );
     }
+
+    if (!onboardingData?.step1?.sex) {
+      throw new NotFoundException(
+        "No se encontró el sexo para recomendar un plan",
+      );
+    }
   }
 
   private buildSearchCriteria(onboardingData: StepData): Record<string, any> {
     const step3 = onboardingData.step3 as TrainingPreferences;
     const dateOfBirth = onboardingData.step1?.dateOfBirth || "";
+    const clientSex = onboardingData.step1?.sex || "";
     const clientAge = this.calculateAge(dateOfBirth);
 
     const goalMap: Record<string, PlanGoal> = {
@@ -71,11 +78,6 @@ export class PlanRecommendationService {
 
     const criteria: Record<string, any> = {
       days: { $lte: step3.trainingDays },
-      goal:
-        goalMap[step3.goal?.toLowerCase() || ""] || PlanGoal.GENERAL_FITNESS,
-      experienceLevel:
-        levelMap[step3.trainingLevel?.toLowerCase() || ""] ||
-        ExperienceLevel.BEGINNER,
       // Filter by age if specified
       $and: [
         {
@@ -88,6 +90,14 @@ export class PlanRecommendationService {
           $or: [
             { maxAge: { $exists: false } },
             { maxAge: { $gte: clientAge } },
+          ],
+        },
+        // Filter by sex - include plans that don't specify sex or match client's sex
+        {
+          $or: [
+            { SexType: { $exists: false } },
+            { SexType: null },
+            { SexType: clientSex },
           ],
         },
       ],
@@ -133,14 +143,9 @@ export class PlanRecommendationService {
   private calculatePlanScore(plan: Plan, onboardingData: StepData): number {
     const step3 = onboardingData.step3 as TrainingPreferences;
     const dateOfBirth = onboardingData.step1?.dateOfBirth || "";
+    const clientSex = onboardingData.step1?.sex || "";
     const clientAge = this.calculateAge(dateOfBirth);
     let score = 0;
-
-    // Goal evaluation
-    if (plan.goal === step3.goal) score += 5;
-
-    // Experience level evaluation
-    if (plan.experienceLevel === step3.trainingLevel) score += 3;
 
     // Training days evaluation
     const dayDiff = (step3.trainingDays || 0) - plan.days;
@@ -154,6 +159,16 @@ export class PlanRecommendationService {
       : PlanType.ROOM;
     if (plan.type === preferredType) score += 4;
     else if (plan.type === PlanType.MIXED) score += 2;
+
+    // Sex evaluation
+    if (plan.sexType) {
+      if (plan.sexType === clientSex) {
+        score += 3; // Bonus for sex match
+      } else {
+        score -= 1; // Small penalty for sex mismatch
+      }
+    }
+    // No penalty if plan doesn't specify sex (neutral plans)
 
     // Injury type evaluation (if applicable)
     if (

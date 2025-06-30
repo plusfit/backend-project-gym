@@ -31,9 +31,7 @@ export interface HealthInfo {
 // Step 3: Training Preferences
 export interface TrainingPreferences {
   trainingDays: number;
-  goal: string;
   trainingType: string;
-  trainingLevel: string;
   injuryType?: string;
 }
 
