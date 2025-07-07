@@ -26,6 +26,7 @@ import { ClientsService } from "@/src/context/clients/clients.service";
 import { CreateSubRoutineDto } from "@/src/context/routines/dto/create-sub-routine.dto";
 import { GetRoutinesDto } from "@/src/context/routines/dto/get-routines.dto";
 import { UpdateRoutineDto } from "@/src/context/routines/dto/update-routine.dto";
+import { UpdateRoutineQueryDto } from "@/src/context/routines/dto/update-routine-query.dto";
 import { UpdateSubRoutineDto } from "@/src/context/routines/dto/update-sub-routine.dto";
 import { RoutinesService } from "@/src/context/routines/services/routines.service";
 import { SubRoutinesService } from "@/src/context/routines/services/sub-routines.service";
@@ -174,24 +175,17 @@ export class RoutinesController {
 	@ApiResponse({ status: 200, description: "Rutina actualizada exitosamente." })
 	@ApiResponse({ status: 404, description: "Rutina no encontrada." })
 	@ApiParam({ name: "id", type: String, description: "ID de la rutina" })
-	@ApiQuery({
-		name: "clientId",
-		required: false,
-		type: String,
-		description: "ID del cliente para actualizar rutina",
-	})
 	@ApiBody({ type: UpdateRoutineDto })
 	async update(
 		@Param("id") id: string,
 		@Body() updateRoutineDto: UpdateRoutineDto,
-		@Query("clientId") clientId?: string,
+		@Query() queryParams: UpdateRoutineQueryDto,
 	) {
-		this.logger.log(`Updating routine with ID: ${id}`);
 		try {
 			const updatedRoutine = await this.routinesService.updateRoutine(
 				id,
 				updateRoutineDto,
-				clientId,
+				queryParams?.clientId,
 			);
 			if (!updatedRoutine) {
 				this.logger.warn(`Routine with ID: ${id} not found for update.`);
