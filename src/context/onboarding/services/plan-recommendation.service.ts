@@ -3,7 +3,6 @@ import { StepData, TrainingPreferences } from "../schemas/onboarding.schema";
 import { PLAN_REPOSITORY } from "../../plans/repositories/plans.repository";
 import {
   PlanGoal,
-  ExperienceLevel,
   PlanType,
   SexType,
 } from "../../shared/enums/plan.enum";
@@ -62,12 +61,6 @@ export class PlanRecommendationService {
       "mejorar resistencia": PlanGoal.IMPROVE_CARDIO,
       "aumentar flexibilidad": PlanGoal.INCREASE_FLEXIBILITY,
       "recuperación de lesiones": PlanGoal.INJURY_RECOVERY,
-    };
-
-    const levelMap: Record<string, ExperienceLevel> = {
-      principiante: ExperienceLevel.BEGINNER,
-      intermedio: ExperienceLevel.INTERMEDIATE,
-      avanzado: ExperienceLevel.ADVANCED,
     };
 
     // Determine preferred plan type based on training type

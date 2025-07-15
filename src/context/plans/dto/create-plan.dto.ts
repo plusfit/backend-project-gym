@@ -15,7 +15,6 @@ import {
 } from "class-validator";
 
 import {
-  ExperienceLevel,
   InjuryType,
   PlanGoal,
   PlanType,
@@ -62,15 +61,6 @@ export class CreatePlanDto {
     message: 'Injury type is required when goal is "injuryRecovery"',
   })
   injuryType?: InjuryType;
-
-  @ApiProperty({
-    description: "The experience level required for the plan",
-    example: ExperienceLevel.BEGINNER,
-    enum: ExperienceLevel,
-  })
-  @IsEnum(ExperienceLevel)
-  @IsNotEmpty()
-  experienceLevel!: ExperienceLevel;
 
   @ApiProperty({
     description: "The sex type for the plan",

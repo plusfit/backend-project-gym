@@ -2,7 +2,6 @@ import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document, Types } from "mongoose";
 
 import {
-  ExperienceLevel,
   InjuryType,
   PlanGoal,
   SexType,
@@ -19,9 +18,6 @@ export class Plan extends Document {
 
   @Prop({ required: true, enum: Object.values(PlanGoal) })
   goal!: string;
-
-  @Prop({ required: true, enum: Object.values(ExperienceLevel) })
-  experienceLevel!: string;
 
   @Prop({ required: true, enum: Object.values(SexType) })
   sexType!: string;

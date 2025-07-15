@@ -16,12 +16,6 @@ export enum PlanGoal {
   INJURY_RECOVERY = "injuryRecovery",
 }
 
-export enum ExperienceLevel {
-  BEGINNER = "beginner",
-  INTERMEDIATE = "intermediate",
-  ADVANCED = "advanced",
-}
-
 export enum Tags {
   CARDIO = "cardio",
   STRENGTH = "strength",
