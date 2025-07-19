@@ -151,7 +151,7 @@ export class PlanRecommendationService {
     let preferredType;
 
     //TODO: GUARDA CON ESTO!!
-    // const preferredType = trainingType.toLowerCase().includes("mixed") 
+    // const preferredType = trainingType.toLowerCase().includes("cardio") 
     //   ? PlanType.MIXED
     //   : PlanType.ROOM;
 
