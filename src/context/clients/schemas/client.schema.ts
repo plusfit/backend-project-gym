@@ -40,9 +40,6 @@ export class UserInfo extends Document {
 	bloodPressure?: string;
 
 	@Prop({ type: String })
-	frequencyOfPhysicalExercise?: string;
-
-	@Prop({ type: String })
 	respiratoryHistory?: string;
 
 	@Prop({ type: String })
