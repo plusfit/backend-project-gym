@@ -147,9 +147,22 @@ export class PlanRecommendationService {
 
     // Plan type evaluation
     const trainingType = step3.trainingType || "";
-    const preferredType = trainingType.toLowerCase().includes("cardio")
-      ? PlanType.CARDIO
-      : PlanType.ROOM;
+
+    let preferredType;
+
+    //TODO: GUARDA CON ESTO!!
+    // const preferredType = trainingType.toLowerCase().includes("mixed") 
+    //   ? PlanType.MIXED
+    //   : PlanType.ROOM;
+
+    if(trainingType == 'cardio')
+      preferredType = PlanType.CARDIO;
+    if(trainingType == 'room')
+      preferredType = PlanType.ROOM;
+    if (trainingType == 'mixed')
+      preferredType = PlanType.MIXED;
+
+      
     if (plan.type === preferredType) score += 4;
     else if (plan.type === PlanType.MIXED) score += 2;
 
