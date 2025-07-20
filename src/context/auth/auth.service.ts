@@ -54,11 +54,11 @@ export class AuthService {
 
 			const onboarding = await this.onboardingService.findByUserId(_doc._id);
 
-			_doc.onboardingCompleted = false;
+			_doc.isOnboardingCompleted = false;
 
 			//verifico si el onboarding esta completo
 			if (onboarding && onboarding.completed) {
-				_doc.onboardingCompleted = true;
+				_doc.isOnboardingCompleted = true;
 			}
 
 			const payload = {
@@ -258,10 +258,10 @@ export class AuthService {
 
 			// Verificamos el estado del onboarding
 			const onboarding = await this.onboardingService.findByUserId(_doc._id);
-			_doc.onboardingCompleted = false;
+			_doc.isOnboardingCompleted = false;
 
 			if (onboarding && onboarding.completed) {
-				_doc.onboardingCompleted = true;
+				_doc.isOnboardingCompleted = true;
 			}
 
 			// Si hay nombre o avatar en el DTO y el usuario no tiene esta información,
