@@ -43,8 +43,12 @@ export class PlansService {
 		return { data, total, page, limit };
 	}
 
-	findByUserId(userId: string) {
-		return this.plansRepository.findByUserId(userId);
+	async findByUserId(userId: string) {
+		const client = await this.clientsService.findOne(userId);
+		if (!client || !client.planId) {
+			return null;
+		}
+		return this.plansRepository.findOne(client.planId);
 	}
 
 	findOne(id: string) {
