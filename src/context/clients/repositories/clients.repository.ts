@@ -13,6 +13,7 @@ export interface ClientsRepository {
   updateClient(id: string, client: Client): Promise<Client | null>;
   removeClient(id: string): Promise<boolean>;
   findClientByEmail(email: string): Promise<Client | null>;
+  findClientByCI(ci: string): Promise<Client | null>;
   countClients(filters: { name?: string; type?: string }): Promise<number>;
   findClientById(id: string): Promise<Client | null>;
   assignRoutineToClient(

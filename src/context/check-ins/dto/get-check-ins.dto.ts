@@ -1,7 +1,6 @@
-import { IsOptional, IsString, IsDateString, IsMongoId, IsNumber, Min } from "class-validator";
+import { IsOptional, IsString, IsDateString, IsNumber, Min, Matches, Length } from "class-validator";
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { Types } from "mongoose";
 
 export class GetCheckInsDto {
 	@ApiPropertyOptional({
@@ -27,12 +26,14 @@ export class GetCheckInsDto {
 	limit?: number = 10;
 
 	@ApiPropertyOptional({
-		description: "ID del cliente para filtrar",
-		example: "507f1f77bcf86cd799439011",
+		description: "Cédula de identidad del cliente para filtrar (8 a 9 dígitos)",
+		example: "12345678",
 	})
 	@IsOptional()
-	@IsMongoId()
-	clientId?: Types.ObjectId;
+	@IsString()
+	@Length(8, 9, { message: "La cédula debe tener entre 8 y 9 dígitos" })
+	@Matches(/^[0-9]{8,9}$/, { message: "La cédula debe contener solo números" })
+	ci?: string;
 
 	@ApiPropertyOptional({
 		description: "Fecha de inicio para filtrar (formato ISO)",
@@ -50,11 +51,5 @@ export class GetCheckInsDto {
 	@IsDateString()
 	endDate?: string;
 
-	@ApiPropertyOptional({
-		description: "ID de la organización para filtrar",
-		example: "org_123",
-	})
-	@IsOptional()
-	@IsString()
-	organizationId?: string;
+
 }

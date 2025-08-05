@@ -32,7 +32,6 @@ export class MongoCheckInRepository implements CheckInRepository {
 			const query = this.buildFilterQuery(filters);
 			const checkIns = await this.checkInModel
 				.find(query)
-				.populate("clientId", "email userInfo.name userInfo.CI")
 				.sort({ checkInDate: -1 })
 				.skip(offset)
 				.limit(limit)
@@ -56,7 +55,6 @@ export class MongoCheckInRepository implements CheckInRepository {
 		try {
 			const checkIn = await this.checkInModel
 				.findById(id)
-				.populate("clientId", "email userInfo.name userInfo.CI")
 				.exec();
 			return checkIn ? checkIn.toObject() : null;
 		} catch (error: any) {
@@ -64,14 +62,14 @@ export class MongoCheckInRepository implements CheckInRepository {
 		}
 	}
 
-	async getCheckInsByClientId(
-		clientId: Types.ObjectId,
+	async getCheckInsByCI(
+		ci: string,
 		offset: number,
 		limit: number,
 	): Promise<CheckIn[]> {
 		try {
 			const checkIns = await this.checkInModel
-				.find({ clientId })
+				.find({ ci })
 				.sort({ checkInDate: -1 })
 				.skip(offset)
 				.limit(limit)
@@ -82,10 +80,10 @@ export class MongoCheckInRepository implements CheckInRepository {
 		}
 	}
 
-	async getLastCheckInByClientId(clientId: Types.ObjectId): Promise<CheckIn | null> {
+	async getLastCheckInByCI(ci: string): Promise<CheckIn | null> {
 		try {
 			const checkIn = await this.checkInModel
-				.findOne({ clientId })
+				.findOne({ ci })
 				.sort({ checkInDate: -1 })
 				.exec();
 			return checkIn ? checkIn.toObject() : null;
@@ -94,15 +92,15 @@ export class MongoCheckInRepository implements CheckInRepository {
 		}
 	}
 
-	async getCheckInsCountByClientId(clientId: Types.ObjectId): Promise<number> {
+	async getCheckInsCountByCI(ci: string): Promise<number> {
 		try {
-			return await this.checkInModel.countDocuments({ clientId }).exec();
+			return await this.checkInModel.countDocuments({ ci }).exec();
 		} catch (error: any) {
 			throw new Error(`Error counting client check-ins: ${error.message}`);
 		}
 	}
 
-	async getTodayCheckInByClientId(clientId: Types.ObjectId): Promise<CheckIn | null> {
+	async getTodayCheckInByCI(ci: string): Promise<CheckIn | null> {
 		try {
 			const today = new Date();
 			today.setHours(0, 0, 0, 0);
@@ -111,7 +109,7 @@ export class MongoCheckInRepository implements CheckInRepository {
 
 			const checkIn = await this.checkInModel
 				.findOne({
-					clientId,
+					ci,
 					checkInDate: {
 						$gte: today,
 						$lt: tomorrow,
@@ -129,8 +127,8 @@ export class MongoCheckInRepository implements CheckInRepository {
 	private buildFilterQuery(filters: CheckInFilters): any {
 		const query: any = {};
 
-		if (filters.clientId) {
-			query.clientId = filters.clientId;
+		if (filters.ci) {
+			query.ci = filters.ci;
 		}
 
 		if (filters.startDate || filters.endDate) {
@@ -141,10 +139,6 @@ export class MongoCheckInRepository implements CheckInRepository {
 			if (filters.endDate) {
 				query.checkInDate.$lte = filters.endDate;
 			}
-		}
-
-		if (filters.organizationId) {
-			query.organizationId = filters.organizationId;
 		}
 
 		return query;

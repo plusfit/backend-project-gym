@@ -79,6 +79,10 @@ export class MongoClientsRepository implements ClientsRepository {
     return await this.clientModel.findOne({ email }).exec();
   }
 
+  async findClientByCI(ci: string): Promise<Client | null> {
+    return await this.clientModel.findOne({ "userInfo.CI": ci }).exec();
+  }
+
   async findClientById(id: string): Promise<Client | null> {
     return await this.clientModel.findById(id).exec();
   }

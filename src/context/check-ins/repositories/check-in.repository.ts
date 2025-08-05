@@ -5,10 +5,9 @@ import { Types } from "mongoose";
 export const CHECK_IN_REPOSITORY = "CheckInRepository";
 
 export interface CheckInFilters {
-	clientId?: Types.ObjectId;
+	ci?: string;
 	startDate?: Date;
 	endDate?: Date;
-	organizationId?: string;
 }
 
 export interface CheckInRepository {
@@ -24,17 +23,17 @@ export interface CheckInRepository {
 
 	findCheckInById(id: string): Promise<CheckIn | null>;
 
-	getCheckInsByClientId(
-		clientId: Types.ObjectId,
+	getCheckInsByCI(
+		ci: string,
 		offset: number,
 		limit: number,
 	): Promise<CheckIn[]>;
 
-	getLastCheckInByClientId(clientId: Types.ObjectId): Promise<CheckIn | null>;
+	getLastCheckInByCI(ci: string): Promise<CheckIn | null>;
 
-	getCheckInsCountByClientId(clientId: Types.ObjectId): Promise<number>;
+	getCheckInsCountByCI(ci: string): Promise<number>;
 
-	getTodayCheckInByClientId(clientId: Types.ObjectId): Promise<CheckIn | null>;
+	getTodayCheckInByCI(ci: string): Promise<CheckIn | null>;
 }
 
 // Exportación por defecto para compatibilidad

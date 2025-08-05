@@ -34,21 +34,8 @@ export class CheckInsController {
 		status: 201,
 		description: "Ingreso registrado exitosamente",
 		schema: {
-			type: "object",
-			properties: {
-				checkIn: {
-					type: "object",
-					description: "Datos del ingreso creado",
-				},
-				client: {
-					type: "object",
-					description: "Datos actualizados del cliente",
-				},
-				message: {
-					type: "string",
-					example: "Ingreso registrado exitosamente",
-				},
-			},
+			type: "string",
+			example: "Bienvenido Juan Pérez",
 		},
 	})
 	@ApiResponse({
@@ -59,8 +46,9 @@ export class CheckInsController {
 		status: 404,
 		description: "Cliente no encontrado",
 	})
-	create(@Body() createCheckInDto: CreateCheckInDto) {
-		return this.checkInsService.createCheckIn(createCheckInDto);
+	async create(@Body() createCheckInDto: CreateCheckInDto) {
+		const result = await this.checkInsService.createCheckIn(createCheckInDto);
+		return result.message;
 	}
 
 	@Get()
@@ -124,15 +112,15 @@ export class CheckInsController {
 		return this.checkInsService.findOne(id);
 	}
 
-	@Get("client/:clientId")
+	@Get("client/:ci")
 	@ApiOperation({
 		summary: "Obtener ingresos de un cliente",
-		description: "Obtiene el historial de ingresos de un cliente específico",
+		description: "Obtiene el historial de ingresos de un cliente específico por su cédula",
 	})
 	@ApiParam({
-		name: "clientId",
-		description: "ID del cliente",
-		example: "507f1f77bcf86cd799439011",
+		name: "ci",
+		description: "Cédula de identidad del cliente (8 a 9 dígitos)",
+		example: "12345678",
 	})
 	@ApiQuery({
 		name: "page",
@@ -155,26 +143,26 @@ export class CheckInsController {
 		description: "Cliente no encontrado",
 	})
 	getClientCheckIns(
-		@Param("clientId") clientId: string,
+		@Param("ci") ci: string,
 		@Query("page") page?: number,
 		@Query("limit") limit?: number,
 	) {
 		return this.checkInsService.getClientCheckIns(
-			clientId,
+			ci,
 			page ? Number(page) : 1,
 			limit ? Number(limit) : 10,
 		);
 	}
 
-	@Get("client/:clientId/stats")
+	@Get("client/:ci/stats")
 	@ApiOperation({
 		summary: "Obtener estadísticas de un cliente",
-		description: "Obtiene las estadísticas de asistencia de un cliente (días totales, último ingreso, etc.)",
+		description: "Obtiene las estadísticas de asistencia de un cliente por su cédula (días totales, último ingreso, etc.)",
 	})
 	@ApiParam({
-		name: "clientId",
-		description: "ID del cliente",
-		example: "507f1f77bcf86cd799439011",
+		name: "ci",
+		description: "Cédula de identidad del cliente (8 a 9 dígitos)",
+		example: "12345678",
 	})
 	@ApiResponse({
 		status: 200,
@@ -211,7 +199,7 @@ export class CheckInsController {
 		status: 404,
 		description: "Cliente no encontrado",
 	})
-	getClientStats(@Param("clientId") clientId: string) {
-		return this.checkInsService.getClientStats(clientId);
+	getClientStats(@Param("ci") ci: string) {
+		return this.checkInsService.getClientStats(ci);
 	}
 }

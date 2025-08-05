@@ -103,6 +103,10 @@ export class ClientsService {
     return this.clientRepository.getClientById(id);
   }
 
+  findByCI(ci: string) {
+    return this.clientRepository.findClientByCI(ci);
+  }
+
   create(createClientDto: CreateClientDto) {
     return this.clientRepository.createClient(createClientDto);
   }

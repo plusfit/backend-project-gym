@@ -96,6 +96,8 @@ export class AppModule implements NestModule {
         //  { path: "auth/refreshToken", method: RequestMethod.OPTIONS },
         { path: "api", method: RequestMethod.GET },
         { path: "api/(.*)", method: RequestMethod.GET },
+        { path: "check-ins", method: RequestMethod.POST },
+        { path: "check-ins", method: RequestMethod.OPTIONS },
       )
       .forRoutes("*");
 

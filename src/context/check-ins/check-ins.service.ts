@@ -6,7 +6,7 @@ import {
 	NotFoundException,
 	BadRequestException,
 } from "@nestjs/common";
-import { Types } from "mongoose";
+
 import { CreateCheckInDto } from "@/src/context/check-ins/dto/create-check-in.dto";
 import { GetCheckInsDto } from "@/src/context/check-ins/dto/get-check-ins.dto";
 import { CheckIn } from "@/src/context/check-ins/entities/check-in.entity";
@@ -26,19 +26,17 @@ export class CheckInsService {
 	) {}
 
 	async createCheckIn(createCheckInDto: CreateCheckInDto): Promise<{
-		checkIn: CheckIn;
-		client: any;
 		message: string;
 	}> {
 		try {
 			// 1. Validar que el cliente existe y está activo
-			const client = await this.clientsService.findOne(
-				createCheckInDto.clientId.toString(),
+			const client = await this.clientsService.findByCI(
+				createCheckInDto.ci,
 			);
 
 			if (!client) {
 				throw new NotFoundException(
-					`Cliente con ID ${createCheckInDto.clientId} no encontrado`,
+					`Cliente con CI ${createCheckInDto.ci} no encontrado`,
 				);
 			}
 
@@ -49,8 +47,8 @@ export class CheckInsService {
 			}
 
 			// 2. Verificar si ya tiene un check-in hoy
-			const todayCheckIn = await this.checkInRepository.getTodayCheckInByClientId(
-				createCheckInDto.clientId,
+			const todayCheckIn = await this.checkInRepository.getTodayCheckInByCI(
+				createCheckInDto.ci,
 			);
 
 			if (todayCheckIn) {
@@ -65,7 +63,7 @@ export class CheckInsService {
 			);
 
 			// 4. Actualizar el cliente: incrementar días y actualizar último ingreso
-			const updatedClient = await this.clientsService.update(
+			await this.clientsService.update(
 				client._id.toString(),
 				{
 					totalDays: (client.totalDays || 0) + 1,
@@ -73,10 +71,10 @@ export class CheckInsService {
 				} as any,
 			);
 
+			// 5. Devolver mensaje de bienvenida con el nombre del cliente
+			const clientName = client.userInfo?.name || "Cliente";
 			return {
-				checkIn,
-				client: updatedClient,
-				message: "Ingreso registrado exitosamente",
+				message: `Bienvenido ${clientName}`,
 			};
 		} catch (error: any) {
 			if (error instanceof HttpException) {
@@ -91,13 +89,13 @@ export class CheckInsService {
 
 	async findAll(getCheckInsDto: GetCheckInsDto) {
 		try {
-			const { page = 1, limit = 10, clientId, startDate, endDate, organizationId } = getCheckInsDto;
+			const { page = 1, limit = 10, ci, startDate, endDate } = getCheckInsDto;
 			const offset = (page - 1) * limit;
 
 			const filters: CheckInFilters = {};
 
-			if (clientId) {
-				filters.clientId = clientId;
+			if (ci) {
+				filters.ci = ci;
 			}
 
 			if (startDate) {
@@ -106,10 +104,6 @@ export class CheckInsService {
 
 			if (endDate) {
 				filters.endDate = new Date(endDate);
-			}
-
-			if (organizationId) {
-				filters.organizationId = organizationId;
 			}
 
 			const [data, total] = await Promise.all([
@@ -151,27 +145,26 @@ export class CheckInsService {
 	}
 
 	async getClientCheckIns(
-		clientId: string,
+		ci: string,
 		page: number = 1,
 		limit: number = 10,
 	) {
 		try {
 			// Validar que el cliente existe
-			const client = await this.clientsService.findOne(clientId);
+			const client = await this.clientsService.findByCI(ci);
 			if (!client) {
-				throw new NotFoundException(`Cliente con ID ${clientId} no encontrado`);
+				throw new NotFoundException(`Cliente con CI ${ci} no encontrado`);
 			}
 
 			const offset = (page - 1) * limit;
-			const clientObjectId = new Types.ObjectId(clientId);
 
 			const [data, total] = await Promise.all([
-				this.checkInRepository.getCheckInsByClientId(
-					clientObjectId,
+				this.checkInRepository.getCheckInsByCI(
+					ci,
 					offset,
 					limit,
 				),
-				this.checkInRepository.getCheckInsCountByClientId(clientObjectId),
+				this.checkInRepository.getCheckInsCountByCI(ci),
 			]);
 
 			return {
@@ -184,6 +177,7 @@ export class CheckInsService {
 					id: client._id,
 					email: client.email,
 					name: client.userInfo?.name,
+					ci: client.userInfo?.CI,
 					totalDays: client.totalDays || 0,
 					lastCheckIn: client.lastCheckIn,
 				},
@@ -199,19 +193,17 @@ export class CheckInsService {
 		}
 	}
 
-	async getClientStats(clientId: string) {
+	async getClientStats(ci: string) {
 		try {
 			// Validar que el cliente existe
-			const client = await this.clientsService.findOne(clientId);
+			const client = await this.clientsService.findByCI(ci);
 			if (!client) {
-				throw new NotFoundException(`Cliente con ID ${clientId} no encontrado`);
+				throw new NotFoundException(`Cliente con CI ${ci} no encontrado`);
 			}
 
-			const clientObjectId = new Types.ObjectId(clientId);
-
 			const [lastCheckIn, totalCheckIns] = await Promise.all([
-				this.checkInRepository.getLastCheckInByClientId(clientObjectId),
-				this.checkInRepository.getCheckInsCountByClientId(clientObjectId),
+				this.checkInRepository.getLastCheckInByCI(ci),
+				this.checkInRepository.getCheckInsCountByCI(ci),
 			]);
 
 			return {
