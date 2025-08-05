@@ -77,6 +77,12 @@ export class Client extends Document {
 
 	@Prop({ default: false, type: Boolean })
 	disabled?: boolean;
+
+	@Prop({ default: 0, type: Number })
+	totalDays?: number;
+
+	@Prop({ type: Date })
+	lastCheckIn?: Date;
 }
 
 export const ClientSchema = SchemaFactory.createForClass(Client);

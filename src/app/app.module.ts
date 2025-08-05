@@ -13,6 +13,7 @@ import { HealthModule } from "../app/health/health.module" //@/app/health/health
 import { LoggerMiddleware } from "../app/middlewares/logger.middleware" //"@/app/middlewares/logger.middleware";
 import { AuthModule } from "@/src/context/auth/auth.module";
 import { AuthMiddleware } from "@/src/context/auth/middlewares/auth.middleware";
+import { CheckInsModule } from "@/src/context/check-ins/check-ins.module";
 import { ClientsModule } from "@/src/context/clients/clients.module";
 import { ExercisesModule } from "@/src/context/exercises/exercises.module";
 import { OnboardingModule } from "@/src/context/onboarding/onboarding.module";
@@ -58,6 +59,7 @@ import { CategoriesModule } from "../context/categories/categories.module";
     ProductsModule,
     PlansModule,
     ClientsModule,
+    CheckInsModule,
     ExercisesModule,
     OrganizationsModule,
     AppConfigModule,
