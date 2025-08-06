@@ -77,6 +77,15 @@ export class Client extends Document {
 
 	@Prop({ default: false, type: Boolean })
 	disabled?: boolean;
+
+	@Prop({ type: Date })
+	lastAccess?: Date; // Last successful access date
+
+	@Prop({ type: Number, default: 0 })
+	totalAccesses?: number; // Total successful accesses
+
+	@Prop({ type: Number, default: 0 })
+	consecutiveDays?: number; // Current consecutive days streak
 }
 
 export const ClientSchema = SchemaFactory.createForClass(Client);

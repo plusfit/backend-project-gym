@@ -21,6 +21,8 @@ import { PlansModule } from "@/src/context/plans/plans.module";
 import { ProductsModule } from "@/src/context/products/products.module";
 import { RoutinesModule } from "@/src/context/routines/routines.module";
 import { SchedulesModule } from "@/src/context/schedules/schedules.module";
+import { GymAccessModule } from "@/src/context/gym-access/gym-access.module";
+import { RewardsModule } from "@/src/context/rewards/rewards.module";
 
 // import { AuthMiddleware } from "../context/auth/middlewares/auth.middleware";
 import { AppConfigModule } from "../context/config/config.module";
@@ -67,6 +69,8 @@ import { CategoriesModule } from "../context/categories/categories.module";
     AppConfigModule,
     AuthModule,
     CategoriesModule,
+    GymAccessModule,
+    RewardsModule,
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       // eslint-disable-next-line @typescript-eslint/require-await
@@ -92,6 +96,7 @@ export class AppModule implements NestModule {
         //  { path: "auth/register", method: RequestMethod.OPTIONS },
         { path: "auth/refreshToken", method: RequestMethod.POST },
         //  { path: "auth/refreshToken", method: RequestMethod.OPTIONS },
+        { path: "gym-access/validate", method: RequestMethod.POST },
         { path: "api", method: RequestMethod.GET },
         { path: "api/(.*)", method: RequestMethod.GET },
       )
