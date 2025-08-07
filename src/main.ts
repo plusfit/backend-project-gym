@@ -55,6 +55,7 @@ async function bootstrap() {
         front_url,
         client_url,
         "http://localhost:4200",
+        "http://localhost:4201",
         "http://localhost:8100",
         "http://127.0.0.1:55376",
       ],

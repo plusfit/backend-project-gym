@@ -82,7 +82,7 @@ export class GymAccessService {
 				reward: earnedReward,
 			};
 
-		} catch (error) {
+		} catch (error:any) {
 			console.error("Error validating access:", error);
 			
 			// Create failed access record for tracking
@@ -96,7 +96,10 @@ export class GymAccessService {
 				clientName: "Desconocido",
 			});
 
-			return this.createDenialResponse("Error interno del sistema");
+			let errorMsg = "Error al validar el acceso";
+			errorMsg = error ? error.message : errorMsg;
+
+			return this.createDenialResponse(errorMsg);
 		}
 	}
 
@@ -234,11 +237,7 @@ export class GymAccessService {
 	}
 
 	private createDenialResponse(reason: string): AccessValidationResponse {
-		return {
-			success: false,
-			message: "Acceso denegado",
-			reason,
-		};
+		throw new Error(`${reason}`);
 	}
 
 	private formatDateAsAccessDay(date: Date): string {

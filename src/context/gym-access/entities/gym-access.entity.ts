@@ -14,7 +14,7 @@ export class GymAccess {
 
 export class AccessValidationResponse {
 	success!: boolean;
-	message!: string;
+	message?: string;
 	client?: {
 		name: string;
 		photo?: string;
@@ -27,7 +27,10 @@ export class AccessValidationResponse {
 		description: string;
 		requiredDays: number;
 	};
-	reason?: string;
+	data?: {
+		message: string;
+		reason: string;
+	};
 }
 
 export class AccessStats {
