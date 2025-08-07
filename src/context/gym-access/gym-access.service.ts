@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
 
@@ -30,11 +30,11 @@ export class GymAccessService {
 			// 1. Find client by cedula
 			const client = await this.findClientByCedula(cedula);
 			if (!client) {
-				return this.createDenialResponse("Cliente no encontrado en el sistema");
+				return this.createDenialResponse("Cliente no encontrado en el sistema", null);
 			}
 
 			if (client.disabled) {
-				return this.createDenialResponse("Cliente deshabilitado");
+				return this.createDenialResponse("Cliente deshabilitado", client);
 			}
 
 			// 2. Check if already accessed today
@@ -43,17 +43,17 @@ export class GymAccessService {
 			
 			const existingAccess = await this.gymAccessRepository.findByCedulaAndDay(cedula, accessDay);
 			if (existingAccess && existingAccess.successful) {
-				return this.createDenialResponse("Cliente ya registró acceso el día de hoy");
+				return this.createDenialResponse("Cliente ya registró acceso el día de hoy", client);
 			}
 
 			// 3. Check gym operating hours
 			const isWithinOperatingHours = await this.checkOperatingHours();
 			if (!isWithinOperatingHours) {
-				return this.createDenialResponse("Fuera del horario de atención del gimnasio");
+				return this.createDenialResponse("Fuera del horario de atención del gimnasio", client);
 			}
 
 			// 4. Create successful access record
-			const accessRecord = await this.gymAccessRepository.create({
+			await this.gymAccessRepository.create({
 				clientId: (client._id as Types.ObjectId).toString(),
 				cedula,
 				accessDate: today,
@@ -70,7 +70,6 @@ export class GymAccessService {
 			const earnedReward = await this.checkForRewards(updatedClient.consecutiveDays || 0);
 
 			return {
-				success: true,
 				message: "Acceso autorizado - ¡Bienvenido al gimnasio!",
 				client: {
 					name: client.userInfo?.name || "Cliente",
@@ -99,7 +98,7 @@ export class GymAccessService {
 			let errorMsg = "Error al validar el acceso";
 			errorMsg = error ? error.message : errorMsg;
 
-			return this.createDenialResponse(errorMsg);
+			return this.createDenialResponse(errorMsg, null);
 		}
 	}
 
@@ -236,8 +235,17 @@ export class GymAccessService {
 		}
 	}
 
-	private createDenialResponse(reason: string): AccessValidationResponse {
-		throw new Error(`${reason}`);
+	private createDenialResponse(reason: string, client: ClientDocument | null): AccessValidationResponse {
+		throw new Error(JSON.stringify({
+			message: reason,
+			client: client ? {
+				name: client.userInfo?.name || "Cliente",
+				photo: client.userInfo?.avatarUrl,
+				plan: client.userInfo?.plan,
+				consecutiveDays: client.consecutiveDays || 0,
+				totalAccesses: client.totalAccesses || 0,
+			} : undefined,
+		}));
 	}
 
 	private formatDateAsAccessDay(date: Date): string {

@@ -1,0 +1,16 @@
+node_modules/
+dist/
+coverage/
+.nyc_output/
+*.log
+.env
+.env.*
+*.config.js
+*.config.mjs
+.eslintrc.js
+commitlint.config.ts
+generate-test-token.js
+test-endpoint.js
+scripts/
+tests/performance/
+vitest.config.*.ts
