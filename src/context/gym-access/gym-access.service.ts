@@ -236,7 +236,7 @@ export class GymAccessService {
 	}
 
 	private createDenialResponse(reason: string, client: ClientDocument | null): AccessValidationResponse {
-		throw new Error(JSON.stringify({
+		const errorData = {
 			message: reason,
 			client: client ? {
 				name: client.userInfo?.name || "Cliente",
@@ -245,7 +245,11 @@ export class GymAccessService {
 				consecutiveDays: client.consecutiveDays || 0,
 				totalAccesses: client.totalAccesses || 0,
 			} : undefined,
-		}));
+		};
+		
+		const error = new Error(reason);
+		(error as any).data = errorData;
+		throw error;
 	}
 
 	private formatDateAsAccessDay(date: Date): string {
