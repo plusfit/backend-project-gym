@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 
 // Usar el mismo secreto que está en el .env
-const JWT_ACCESS_SECRET = 'test-jwt-access-secret-key-for-development';
+const JWT_ACCESS_SECRET = 'a02BJR9nGK+L0jRjModg+tWNn6BlW8K8dpo2ry5Ltx20BYJnfNWJUYzmeObyyiYUiqIq4YhTO9Rwq8lqsDKMTA==';
 
 // Crear un payload de prueba para un usuario admin
 const payload = {

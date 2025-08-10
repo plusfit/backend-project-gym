@@ -32,6 +32,9 @@ export class AccessStats {
 	totalAccessesToday!: number;
 	totalAccessesThisMonth!: number;
 	averageAccessesPerDay!: number;
+	totalAccesses!: number;
+	successfulAccesses!: number;
+	failedAccesses!: number;
 	mostActiveClients!: {
 		clientName: string;
 		cedula: string;

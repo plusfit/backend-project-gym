@@ -1,4 +1,5 @@
 import { GymAccess, AccessStats } from "../entities/gym-access.entity";
+import { GetGymAccessHistoryDto } from "../dto/get-gym-access-history.dto";
 
 export interface GymAccessFilters {
 	cedula?: string;
@@ -18,6 +19,6 @@ export abstract class GymAccessRepository {
 		gymAccesses: GymAccess[];
 		total: number;
 	}>;
-	abstract getStats(): Promise<AccessStats>;
+	abstract getStats(filters?: GetGymAccessHistoryDto): Promise<AccessStats>;
 	abstract getAccessesByDateRange(startDate: Date, endDate: Date): Promise<GymAccess[]>;
 }

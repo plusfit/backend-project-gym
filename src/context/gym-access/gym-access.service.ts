@@ -132,8 +132,8 @@ export class GymAccessService {
 		};
 	}
 
-	async getStats(): Promise<AccessStats> {
-		return this.gymAccessRepository.getStats();
+	async getStats(filters?: GetGymAccessHistoryDto): Promise<AccessStats> {
+		return this.gymAccessRepository.getStats(filters);
 	}
 
 	async getClientHistory(cedula: string, page: number = 1, limit: number = 10): Promise<{

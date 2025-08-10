@@ -5,6 +5,7 @@ import { Model, Types } from "mongoose";
 import { GymAccess, AccessStats } from "../entities/gym-access.entity";
 import { GymAccessDocument } from "../schemas/gym-access.schema";
 import { GymAccessRepository, GymAccessFilters } from "./gym-access.repository";
+import { GetGymAccessHistoryDto } from "../dto/get-gym-access-history.dto";
 
 @Injectable()
 export class MongoGymAccessRepository extends GymAccessRepository {
@@ -71,27 +72,45 @@ export class MongoGymAccessRepository extends GymAccessRepository {
 		};
 	}
 
-	async getStats(): Promise<AccessStats> {
+	async getStats(filters?: GetGymAccessHistoryDto): Promise<AccessStats> {
 		const today = new Date();
 		const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 		const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-		const startOfPreviousMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
 
-		const [todayAccesses, monthAccesses, previousMonthAccesses, topClients] = await Promise.all([
+		// Build base query from filters
+		const baseQuery = this.buildStatsFilterQuery(filters);
+
+		// If no filters are applied, show today's stats by default
+		const shouldShowTodayByDefault = !filters || (!filters.cedula && !filters.clientName && filters.successful === undefined);
+		const defaultQuery = shouldShowTodayByDefault ? { ...baseQuery, accessDay: this.formatDateAsAccessDay(today) } : baseQuery;
+
+		const todayAccessDay = this.formatDateAsAccessDay(today);
+		const currentMonth = today.getMonth() + 1; // getMonth() returns 0-11
+		const currentYear = today.getFullYear();
+		
+		// Create regex pattern for this month's accessDay (YYYY-MM-*)
+		const monthPattern = `^${currentYear}-${currentMonth.toString().padStart(2, '0')}`;
+
+		const [totalAccesses, successfulAccesses, failedAccesses, todayAccesses, monthAccesses, topClients] = await Promise.all([
+			// Total accesses with filters
+			this.gymAccessModel.countDocuments(defaultQuery).exec(),
+			// Successful accesses with filters
+			this.gymAccessModel.countDocuments({ ...defaultQuery, successful: true }).exec(),
+			// Failed accesses with filters
+			this.gymAccessModel.countDocuments({ ...defaultQuery, successful: false }).exec(),
+			// Today's accesses (always show for reference)
 			this.gymAccessModel.countDocuments({
-				accessDate: { $gte: startOfDay },
+				accessDay: todayAccessDay,
 				successful: true,
 			}).exec(),
+			// This month's accesses (always show for reference)
 			this.gymAccessModel.countDocuments({
-				accessDate: { $gte: startOfMonth },
+				accessDay: { $regex: monthPattern },
 				successful: true,
 			}).exec(),
-			this.gymAccessModel.countDocuments({
-				accessDate: { $gte: startOfPreviousMonth, $lt: startOfMonth },
-				successful: true,
-			}).exec(),
+			// Top clients with filters applied
 			this.gymAccessModel.aggregate([
-				{ $match: { successful: true } },
+				{ $match: { ...baseQuery, successful: true } },
 				{ $group: { _id: "$cedula", count: { $sum: 1 }, clientName: { $first: "$clientName" } } },
 				{ $sort: { count: -1 } },
 				{ $limit: 5 },
@@ -99,13 +118,15 @@ export class MongoGymAccessRepository extends GymAccessRepository {
 			]).exec(),
 		]);
 
-		const daysInCurrentMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
 		const averageAccessesPerDay = monthAccesses / today.getDate();
 
 		return {
 			totalAccessesToday: todayAccesses,
 			totalAccessesThisMonth: monthAccesses,
 			averageAccessesPerDay: Math.round(averageAccessesPerDay * 100) / 100,
+			totalAccesses,
+			successfulAccesses,
+			failedAccesses,
 			mostActiveClients: topClients,
 		};
 	}
@@ -142,6 +163,28 @@ export class MongoGymAccessRepository extends GymAccessRepository {
 		}
 
 		return query;
+	}
+
+	private buildStatsFilterQuery(filters?: GetGymAccessHistoryDto): any {
+		const query: any = {};
+
+		if (filters?.cedula) {
+			query.cedula = { $regex: filters.cedula, $options: "i" };
+		}
+
+		if (filters?.clientName) {
+			query.clientName = { $regex: filters.clientName, $options: "i" };
+		}
+
+		if (filters?.successful !== undefined) {
+			query.successful = filters.successful;
+		}
+
+		return query;
+	}
+
+	private formatDateAsAccessDay(date: Date): string {
+		return date.toISOString().split('T')[0];
 	}
 
 	private mapToEntity(document: GymAccessDocument): GymAccess {

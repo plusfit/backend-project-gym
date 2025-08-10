@@ -41,10 +41,10 @@ export class GymAccessController {
 	@Get("stats")
 	@Roles(Role.Admin)
 	@UseGuards(RolesGuard)
-	@ApiOperation({ summary: "Get gym access statistics" })
-	@ApiResponse({ status: 200, description: "Daily and monthly access statistics" })
-	async getStats() {
-		return this.gymAccessService.getStats();
+	@ApiOperation({ summary: "Get gym access statistics with optional filters" })
+	@ApiResponse({ status: 200, description: "Access statistics (filtered or daily by default)" })
+	async getStats(@Query() queryDto: GetGymAccessHistoryDto) {
+		return this.gymAccessService.getStats(queryDto);
 	}
 
 	@Get("client/:cedula/history")
