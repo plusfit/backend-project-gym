@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException, Logger } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
 
@@ -12,8 +12,48 @@ import { AccessValidationResponse, GymAccess, AccessStats } from "./entities/gym
 import { ValidateAccessDto } from "./dto/validate-access.dto";
 import { GetGymAccessHistoryDto } from "./dto/get-gym-access-history.dto";
 
+// Error messages enum for consistency
+enum AccessErrorMessages {
+	CLIENT_NOT_FOUND = "Cliente no encontrado en el sistema",
+	CLIENT_DISABLED = "Cliente deshabilitado",
+	ALREADY_ACCESSED = "Cliente ya registró acceso el día de hoy",
+	OUTSIDE_OPERATING_HOURS = "Fuera del horario de atención del gimnasio",
+	SYSTEM_ERROR = "Error interno del sistema",
+	ACCESS_VALIDATION_ERROR = "Error al validar el acceso",
+	CLIENT_NOT_FOUND_FOR_HISTORY = "Cliente no encontrado",
+	NO_SCHEDULES_AVAILABLE = "No hay horarios disponibles para la hora actual o siguiente",
+	NOT_ENROLLED_SCHEDULE = "No estas anotado para el horario",
+	ACCESS_WINDOW_TOO_EARLY = "El ingreso a tu horario se habilitará 10 minutos antes de la hora",
+	SCHEDULE_EXPIRED = "Tu horario ya no está disponible",
+	SUCCESSFUL_ACCESS = "Acceso autorizado - ¡Bienvenido al gimnasio!",
+	SCHEDULE_ACCESS_AUTHORIZED = "Acceso autorizado por horario",
+	SCHEDULE_ACCESS_ERROR = "No se pudo verificar el horario",
+	SCHEDULE_ACCESS_WINDOW_OK = "Acceso autorizado dentro del horario"
+}
+
+// Pagination result interface for reusability
+interface PaginationResult<T> {
+	data: T[];
+	pagination: {
+		currentPage: number;
+		totalPages: number;
+		totalCount: number;
+		limit: number;
+	};
+}
+
+// Client data interface for mapping
+interface ClientData {
+	name: string;
+	photo?: string;
+	plan?: string;
+	consecutiveDays: number;
+	totalAccesses: number;
+}
+
 @Injectable()
 export class GymAccessService {
+	private readonly logger = new Logger(GymAccessService.name);
 	constructor(
 		private readonly gymAccessRepository: GymAccessRepository,
 		private readonly clientsService: ClientsService,
@@ -25,92 +65,35 @@ export class GymAccessService {
 
 	async validateAccess(validateAccessDto: ValidateAccessDto): Promise<AccessValidationResponse> {
 		const { cedula } = validateAccessDto;
+		const today = new Date();
+		const accessDay = this.formatDateAsAccessDay(today);
 
 		try {
-			// 1. Find client by cedula
-			const client = await this.findClientByCedula(cedula);
-			if (!client) {
-				const today = new Date();
-				const accessDay = this.formatDateAsAccessDay(today);
-				return this.createDenialResponseWithRecord("Cliente no encontrado en el sistema", null, cedula, today, accessDay, false);
+			// 1. Validate client existence and status
+			const clientValidation = await this.validateClient(cedula, today, accessDay);
+			if (!clientValidation.isValid) {
+				return clientValidation.response!;
 			}
-
-			if (client.disabled) {
-				const today = new Date();
-				const accessDay = this.formatDateAsAccessDay(today);
-				return this.createDenialResponseWithRecord("Cliente deshabilitado", client, cedula, today, accessDay, false);
-			}
+			const client = clientValidation.client!;
 
 			// 2. Check if already accessed today
-			const today = new Date();
-			const accessDay = this.formatDateAsAccessDay(today);
-			
-			const existingAccess = await this.gymAccessRepository.findByCedulaAndDay(cedula, accessDay);
-			
-			if (existingAccess && existingAccess.successful) {
-				return this.createDenialResponseWithRecord("Cliente ya registró acceso el día de hoy", client, cedula, today, accessDay, false);
+			const accessCheck = await this.checkDailyAccess(cedula, accessDay, client, today);
+			if (!accessCheck.allowed) {
+				return accessCheck.response!;
 			}
 
-			// 3. Check gym operating hours
-			const isWithinOperatingHours = await this.checkOperatingHours();
-			if (!isWithinOperatingHours) {
-				return this.createDenialResponseWithRecord("Fuera del horario de atención del gimnasio", client, cedula, today, accessDay, false);
+			// 3. Validate operating hours and schedule access
+			const operationalValidation = await this.validateOperationalAccess(client, cedula, today, accessDay);
+			if (!operationalValidation.allowed) {
+				return operationalValidation.response!;
 			}
 
-			// 4. Check schedule access (client must be enrolled in current/next hour schedule)
-			const scheduleAccess = await this.checkScheduleAccess((client._id as Types.ObjectId).toString());
-			if (!scheduleAccess.allowed) {
-				return this.createDenialResponseWithRecord(scheduleAccess.message, client, cedula, today, accessDay, false);
-			}
+			// 4. Process successful access
+			return await this.processSuccessfulAccess(client, cedula, today, accessDay);
 
-			// 5. Create successful access record
-			await this.gymAccessRepository.create({
-				clientId: (client._id as Types.ObjectId).toString(),
-				cedula,
-				accessDate: today,
-				accessDay,
-				successful: true,
-				clientName: client.userInfo?.name || "Cliente",
-				clientPhoto: client.userInfo?.avatarUrl,
-			});
-
-			// 6. Update client statistics
-			const updatedClient = await this.updateClientStats((client._id as Types.ObjectId).toString(), today);
-
-			// 7. Check for rewards
-			const earnedReward = await this.checkForRewards(updatedClient.consecutiveDays || 0);
-
-			return {
-				message: "Acceso autorizado - ¡Bienvenido al gimnasio!",
-				authorize: true,
-				client: {
-					name: client.userInfo?.name || "Cliente",
-					photo: client.userInfo?.avatarUrl,
-					plan: client.userInfo?.plan,
-					consecutiveDays: updatedClient.consecutiveDays || 0,
-					totalAccesses: updatedClient.totalAccesses || 0,
-				},
-				reward: earnedReward,
-			};
-
-		} catch (error:any) {
-			console.error("Error validating access:", error);
-			
-			// Create failed access record for tracking
-			await this.gymAccessRepository.create({
-				clientId: "",
-				cedula,
-				accessDate: new Date(),
-				accessDay: this.formatDateAsAccessDay(new Date()),
-				successful: false,
-				reason: "Error interno del sistema",
-				clientName: "Desconocido",
-			});
-
-			let errorMsg = "Error al validar el acceso";
-			errorMsg = error ? error.message : errorMsg;
-
-			return this.createDenialResponse(errorMsg, null);
+		} catch (error: any) {
+			this.logger.error('Error validating access', { error: error.message, cedula });
+			return await this.handleValidationError(error, cedula, today, accessDay);
 		}
 	}
 
@@ -135,12 +118,7 @@ export class GymAccessService {
 
 		return {
 			history: result.gymAccesses,
-			pagination: {
-				currentPage: page,
-				totalPages: Math.ceil(result.total / limit),
-				totalCount: result.total,
-				limit,
-			},
+			pagination: this.createPaginationInfo(page, limit, result.total),
 		};
 	}
 
@@ -159,25 +137,181 @@ export class GymAccessService {
 	}> {
 		const client = await this.findClientByCedula(cedula);
 		if (!client) {
-			throw new NotFoundException("Cliente no encontrado");
+			throw new NotFoundException(AccessErrorMessages.CLIENT_NOT_FOUND_FOR_HISTORY);
 		}
 
 		const result = await this.gymAccessRepository.findByClientId((client._id as Types.ObjectId).toString(), page, limit);
 
 		return {
 			history: result.gymAccesses,
-			pagination: {
-				currentPage: page,
-				totalPages: Math.ceil(result.total / limit),
-				totalCount: result.total,
-				limit,
-			},
+			pagination: this.createPaginationInfo(page, limit, result.total),
 		};
 	}
+
+	// ========== CLIENT VALIDATION METHODS ==========
 
 	private async findClientByCedula(cedula: string): Promise<ClientDocument | null> {
 		return this.clientModel.findOne({ "userInfo.CI": cedula }).exec();
 	}
+
+	private async validateClient(cedula: string, today: Date, accessDay: string): Promise<{
+		isValid: boolean;
+		client?: ClientDocument;
+		response?: AccessValidationResponse;
+	}> {
+		const client = await this.findClientByCedula(cedula);
+		if (!client) {
+			return {
+				isValid: false,
+				response: await this.createDenialResponseWithRecord(
+					AccessErrorMessages.CLIENT_NOT_FOUND,
+					null,
+					cedula,
+					today,
+					accessDay
+				)
+			};
+		}
+
+		if (client.disabled) {
+			return {
+				isValid: false,
+				response: await this.createDenialResponseWithRecord(
+					AccessErrorMessages.CLIENT_DISABLED,
+					client,
+					cedula,
+					today,
+					accessDay
+				)
+			};
+		}
+
+		return { isValid: true, client };
+	}
+
+	private async checkDailyAccess(cedula: string, accessDay: string, client: ClientDocument, today: Date): Promise<{
+		allowed: boolean;
+		response?: AccessValidationResponse;
+	}> {
+		const existingAccess = await this.gymAccessRepository.findByCedulaAndDay(cedula, accessDay);
+		
+		if (existingAccess && existingAccess.successful) {
+			return {
+				allowed: false,
+				response: await this.createDenialResponseWithRecord(
+					AccessErrorMessages.ALREADY_ACCESSED,
+					client,
+					cedula,
+					today,
+					accessDay
+				)
+			};
+		}
+
+		return { allowed: true };
+	}
+
+	private async validateOperationalAccess(client: ClientDocument, cedula: string, today: Date, accessDay: string): Promise<{
+		allowed: boolean;
+		response?: AccessValidationResponse;
+	}> {
+		// Check gym operating hours
+		const isWithinOperatingHours = await this.checkOperatingHours();
+		if (!isWithinOperatingHours) {
+			return {
+				allowed: false,
+				response: await this.createDenialResponseWithRecord(
+					AccessErrorMessages.OUTSIDE_OPERATING_HOURS,
+					client,
+					cedula,
+					today,
+					accessDay
+				)
+			};
+		}
+
+		// Check schedule access
+		const scheduleAccess = await this.checkScheduleAccess((client._id as Types.ObjectId).toString());
+		if (!scheduleAccess.allowed) {
+			return {
+				allowed: false,
+				response: await this.createDenialResponseWithRecord(
+					scheduleAccess.message,
+					client,
+					cedula,
+					today,
+					accessDay
+				)
+			};
+		}
+
+		return { allowed: true };
+	}
+
+	private async processSuccessfulAccess(client: ClientDocument, cedula: string, today: Date, accessDay: string): Promise<AccessValidationResponse> {
+		// Create successful access record
+		await this.gymAccessRepository.create({
+			clientId: (client._id as Types.ObjectId).toString(),
+			cedula,
+			accessDate: today,
+			accessDay,
+			successful: true,
+			clientName: client.userInfo?.name || "Cliente",
+			clientPhoto: client.userInfo?.avatarUrl,
+		});
+
+		// Update client statistics
+		const updatedClient = await this.updateClientStats((client._id as Types.ObjectId).toString(), today);
+
+		// Check for rewards
+		const earnedReward = await this.checkForRewards(updatedClient.consecutiveDays || 0);
+
+		return {
+			message: AccessErrorMessages.SUCCESSFUL_ACCESS,
+			authorize: true,
+			client: this.mapClientData(updatedClient),
+			reward: earnedReward,
+		};
+	}
+
+	private async handleValidationError(error: any, cedula: string, today: Date, accessDay: string): Promise<AccessValidationResponse> {
+		// Create failed access record for tracking
+		await this.gymAccessRepository.create({
+			clientId: "",
+			cedula,
+			accessDate: today,
+			accessDay,
+			successful: false,
+			reason: AccessErrorMessages.SYSTEM_ERROR,
+			clientName: "Desconocido",
+		});
+
+		const errorMsg = error?.message || AccessErrorMessages.ACCESS_VALIDATION_ERROR;
+		return this.createDenialResponse(errorMsg, null);
+	}
+
+	// ========== UTILITY METHODS ==========
+
+	private mapClientData(client: ClientDocument): ClientData {
+		return {
+			name: client.userInfo?.name || "Cliente",
+			photo: client.userInfo?.avatarUrl,
+			plan: client.userInfo?.plan,
+			consecutiveDays: client.consecutiveDays || 0,
+			totalAccesses: client.totalAccesses || 0,
+		};
+	}
+
+	private createPaginationInfo(page: number, limit: number, total: number) {
+		return {
+			currentPage: page,
+			totalPages: Math.ceil(total / limit),
+			totalCount: total,
+			limit,
+		};
+	}
+
+	// ========== SCHEDULE AND OPERATING HOURS METHODS ==========
 
 	private async checkOperatingHours(): Promise<boolean> {
 		try {
@@ -199,7 +333,7 @@ export class GymAccessService {
 
 			return this.isTimeInRange(currentTime, todaySchedule.startTime, todaySchedule.endTime);
 		} catch (error) {
-			console.error("Error checking operating hours:", error);
+			this.logger.error('Error checking operating hours', { error });
 			return true; // Default to allow access if can't check hours
 		}
 	}
@@ -233,6 +367,8 @@ export class GymAccessService {
 		return client.save();
 	}
 
+	// ========== REWARDS AND STATISTICS METHODS ==========
+
 	private async checkForRewards(consecutiveDays: number): Promise<{ name: string; description: string; requiredDays: number } | undefined> {
 		try {
 			const reward = await this.rewardsService.findByRequiredDays(consecutiveDays);
@@ -247,10 +383,12 @@ export class GymAccessService {
 
 			return undefined;
 		} catch (error) {
-			console.error("Error checking for rewards:", error);
+			this.logger.error('Error checking for rewards', { error, consecutiveDays });
 			return undefined;
 		}
 	}
+
+	// ========== RESPONSE CREATION METHODS ==========
 
 	private async createDenialResponseWithRecord(
 		reason: string, 
@@ -275,33 +413,19 @@ export class GymAccessService {
 		return {
 			message: reason,
 			authorize,
-			client: client ? {
-				name: client.userInfo?.name || "Cliente",
-				photo: client.userInfo?.avatarUrl,
-				plan: client.userInfo?.plan,
-				consecutiveDays: client.consecutiveDays || 0,
-				totalAccesses: client.totalAccesses || 0,
-			} : undefined,
+			client: client ? this.mapClientData(client) : undefined,
 		};
 	}
 
 	private createDenialResponse(reason: string, client: ClientDocument | null): AccessValidationResponse {
-		const errorData = {
+		return {
 			message: reason,
 			authorize: false,
-			client: client ? {
-				name: client.userInfo?.name || "Cliente",
-				photo: client.userInfo?.avatarUrl,
-				plan: client.userInfo?.plan,
-				consecutiveDays: client.consecutiveDays || 0,
-				totalAccesses: client.totalAccesses || 0,
-			} : undefined,
+			client: client ? this.mapClientData(client) : undefined,
 		};
-		
-		const error = new Error(reason);
-		(error as any).data = errorData;
-		throw error;
 	}
+
+	// ========== TIME AND DATE UTILITY METHODS ==========
 
 	private formatDateAsAccessDay(date: Date): string {
 		return date.toISOString().split('T')[0]; // Returns "YYYY-MM-DD"
@@ -330,11 +454,10 @@ export class GymAccessService {
 			// Get schedules for current and next hour
 			const relevantSchedules = await this.getRelevantSchedules(currentDay, currentTime);
 
-			
 			if (relevantSchedules.length === 0) {
 				return {
 					allowed: false,
-					message: "No hay horarios disponibles para la hora actual o siguiente"
+					message: AccessErrorMessages.NO_SCHEDULES_AVAILABLE
 				};
 			}
 			
@@ -348,7 +471,7 @@ export class GymAccessService {
 				const nearestSchedule = relevantSchedules[0];
 				return {
 					allowed: false,
-					message: `No estas anotado para el horario: ${nearestSchedule.startTime} - ${nearestSchedule.endTime}`
+					message: `${AccessErrorMessages.NOT_ENROLLED_SCHEDULE}: ${nearestSchedule.startTime} - ${nearestSchedule.endTime}`
 				};
 			}
 			
@@ -364,14 +487,14 @@ export class GymAccessService {
 			
 			return {
 				allowed: true,
-				message: "Acceso autorizado por horario"
+				message: AccessErrorMessages.SCHEDULE_ACCESS_AUTHORIZED
 			};
 			
 		} catch (error) {
-			console.error("Error checking schedule access:", error);
+			this.logger.error('Error checking schedule access', { error, clientId });
 			return {
 				allowed: true, // Default to allow access if can't check schedules
-				message: "No se pudo verificar el horario"
+				message: AccessErrorMessages.SCHEDULE_ACCESS_ERROR
 			};
 		}
 	}
@@ -394,7 +517,6 @@ export class GymAccessService {
 			
 			const [currentHour] = currentTime.split(':').map(Number);
 			const nextHour = currentHour + 1;
-			
 
 			// Filter schedules that start in current hour or next hour
 			return todaySchedules.filter((schedule: any) => {
@@ -403,7 +525,7 @@ export class GymAccessService {
 			});
 			
 		} catch (error) {
-			console.error("Error getting relevant schedules:", error);
+			this.logger.error('Error getting relevant schedules', { error, currentDay, currentTime });
 			return [];
 		}
 	}
@@ -433,7 +555,7 @@ export class GymAccessService {
 		if (currentMinutes < earlyAccessMinutes) {
 			return {
 				allowed: false,
-				message: "El ingreso a tu horario se habilitará 10 minutos antes de la hora"
+				message: AccessErrorMessages.ACCESS_WINDOW_TOO_EARLY
 			};
 		}
 
@@ -441,7 +563,7 @@ export class GymAccessService {
 		if (currentMinutes >= earlyAccessMinutes && currentMinutes <= lateAccessMinutes) {
 			return {
 				allowed: true,
-				message: "Acceso autorizado dentro del horario"
+				message: AccessErrorMessages.SCHEDULE_ACCESS_WINDOW_OK
 			};
 		}
 
