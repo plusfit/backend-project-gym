@@ -199,8 +199,13 @@ export class GymAccessService {
 			const currentDay = this.getCurrentDayName();
 			const currentTime = this.getCurrentTimeString();
 			
-			const schedules = await this.schedulesService.getAllSchedules(); // Get all schedules
+			const schedules = await this.schedulesService.getAllSchedules();
 			
+			// Handle case where schedules is undefined or not an array
+			if (!schedules || !Array.isArray(schedules)) {
+				return true; // Default to allow access if can't check schedules
+			}
+
 			const todaySchedule = schedules.find((schedule: any) => schedule.day === currentDay);
 			
 			if (!todaySchedule) {
@@ -318,7 +323,7 @@ export class GymAccessService {
 	}
 
 	private getCurrentDayName(): string {
-		const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+		const days = ["Domingo", "Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado"];
 		return days[new Date().getDay()];
 	}
 
@@ -395,12 +400,15 @@ export class GymAccessService {
 	private async getRelevantSchedules(currentDay: string, currentTime: string): Promise<any[]> {
 		try {
 			const schedules = await this.schedulesService.getAllSchedules();
+			
+			if (!schedules || !Array.isArray(schedules)) {
+				return [];
+			}
+			
 			const todaySchedules = schedules.filter((schedule: any) => schedule.day === currentDay);
 			
 			const [currentHour] = currentTime.split(':').map(Number);
 			const nextHour = currentHour + 1;
-			console.log("currentHour", currentHour);
-			console.log("nextHour", nextHour);
 			
 
 			// Filter schedules that start in current hour or next hour
