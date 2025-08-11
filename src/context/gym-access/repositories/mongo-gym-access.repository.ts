@@ -169,7 +169,23 @@ export class MongoGymAccessRepository extends GymAccessRepository {
 			query.successful = filters.successful;
 		}
 
-		if (filters?.accessDay) {
+		// Date filtering - prioritize date range over specific accessDay
+		if (filters?.startDate || filters?.endDate) {
+			const dateQuery: any = {};
+			
+			if (filters.startDate) {
+				// accessDay >= startDate (string comparison works for YYYY-MM-DD format)
+				dateQuery.$gte = filters.startDate;
+			}
+			
+			if (filters.endDate) {
+				// accessDay <= endDate (string comparison works for YYYY-MM-DD format)
+				dateQuery.$lte = filters.endDate;
+			}
+			
+			query.accessDay = dateQuery;
+		} else if (filters?.accessDay) {
+			// Only apply specific accessDay if no date range is specified
 			query.accessDay = filters.accessDay;
 		}
 
@@ -189,6 +205,23 @@ export class MongoGymAccessRepository extends GymAccessRepository {
 
 		if (filters?.successful !== undefined) {
 			query.successful = filters.successful;
+		}
+
+		// Date range filtering for stats using accessDay field (YYYY-MM-DD format)
+		if (filters?.startDate || filters?.endDate) {
+			const dateQuery: any = {};
+			
+			if (filters.startDate) {
+				// accessDay >= startDate (string comparison works for YYYY-MM-DD format)
+				dateQuery.$gte = filters.startDate;
+			}
+			
+			if (filters.endDate) {
+				// accessDay <= endDate (string comparison works for YYYY-MM-DD format)
+				dateQuery.$lte = filters.endDate;
+			}
+			
+			query.accessDay = dateQuery;
 		}
 
 		return query;

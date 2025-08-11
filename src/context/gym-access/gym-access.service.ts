@@ -106,12 +106,14 @@ export class GymAccessService {
 			limit: number;
 		};
 	}> {
-		const { page = 1, limit = 10, cedula, clientName, successful } = queryDto;
+		const { page = 1, limit = 10, cedula, clientName, successful, startDate, endDate } = queryDto;
 		
 		const filters: GymAccessFilters = {
 			cedula,
 			clientName,
 			successful,
+			startDate,
+			endDate,
 		};
 
 		const result = await this.gymAccessRepository.findAll(page, limit, filters);

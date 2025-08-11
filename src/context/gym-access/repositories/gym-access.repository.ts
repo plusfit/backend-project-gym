@@ -6,6 +6,8 @@ export interface GymAccessFilters {
 	clientName?: string;
 	successful?: boolean;
 	accessDay?: string;
+	startDate?: string;
+	endDate?: string;
 }
 
 export abstract class GymAccessRepository {
