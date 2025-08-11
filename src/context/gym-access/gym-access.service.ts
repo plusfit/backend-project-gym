@@ -45,26 +45,11 @@ export class GymAccessService {
 			const today = new Date();
 			const accessDay = this.formatDateAsAccessDay(today);
 			
-			console.log('=== DEBUG ACCESS VALIDATION ===');
-			console.log('Cliente:', client.userInfo?.name || 'Sin nombre');
-			console.log('Cedula:', cedula);
-			console.log('Today:', today.toISOString());
-			console.log('Access Day:', accessDay);
-			
 			const existingAccess = await this.gymAccessRepository.findByCedulaAndDay(cedula, accessDay);
-			console.log('Existing access found:', existingAccess ? {
-				id: existingAccess.id,
-				successful: existingAccess.successful,
-				accessDay: existingAccess.accessDay,
-				accessDate: existingAccess.accessDate
-			} : 'null');
 			
 			if (existingAccess && existingAccess.successful) {
-				console.log('ACCESS DENIED - Client already accessed today');
 				return this.createDenialResponseWithRecord("Cliente ya registró acceso el día de hoy", client, cedula, today, accessDay, false);
 			}
-			
-			console.log('ACCESS CHECK PASSED - No existing successful access found');
 
 			// 3. Check gym operating hours
 			const isWithinOperatingHours = await this.checkOperatingHours();
@@ -344,7 +329,7 @@ export class GymAccessService {
 			
 			// Get schedules for current and next hour
 			const relevantSchedules = await this.getRelevantSchedules(currentDay, currentTime);
-			console.log("relevantSchedules", relevantSchedules);
+
 			
 			if (relevantSchedules.length === 0) {
 				return {
