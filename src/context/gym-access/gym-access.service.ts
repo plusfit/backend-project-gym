@@ -201,7 +201,7 @@ export class GymAccessService {
 			
 			const schedules = await this.schedulesService.getAllSchedules(); // Get all schedules
 			
-			const todaySchedule = schedules.schedules.find((schedule: any) => schedule.day === currentDay);
+			const todaySchedule = schedules.find((schedule: any) => schedule.day === currentDay);
 			
 			if (!todaySchedule) {
 				return false; // No schedule for today
@@ -350,7 +350,7 @@ export class GymAccessService {
 			
 			// Check if client is enrolled in any relevant schedule
 			const clientSchedule = relevantSchedules.find(schedule => 
-				schedule.clients.some(client => client.toString() === clientId)
+				schedule.clients.some((client: any) => client.toString() === clientId)
 			);
 			
 			if (!clientSchedule) {
@@ -395,7 +395,7 @@ export class GymAccessService {
 	private async getRelevantSchedules(currentDay: string, currentTime: string): Promise<any[]> {
 		try {
 			const schedules = await this.schedulesService.getAllSchedules();
-			const todaySchedules = schedules.schedules.filter((schedule: any) => schedule.day === currentDay);
+			const todaySchedules = schedules.filter((schedule: any) => schedule.day === currentDay);
 			
 			const [currentHour] = currentTime.split(':').map(Number);
 			const nextHour = currentHour + 1;
