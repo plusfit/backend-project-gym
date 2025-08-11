@@ -195,13 +195,18 @@ export class GymAccessService {
 		allowed: boolean;
 		response?: AccessValidationResponse;
 	}> {
-		const existingAccess = await this.gymAccessRepository.findByCedulaAndDay(cedula, accessDay);
+		// Get current hour to check for schedule-specific access
+		const currentHour = new Date().getHours().toString();
+		const nextHour = (new Date().getHours() + 1).toString();
 		
-		if (existingAccess && existingAccess.successful) {
+		// Check if client already accessed today in current or next hour schedule
+		const hasAccessedInCurrentSchedule = await this.checkScheduleSpecificAccess(cedula, accessDay, currentHour, nextHour);
+		
+		if (hasAccessedInCurrentSchedule) {
 			return {
 				allowed: false,
 				response: await this.createDenialResponseWithRecord(
-					AccessErrorMessages.ALREADY_ACCESSED,
+					`Ya registraste acceso hoy en el horario ${currentHour}:00 - ${parseInt(currentHour) + 1}:00`,
 					client,
 					cedula,
 					today,
@@ -213,17 +218,90 @@ export class GymAccessService {
 		return { allowed: true };
 	}
 
+	/**
+	 * Check if client already accessed today in the specific schedule time
+	 * @param cedula - Client's cedula
+	 * @param accessDay - Access day in YYYY-MM-DD format
+	 * @param currentHour - Current hour as string
+	 * @param nextHour - Next hour as string
+	 * @returns boolean indicating if client already accessed in this schedule
+	 */
+	private async checkScheduleSpecificAccess(cedula: string, accessDay: string, currentHour: string, nextHour: string): Promise<boolean> {
+		try {
+			// First get all accesses for today
+			const existingAccess = await this.gymAccessRepository.findByCedulaAndDay(cedula, accessDay);
+			
+			if (!existingAccess || !existingAccess.successful) {
+				return false;
+			}
+			
+			// Check if the existing access was in current or next hour schedule
+			if (existingAccess.scheduleStartTime) {
+				const accessStartTime = this.normalizeTimeFormat(existingAccess.scheduleStartTime).split(':')[0];
+				
+				// Check if the previous access was in current or next hour
+				if (accessStartTime === currentHour || accessStartTime === nextHour) {
+					return true;
+				}
+			}
+			
+			return false;
+		} catch (error) {
+			this.logger.error('Error checking schedule specific access', { error, cedula, accessDay });
+			return false;
+		}
+	}
+
+	/**
+	 * Get current schedule information for the client
+	 * @param clientId - Client's ObjectId as string
+	 * @returns Schedule information or null
+	 */
+	private async getCurrentScheduleInfo(clientId: string): Promise<{ startTime: string; endTime: string; scheduleId: string } | null> {
+		try {
+			const currentDay = this.getCurrentDayName();
+			const currentTime = this.getCurrentTimeString();
+			
+			// Get schedules for current and next hour
+			const relevantSchedules = await this.getRelevantSchedules(currentDay, currentTime);
+			
+			if (relevantSchedules.length === 0) {
+				return null;
+			}
+			
+			// Find the schedule where the client is enrolled
+			const clientSchedule = relevantSchedules.find(schedule => 
+				schedule.clients.some((client: any) => client.toString() === clientId)
+			);
+			
+			if (!clientSchedule) {
+				return null;
+			}
+			
+			return {
+				startTime: clientSchedule.startTime,
+				endTime: clientSchedule.endTime,
+				scheduleId: clientSchedule._id.toString()
+			};
+			
+		} catch (error) {
+			this.logger.error('Error getting current schedule info', { error, clientId });
+			return null;
+		}
+	}
+
 	private async validateOperationalAccess(client: ClientDocument, cedula: string, today: Date, accessDay: string): Promise<{
 		allowed: boolean;
 		response?: AccessValidationResponse;
 	}> {
-		// Check gym operating hours
-		const isWithinOperatingHours = await this.checkOperatingHours();
+		// Check gym operating hours and client enrollment
+		const clientId = (client._id as Types.ObjectId).toString();
+		const isWithinOperatingHours = await this.checkOperatingHours(clientId);
 		if (!isWithinOperatingHours) {
 			return {
 				allowed: false,
 				response: await this.createDenialResponseWithRecord(
-					AccessErrorMessages.OUTSIDE_OPERATING_HOURS,
+					AccessErrorMessages.NO_SCHEDULES_AVAILABLE,
 					client,
 					cedula,
 					today,
@@ -232,8 +310,8 @@ export class GymAccessService {
 			};
 		}
 
-		// Check schedule access
-		const scheduleAccess = await this.checkScheduleAccess((client._id as Types.ObjectId).toString());
+		// Check schedule access window (10 minutes before)
+		const scheduleAccess = await this.checkScheduleAccess(clientId);
 		if (!scheduleAccess.allowed) {
 			return {
 				allowed: false,
@@ -251,6 +329,9 @@ export class GymAccessService {
 	}
 
 	private async processSuccessfulAccess(client: ClientDocument, cedula: string, today: Date, accessDay: string): Promise<AccessValidationResponse> {
+		// Get current schedule information
+		const currentScheduleInfo = await this.getCurrentScheduleInfo((client._id as Types.ObjectId).toString());
+		
 		// Create successful access record
 		await this.gymAccessRepository.create({
 			clientId: (client._id as Types.ObjectId).toString(),
@@ -260,6 +341,9 @@ export class GymAccessService {
 			successful: true,
 			clientName: client.userInfo?.name || "Cliente",
 			clientPhoto: client.userInfo?.avatarUrl,
+			scheduleStartTime: currentScheduleInfo?.startTime,
+			scheduleEndTime: currentScheduleInfo?.endTime,
+			scheduleId: currentScheduleInfo?.scheduleId,
 		});
 
 		// Update client statistics
@@ -315,28 +399,44 @@ export class GymAccessService {
 
 	// ========== SCHEDULE AND OPERATING HOURS METHODS ==========
 
-	private async checkOperatingHours(): Promise<boolean> {
+	private async checkOperatingHours(clientId?: string): Promise<boolean> {
 		try {
 			const currentDay = this.getCurrentDayName();
-			const currentTime = this.getCurrentTimeString();
-			
 			const schedules = await this.schedulesService.getAllSchedules();
 			
-			// Handle case where schedules is undefined or not an array
 			if (!schedules || !Array.isArray(schedules)) {
-				return true; // Default to allow access if can't check schedules
+				return true;
 			}
 
-			const todaySchedule = schedules.find((schedule: any) => schedule.day === currentDay);
+			const todaySchedules = schedules.filter((schedule: any) => schedule.day === currentDay);
 			
-			if (!todaySchedule) {
-				return false; // No schedule for today
+			if (!todaySchedules || todaySchedules.length === 0) {
+				return false;
 			}
 
-			return this.isTimeInRange(currentTime, todaySchedule.startTime, todaySchedule.endTime);
+			const currentHour = new Date().getHours();
+			const nextHour = currentHour + 1;
+			
+			const relevantSchedules = todaySchedules.filter((schedule: any) => {
+				const scheduleStartHour = parseInt(schedule.startTime);
+				return scheduleStartHour === currentHour || scheduleStartHour === nextHour;
+			});
+			
+			if (!relevantSchedules || relevantSchedules.length === 0) {
+				return false;
+			}
+			
+			if (clientId) {
+				const isClientEnrolled = relevantSchedules.some((schedule: any) => 
+					schedule.clients && schedule.clients.includes(clientId)
+				);
+				return isClientEnrolled;
+			}
+			
+			return relevantSchedules.length > 0;
 		} catch (error) {
 			this.logger.error('Error checking operating hours', { error });
-			return true; // Default to allow access if can't check hours
+			return true;
 		}
 	}
 
@@ -444,6 +544,28 @@ export class GymAccessService {
 	}
 
 	/**
+	 * Normalize time format to HH:MM
+	 * Converts "6" to "06:00", "19" to "19:00", keeps "19:30" as "19:30"
+	 */
+	private normalizeTimeFormat(time: string): string {
+		if (!time) return time;
+		
+		// If already in HH:MM format, return as is
+		if (time.includes(':')) {
+			return time;
+		}
+		
+		// If it's just a number (hour), add :00 for minutes
+		const hour = parseInt(time, 10);
+		if (!isNaN(hour) && hour >= 0 && hour <= 23) {
+			return `${hour.toString().padStart(2, '0')}:00`;
+		}
+		
+		// Return original if can't normalize
+		return time;
+	}
+
+	/**
 	 * Check if client has access to current or next hour schedule
 	 * @param clientId - Client's ObjectId as string
 	 * @returns Object with allowed status and message
@@ -540,9 +662,32 @@ export class GymAccessService {
 	 * @returns Object with allowed status and message
 	 */
 	private calculateAccessWindow(startTime: string, endTime: string, currentTime: string): { allowed: boolean; message: string } {
-		const [currentHour, currentMinute] = currentTime.split(':').map(Number);
-		const [startHour, startMinute] = startTime.split(':').map(Number);
-		const [endHour, endMinute] = endTime.split(':').map(Number);
+		// Validate input parameters
+		if (!startTime || !endTime || !currentTime) {
+			this.logger.error('Invalid time parameters', { startTime, endTime, currentTime });
+			return {
+				allowed: false,
+				message: AccessErrorMessages.SCHEDULE_ACCESS_ERROR
+			};
+		}
+
+		// Normalize time formats - handle both "HH:MM" and "H" formats
+		const normalizedStartTime = this.normalizeTimeFormat(startTime);
+		const normalizedEndTime = this.normalizeTimeFormat(endTime);
+		const normalizedCurrentTime = this.normalizeTimeFormat(currentTime);
+
+		const [currentHour, currentMinute] = normalizedCurrentTime.split(':').map(Number);
+		const [startHour, startMinute] = normalizedStartTime.split(':').map(Number);
+		const [endHour, endMinute] = normalizedEndTime.split(':').map(Number);
+
+		// Validate that all time components are valid numbers
+		if (isNaN(currentHour) || isNaN(currentMinute) || isNaN(startHour) || isNaN(startMinute) || isNaN(endHour) || isNaN(endMinute)) {
+			this.logger.error('Invalid time format', { startTime, endTime, currentTime, normalizedStartTime, normalizedEndTime, normalizedCurrentTime });
+			return {
+				allowed: false,
+				message: AccessErrorMessages.SCHEDULE_ACCESS_ERROR
+			};
+		}
 
 		const currentMinutes = currentHour * 60 + currentMinute;
 		const startMinutes = startHour * 60 + startMinute;
@@ -577,9 +722,26 @@ export class GymAccessService {
 	}
 
 	private isTimeInRange(currentTime: string, startTime: string, endTime: string): boolean {
-		const [currentHour, currentMinute] = currentTime.split(':').map(Number);
-		const [startHour, startMinute] = startTime.split(':').map(Number);
-		const [endHour, endMinute] = endTime.split(':').map(Number);
+		// Validate input parameters
+		if (!currentTime || !startTime || !endTime) {
+			this.logger.error('Invalid time parameters in isTimeInRange', { currentTime, startTime, endTime });
+			return false;
+		}
+
+		// Normalize time formats - handle both "HH:MM" and "H" formats
+		const normalizedCurrentTime = this.normalizeTimeFormat(currentTime);
+		const normalizedStartTime = this.normalizeTimeFormat(startTime);
+		const normalizedEndTime = this.normalizeTimeFormat(endTime);
+
+		const [currentHour, currentMinute] = normalizedCurrentTime.split(':').map(Number);
+		const [startHour, startMinute] = normalizedStartTime.split(':').map(Number);
+		const [endHour, endMinute] = normalizedEndTime.split(':').map(Number);
+
+		// Validate that all time components are valid numbers
+		if (isNaN(currentHour) || isNaN(currentMinute) || isNaN(startHour) || isNaN(startMinute) || isNaN(endHour) || isNaN(endMinute)) {
+			this.logger.error('Invalid time format in isTimeInRange', { currentTime, startTime, endTime, normalizedCurrentTime, normalizedStartTime, normalizedEndTime });
+			return false;
+		}
 
 		const currentMinutes = currentHour * 60 + currentMinute;
 		const startMinutes = startHour * 60 + startMinute;

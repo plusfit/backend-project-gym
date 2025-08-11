@@ -15,6 +15,15 @@ export class GymAccess extends Document {
 	@Prop({ type: String, required: true })
 	accessDay!: string; // "YYYY-MM-DD" format for same-day validation
 
+	@Prop({ type: String })
+	scheduleStartTime?: string; // Schedule start time (e.g., "19" for 7 PM)
+
+	@Prop({ type: String })
+	scheduleEndTime?: string; // Schedule end time (e.g., "20" for 8 PM)
+
+	@Prop({ type: Types.ObjectId, ref: "Schedule" })
+	scheduleId?: Types.ObjectId; // Reference to the specific schedule
+
 	@Prop({ type: Boolean, required: true, default: true })
 	successful!: boolean;
 

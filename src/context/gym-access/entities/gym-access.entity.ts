@@ -4,6 +4,9 @@ export class GymAccess {
 	cedula!: string;
 	accessDate!: Date;
 	accessDay!: string;
+	scheduleStartTime?: string;
+	scheduleEndTime?: string;
+	scheduleId?: string;
 	successful!: boolean;
 	reason?: string;
 	clientName!: string;
