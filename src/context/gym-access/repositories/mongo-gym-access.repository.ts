@@ -45,9 +45,20 @@ export class MongoGymAccessRepository extends GymAccessRepository {
 	}
 
 	async findByCedulaAndDay(cedula: string, accessDay: string): Promise<GymAccess | null> {
+		console.log('=== REPOSITORY findByCedulaAndDay ===');
+		console.log('Query:', { cedula, accessDay });
+		
 		const gymAccess = await this.gymAccessModel
 			.findOne({ cedula, accessDay })
 			.exec();
+		
+		console.log('Database result:', gymAccess ? {
+			id: gymAccess._id,
+			cedula: gymAccess.cedula,
+			accessDay: gymAccess.accessDay,
+			successful: gymAccess.successful,
+			clientName: gymAccess.clientName
+		} : 'null');
 		
 		return gymAccess ? this.mapToEntity(gymAccess) : null;
 	}

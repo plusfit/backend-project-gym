@@ -30,26 +30,46 @@ export class GymAccessService {
 			// 1. Find client by cedula
 			const client = await this.findClientByCedula(cedula);
 			if (!client) {
-				return this.createDenialResponse("Cliente no encontrado en el sistema", null);
+				const today = new Date();
+				const accessDay = this.formatDateAsAccessDay(today);
+				return this.createDenialResponseWithRecord("Cliente no encontrado en el sistema", null, cedula, today, accessDay, false);
 			}
 
 			if (client.disabled) {
-				return this.createDenialResponse("Cliente deshabilitado", client);
+				const today = new Date();
+				const accessDay = this.formatDateAsAccessDay(today);
+				return this.createDenialResponseWithRecord("Cliente deshabilitado", client, cedula, today, accessDay, false);
 			}
 
 			// 2. Check if already accessed today
 			const today = new Date();
 			const accessDay = this.formatDateAsAccessDay(today);
 			
+			console.log('=== DEBUG ACCESS VALIDATION ===');
+			console.log('Cliente:', client.userInfo?.name || 'Sin nombre');
+			console.log('Cedula:', cedula);
+			console.log('Today:', today.toISOString());
+			console.log('Access Day:', accessDay);
+			
 			const existingAccess = await this.gymAccessRepository.findByCedulaAndDay(cedula, accessDay);
+			console.log('Existing access found:', existingAccess ? {
+				id: existingAccess.id,
+				successful: existingAccess.successful,
+				accessDay: existingAccess.accessDay,
+				accessDate: existingAccess.accessDate
+			} : 'null');
+			
 			if (existingAccess && existingAccess.successful) {
-				return this.createDenialResponse("Cliente ya registró acceso el día de hoy", client);
+				console.log('ACCESS DENIED - Client already accessed today');
+				return this.createDenialResponseWithRecord("Cliente ya registró acceso el día de hoy", client, cedula, today, accessDay, false);
 			}
+			
+			console.log('ACCESS CHECK PASSED - No existing successful access found');
 
 			// 3. Check gym operating hours
 			const isWithinOperatingHours = await this.checkOperatingHours();
 			if (!isWithinOperatingHours) {
-				return this.createDenialResponse("Fuera del horario de atención del gimnasio", client);
+				return this.createDenialResponseWithRecord("Fuera del horario de atención del gimnasio", client, cedula, today, accessDay, false);
 			}
 
 			// 4. Create successful access record
@@ -71,6 +91,7 @@ export class GymAccessService {
 
 			return {
 				message: "Acceso autorizado - ¡Bienvenido al gimnasio!",
+				authorize: true,
 				client: {
 					name: client.userInfo?.name || "Cliente",
 					photo: client.userInfo?.avatarUrl,
@@ -235,9 +256,43 @@ export class GymAccessService {
 		}
 	}
 
+	private async createDenialResponseWithRecord(
+		reason: string, 
+		client: ClientDocument | null, 
+		cedula: string, 
+		accessDate: Date, 
+		accessDay: string,
+		authorize: boolean = false
+	): Promise<AccessValidationResponse> {
+		// Create failed access record for tracking
+		await this.gymAccessRepository.create({
+			clientId: client ? (client._id as Types.ObjectId).toString() : "",
+			cedula,
+			accessDate,
+			accessDay,
+			successful: false,
+			reason,
+			clientName: client?.userInfo?.name || "Cliente no encontrado",
+			clientPhoto: client?.userInfo?.avatarUrl,
+		});
+
+		return {
+			message: reason,
+			authorize,
+			client: client ? {
+				name: client.userInfo?.name || "Cliente",
+				photo: client.userInfo?.avatarUrl,
+				plan: client.userInfo?.plan,
+				consecutiveDays: client.consecutiveDays || 0,
+				totalAccesses: client.totalAccesses || 0,
+			} : undefined,
+		};
+	}
+
 	private createDenialResponse(reason: string, client: ClientDocument | null): AccessValidationResponse {
 		const errorData = {
 			message: reason,
+			authorize: false,
 			client: client ? {
 				name: client.userInfo?.name || "Cliente",
 				photo: client.userInfo?.avatarUrl,

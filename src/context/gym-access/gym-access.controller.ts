@@ -26,7 +26,18 @@ export class GymAccessController {
 	@ApiOperation({ summary: "Validate client access to gym" })
 	@ApiResponse({ status: 200, description: "Access validation result" })
 	async validateAccess(@Body() validateAccessDto: ValidateAccessDto) {
-		return this.gymAccessService.validateAccess(validateAccessDto);
+		try {
+			return await this.gymAccessService.validateAccess(validateAccessDto);
+		} catch (error: any) {
+			// Handle legacy error format if still thrown
+			if (error.data) {
+				return error.data;
+			}
+			return {
+				message: error.message || "Error al validar el acceso",
+				client: undefined,
+			};
+		}
 	}
 
 	@Get("history")

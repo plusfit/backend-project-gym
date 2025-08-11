@@ -14,6 +14,7 @@ export class GymAccess {
 
 export class AccessValidationResponse {
 	message?: string;
+	authorize!: boolean;
 	client?: {
 		name: string;
 		photo?: string;
