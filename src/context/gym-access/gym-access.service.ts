@@ -72,7 +72,13 @@ export class GymAccessService {
 				return this.createDenialResponseWithRecord("Fuera del horario de atención del gimnasio", client, cedula, today, accessDay, false);
 			}
 
-			// 4. Create successful access record
+			// 4. Check schedule access (client must be enrolled in current/next hour schedule)
+			const scheduleAccess = await this.checkScheduleAccess((client._id as Types.ObjectId).toString());
+			if (!scheduleAccess.allowed) {
+				return this.createDenialResponseWithRecord(scheduleAccess.message, client, cedula, today, accessDay, false);
+			}
+
+			// 5. Create successful access record
 			await this.gymAccessRepository.create({
 				clientId: (client._id as Types.ObjectId).toString(),
 				cedula,
@@ -83,10 +89,10 @@ export class GymAccessService {
 				clientPhoto: client.userInfo?.avatarUrl,
 			});
 
-			// 5. Update client statistics
+			// 6. Update client statistics
 			const updatedClient = await this.updateClientStats((client._id as Types.ObjectId).toString(), today);
 
-			// 6. Check for rewards
+			// 7. Check for rewards
 			const earnedReward = await this.checkForRewards(updatedClient.consecutiveDays || 0);
 
 			return {
@@ -319,6 +325,138 @@ export class GymAccessService {
 	private getCurrentTimeString(): string {
 		const now = new Date();
 		return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+	}
+
+	/**
+	 * Check if client has access to current or next hour schedule
+	 * @param clientId - Client's ObjectId as string
+	 * @returns Object with allowed status and message
+	 */
+	private async checkScheduleAccess(clientId: string): Promise<{ allowed: boolean; message: string }> {
+		try {
+			const currentDay = this.getCurrentDayName();
+			const currentTime = this.getCurrentTimeString();
+			
+			// Get schedules for current and next hour
+			const relevantSchedules = await this.getRelevantSchedules(currentDay, currentTime);
+			console.log("relevantSchedules", relevantSchedules);
+			
+			if (relevantSchedules.length === 0) {
+				return {
+					allowed: false,
+					message: "No hay horarios disponibles para la hora actual o siguiente"
+				};
+			}
+			
+			// Check if client is enrolled in any relevant schedule
+			const clientSchedule = relevantSchedules.find(schedule => 
+				schedule.clients.some(client => client.toString() === clientId)
+			);
+			
+			if (!clientSchedule) {
+				// Find the most relevant schedule to show in error message
+				const nearestSchedule = relevantSchedules[0];
+				return {
+					allowed: false,
+					message: `No estas anotado para el horario: ${nearestSchedule.startTime} - ${nearestSchedule.endTime}`
+				};
+			}
+			
+			// Check if client is within allowed time window
+			const accessWindow = this.calculateAccessWindow(clientSchedule.startTime, clientSchedule.endTime, currentTime);
+			
+			if (!accessWindow.allowed) {
+				return {
+					allowed: false,
+					message: accessWindow.message
+				};
+			}
+			
+			return {
+				allowed: true,
+				message: "Acceso autorizado por horario"
+			};
+			
+		} catch (error) {
+			console.error("Error checking schedule access:", error);
+			return {
+				allowed: true, // Default to allow access if can't check schedules
+				message: "No se pudo verificar el horario"
+			};
+		}
+	}
+
+	/**
+	 * Get schedules for current hour and next hour
+	 * @param currentDay - Current day name
+	 * @param currentTime - Current time in HH:MM format
+	 * @returns Array of relevant schedules
+	 */
+	private async getRelevantSchedules(currentDay: string, currentTime: string): Promise<any[]> {
+		try {
+			const schedules = await this.schedulesService.getAllSchedules();
+			const todaySchedules = schedules.schedules.filter((schedule: any) => schedule.day === currentDay);
+			
+			const [currentHour] = currentTime.split(':').map(Number);
+			const nextHour = currentHour + 1;
+			console.log("currentHour", currentHour);
+			console.log("nextHour", nextHour);
+			
+
+			// Filter schedules that start in current hour or next hour
+			return todaySchedules.filter((schedule: any) => {
+				const [scheduleHour] = schedule.startTime.split(':').map(Number);
+				return scheduleHour === currentHour || scheduleHour === nextHour;
+			});
+			
+		} catch (error) {
+			console.error("Error getting relevant schedules:", error);
+			return [];
+		}
+	}
+
+	/**
+	 * Calculate if current time is within allowed access window
+	 * @param startTime - Schedule start time
+	 * @param endTime - Schedule end time
+	 * @param currentTime - Current time
+	 * @returns Object with allowed status and message
+	 */
+	private calculateAccessWindow(startTime: string, endTime: string, currentTime: string): { allowed: boolean; message: string } {
+		const [currentHour, currentMinute] = currentTime.split(':').map(Number);
+		const [startHour, startMinute] = startTime.split(':').map(Number);
+		const [endHour, endMinute] = endTime.split(':').map(Number);
+
+		const currentMinutes = currentHour * 60 + currentMinute;
+		const startMinutes = startHour * 60 + startMinute;
+		const endMinutes = endHour * 60 + endMinute;
+
+		// Allow access 10 minutes before start time
+		const earlyAccessMinutes = startMinutes - 10;
+		// Allow access up to 30 minutes after start time
+		const lateAccessMinutes = startMinutes + 30;
+
+		// Check if too early (more than 10 minutes before)
+		if (currentMinutes < earlyAccessMinutes) {
+			return {
+				allowed: false,
+				message: "El ingreso a tu horario se habilitará 10 minutos antes de la hora"
+			};
+		}
+
+		// Check if within allowed window (10 minutes before to 30 minutes after start)
+		if (currentMinutes >= earlyAccessMinutes && currentMinutes <= lateAccessMinutes) {
+			return {
+				allowed: true,
+				message: "Acceso autorizado dentro del horario"
+			};
+		}
+
+		// If past the allowed window
+		return {
+			allowed: false,
+			message: `Tu horario ${startTime} - ${endTime} ya no está disponible`
+		};
 	}
 
 	private isTimeInRange(currentTime: string, startTime: string, endTime: string): boolean {
