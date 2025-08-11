@@ -721,32 +721,5 @@ export class GymAccessService {
 		};
 	}
 
-	private isTimeInRange(currentTime: string, startTime: string, endTime: string): boolean {
-		// Validate input parameters
-		if (!currentTime || !startTime || !endTime) {
-			this.logger.error('Invalid time parameters in isTimeInRange', { currentTime, startTime, endTime });
-			return false;
-		}
 
-		// Normalize time formats - handle both "HH:MM" and "H" formats
-		const normalizedCurrentTime = this.normalizeTimeFormat(currentTime);
-		const normalizedStartTime = this.normalizeTimeFormat(startTime);
-		const normalizedEndTime = this.normalizeTimeFormat(endTime);
-
-		const [currentHour, currentMinute] = normalizedCurrentTime.split(':').map(Number);
-		const [startHour, startMinute] = normalizedStartTime.split(':').map(Number);
-		const [endHour, endMinute] = normalizedEndTime.split(':').map(Number);
-
-		// Validate that all time components are valid numbers
-		if (isNaN(currentHour) || isNaN(currentMinute) || isNaN(startHour) || isNaN(startMinute) || isNaN(endHour) || isNaN(endMinute)) {
-			this.logger.error('Invalid time format in isTimeInRange', { currentTime, startTime, endTime, normalizedCurrentTime, normalizedStartTime, normalizedEndTime });
-			return false;
-		}
-
-		const currentMinutes = currentHour * 60 + currentMinute;
-		const startMinutes = startHour * 60 + startMinute;
-		const endMinutes = endHour * 60 + endMinute;
-
-		return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
-	}
 }
