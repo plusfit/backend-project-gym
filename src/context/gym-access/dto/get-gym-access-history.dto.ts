@@ -24,7 +24,18 @@ export class GetGymAccessHistoryDto {
 	clientName?: string;
 
 	@IsOptional()
-	@Transform(({ value }) => value === "true")
+	@Transform(({ value }) => {
+		// Handle string values from query parameters
+		if (typeof value === 'string') {
+			return value === "true";
+		}
+		// Handle boolean values that might come from other sources
+		if (typeof value === 'boolean') {
+			return value;
+		}
+		// Default to undefined for other types
+		return undefined;
+	})
 	successful?: boolean;
 
 	@IsOptional()
