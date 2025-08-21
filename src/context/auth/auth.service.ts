@@ -2,17 +2,18 @@
 import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios from "axios";
-import jwt from "jsonwebtoken";
-import { OAuth2Client } from "google-auth-library";
 import firebaseAdmin from "firebase-admin";
+import { OAuth2Client } from "google-auth-library";
+import jwt from "jsonwebtoken";
 
+import { GoogleAuthDto } from "@/src/context/auth/dto/google-auth.dto";
+import { InternalRegisterAuthDto } from "@/src/context/auth/dto/internal-register-auth.dto";
 import { LoginAuthDto } from "@/src/context/auth/dto/login-auth.dto";
 import { RefreshTokenAuthDto } from "@/src/context/auth/dto/refresh-token-auth-dto";
 import { RegisterAuthDto } from "@/src/context/auth/dto/register-auth.dto";
-import { InternalRegisterAuthDto } from "@/src/context/auth/dto/internal-register-auth.dto";
 import { AUTH_REPOSITORY } from "@/src/context/auth/repositories/auth.repository";
+
 import { OnboardingService } from "../onboarding/onboarding.service";
-import { GoogleAuthDto } from "@/src/context/auth/dto/google-auth.dto";
 
 @Injectable()
 export class AuthService {

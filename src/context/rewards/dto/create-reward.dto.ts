@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsNumber, Min, IsBoolean, IsOptional } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsNumber, IsOptional,IsString, Min } from "class-validator";
 
 export class CreateRewardDto {
 	@IsString()

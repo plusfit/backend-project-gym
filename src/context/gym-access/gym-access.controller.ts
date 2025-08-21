@@ -7,15 +7,15 @@ import {
 	Query,
 	UseGuards,
 } from "@nestjs/common";
-import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { ApiOperation, ApiResponse,ApiTags } from "@nestjs/swagger";
 
 import { Role } from "@/src/context/shared/constants/roles.constant";
 import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
 import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
 
-import { GymAccessService } from "./gym-access.service";
-import { ValidateAccessDto } from "./dto/validate-access.dto";
 import { GetGymAccessHistoryDto } from "./dto/get-gym-access-history.dto";
+import { ValidateAccessDto } from "./dto/validate-access.dto";
+import { GymAccessService } from "./gym-access.service";
 
 @ApiTags("gym-access")
 @Controller("gym-access")

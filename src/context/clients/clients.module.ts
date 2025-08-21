@@ -10,8 +10,9 @@ import {
   ClientSchema,
 } from "@/src/context/clients/schemas/client.schema";
 import { PlansModule } from "@/src/context/plans/plans.module";
-import { SchedulesService } from "../schedules/schedules.service";
+
 import { SchedulesModule } from "../schedules/schedules.module";
+import { SchedulesService } from "../schedules/schedules.service";
 
 @Module({
   imports: [

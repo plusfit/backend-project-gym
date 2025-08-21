@@ -1,17 +1,18 @@
 import {
 	BadRequestException,
+	forwardRef,
+	Inject,
 	Injectable,
 	NotFoundException,
-	Inject,
-	forwardRef,
 } from "@nestjs/common";
+
+import { ClientsService } from "../clients/clients.service";
+import { Plan } from "../plans/schemas/plan.schema";
 import { CreateOnboardingDto } from "./dto/create-onboarding.dto";
 import { UpdateOnboardingDto } from "./dto/update-onboarding.dto";
 import { OnboardingRepository } from "./repositories/onboarding.repository";
 import { Onboarding, StepData } from "./schemas/onboarding.schema";
 import { PlanRecommendationService } from "./services/plan-recommendation.service";
-import { ClientsService } from "../clients/clients.service";
-import { Plan } from "../plans/schemas/plan.schema";
 
 @Injectable()
 export class OnboardingService {

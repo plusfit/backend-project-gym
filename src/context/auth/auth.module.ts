@@ -5,9 +5,9 @@ import { MongoAuthRepository } from "@/src/context/auth/repositories/mongo-auth.
 import { ClientsModule } from "@/src/context/clients/clients.module";
 import { RecaptchaService } from "@/src/context/shared/services/recaptcha.service";
 
+import { OnboardingModule } from "../onboarding/onboarding.module";
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
-import { OnboardingModule } from "../onboarding/onboarding.module";
 
 @Module({
 	controllers: [AuthController],

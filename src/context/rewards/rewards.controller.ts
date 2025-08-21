@@ -9,16 +9,16 @@ import {
 	Query,
 	UseGuards,
 } from "@nestjs/common";
-import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { ApiOperation, ApiResponse,ApiTags } from "@nestjs/swagger";
 
 import { Role } from "@/src/context/shared/constants/roles.constant";
 import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
 import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
 
-import { RewardsService } from "./rewards.service";
 import { CreateRewardDto } from "./dto/create-reward.dto";
-import { UpdateRewardDto } from "./dto/update-reward.dto";
 import { GetRewardsDto } from "./dto/get-rewards.dto";
+import { UpdateRewardDto } from "./dto/update-reward.dto";
+import { RewardsService } from "./rewards.service";
 
 @ApiTags("rewards")
 @Controller("rewards")

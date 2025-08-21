@@ -3,9 +3,9 @@
  * Run with: npm run seed:rewards
  */
 
-import { MongooseModule } from "@nestjs/mongoose";
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
+import { MongooseModule } from "@nestjs/mongoose";
 
 import { RewardsModule } from "../src/context/rewards/rewards.module";
 import { RewardsService } from "../src/context/rewards/rewards.service";

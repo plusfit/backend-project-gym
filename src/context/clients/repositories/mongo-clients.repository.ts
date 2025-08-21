@@ -3,6 +3,7 @@ import { Model } from "mongoose";
 
 import { ClientsRepository } from "@/src/context/clients/repositories/clients.repository";
 import { Client } from "@/src/context/clients/schemas/client.schema";
+
 import { Plan } from "../../plans/schemas/plan.schema";
 
 export class MongoClientsRepository implements ClientsRepository {

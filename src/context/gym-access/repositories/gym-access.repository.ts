@@ -1,5 +1,5 @@
-import { GymAccess, AccessStats } from "../entities/gym-access.entity";
 import { GetGymAccessHistoryDto } from "../dto/get-gym-access-history.dto";
+import { AccessStats,GymAccess } from "../entities/gym-access.entity";
 
 export interface GymAccessFilters {
 	cedula?: string;

@@ -4,7 +4,7 @@ import { Model, Types } from "mongoose";
 
 import { Reward } from "../entities/reward.entity";
 import { RewardDocument } from "../schemas/reward.schema";
-import { RewardRepository, RewardFilters } from "./reward.repository";
+import { RewardFilters,RewardRepository } from "./reward.repository";
 
 @Injectable()
 export class MongoRewardRepository extends RewardRepository {

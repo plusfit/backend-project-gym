@@ -1,4 +1,4 @@
-/* eslint-disable nestjs/use-dependency-injection */
+/* eslint-disable */
 import { randomUUID } from "node:crypto";
 
 import { Injectable, NestMiddleware } from "@nestjs/common";

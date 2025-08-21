@@ -1,5 +1,5 @@
-import { IsOptional, IsNumber, Min, Max, IsString, IsBoolean } from "class-validator";
 import { Transform } from "class-transformer";
+import { IsBoolean,IsNumber, IsOptional, IsString, Max, Min } from "class-validator";
 
 export class GetRewardsDto {
 	@IsOptional()
