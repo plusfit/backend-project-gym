@@ -113,8 +113,59 @@ export class ClientsService {
   }
 
   async remove(id: string) {
-    await this.clientRepository.removeClientFirebase(id);
-    return this.clientRepository.removeClient(id);
+    try {
+      // First, check if the client exists
+      const client = await this.findOne(id);
+      if (!client) {
+        throw new NotFoundException(`Client with ID ${id} not found`);
+      }
+
+      // Remove client from all schedules (similar to what's done in toggleDisabled)
+      try {
+        const schedules = await this.schedulesService.getAllSchedules();
+
+        // Filter and update only the schedules that have the client
+        const updates = schedules
+          .filter((schedule: any) => schedule.clients.includes(id))
+          .map((schedule: any) => {
+            const updatedSchedule = {
+              ...schedule.toObject(), // If it's a Mongoose document
+              clients: schedule.clients.filter((clientId: string) => clientId !== id),
+            };
+
+            return this.schedulesService.updateSchedule(
+              schedule._id,
+              updatedSchedule,
+            );
+          });
+
+        // Wait for all schedule updates to complete
+        await Promise.all(updates);
+      } catch (scheduleError) {
+        // Log the error but don't fail the delete operation
+        console.error(`Error removing client ${id} from schedules:`, scheduleError);
+      }
+      
+      // Remove from MongoDB
+      const result = await this.clientRepository.removeClient(id);
+      
+      if (!result) {
+        throw new HttpException(
+          `Failed to delete client with ID ${id}`,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      return { message: `Client with ID ${id} deleted successfully`, deleted: true };
+    } catch (error: any) {
+      if (error instanceof NotFoundException || error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        `Error deleting client: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async assignRoutineToClient(clientId: string, routineId: string) {

@@ -12,12 +12,16 @@ import {
 import { PlansModule } from "@/src/context/plans/plans.module";
 import { SchedulesService } from "../schedules/schedules.service";
 import { SchedulesModule } from "../schedules/schedules.module";
+import { Routine, RoutineSchema } from "../routines/schemas/routine.schema";
 
 @Module({
   imports: [
     forwardRef(() => PlansModule),
 	SchedulesModule,
-    MongooseModule.forFeature([{ name: Client.name, schema: ClientSchema }]),
+    MongooseModule.forFeature([
+      { name: Client.name, schema: ClientSchema },
+      { name: Routine.name, schema: RoutineSchema },
+    ]),
   ],
   controllers: [ClientsController],
   providers: [

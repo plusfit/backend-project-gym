@@ -4,10 +4,12 @@ import { Model } from "mongoose";
 import { ClientsRepository } from "@/src/context/clients/repositories/clients.repository";
 import { Client } from "@/src/context/clients/schemas/client.schema";
 import { Plan } from "../../plans/schemas/plan.schema";
+import { Routine } from "../../routines/schemas/routine.schema";
 
 export class MongoClientsRepository implements ClientsRepository {
   constructor(
     @InjectModel(Client.name) private readonly clientModel: Model<Client>,
+    @InjectModel(Routine.name) private readonly routineModel: Model<Routine>,
   ) {}
   async getClientById(id: string): Promise<Client | null> {
     return await this.clientModel.findById(id).exec();
@@ -68,10 +70,13 @@ export class MongoClientsRepository implements ClientsRepository {
 
   async removeClient(id: string): Promise<boolean> {
     try {
-      await this.clientModel.findByIdAndDelete(id).exec();
+      const result = await this.clientModel.findByIdAndDelete(id).exec();
+      if (!result) {
+        throw new Error(`Client with id ${id} not found`);
+      }
       return true;
     } catch (error: any) {
-      throw new Error(`Error deleting plan with id ${id}, ${error.message}`);
+      throw new Error(`Error deleting client with id ${id}: ${error.message}`);
     }
   }
 
@@ -114,5 +119,21 @@ export class MongoClientsRepository implements ClientsRepository {
     return this.clientModel
       .findByIdAndUpdate(id, { disabled }, { new: true })
       .exec();
+  }
+
+  async removeClientFirebase(id: string): Promise<void> {
+    // For MongoDB implementation, we don't need Firebase specific removal
+    // This method is kept for interface compatibility
+    // Any Firebase-related cleanup would go here if needed
+    return Promise.resolve();
+  }
+
+  async getRoutineById(id: string): Promise<Routine | null> {
+    return await this.routineModel.findById(id).populate({
+      path: "subRoutines",
+      populate: {
+        path: "exercises",
+      },
+    }).exec();
   }
 }
