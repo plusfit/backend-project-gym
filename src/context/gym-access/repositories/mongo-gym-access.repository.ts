@@ -45,9 +45,21 @@ export class MongoGymAccessRepository extends GymAccessRepository {
 	}
 
 	async findByCedulaAndDay(cedula: string, accessDay: string): Promise<GymAccess | null> {
-		const gymAccess = await this.gymAccessModel
-			.findOne({ cedula, accessDay })
+		// Find all records for this cedula and day, prioritizing successful ones
+		const allRecords = await this.gymAccessModel
+			.find({ cedula, accessDay })
+			.sort({ createdAt: -1 })
 			.exec();
+		
+		// Find the first successful access
+		const successfulAccess = allRecords.find(record => record.successful === true);
+		
+		if (successfulAccess) {
+			return this.mapToEntity(successfulAccess);
+		}
+		
+		// If no successful access, return the most recent one
+		const gymAccess = allRecords[0] || null;
 		
 		return gymAccess ? this.mapToEntity(gymAccess) : null;
 	}
