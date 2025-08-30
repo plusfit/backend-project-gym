@@ -1,22 +1,22 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 
-@Schema({ timestamps: true })
-export class Canje {
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Premio', required: true })
-  premioId!: string;
+@Schema({ collection: 'exchanges', timestamps: true })
+export class Exchange {
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Reward', required: true })
+  rewardId!: string;
 
   @Prop({ type: String, required: true })
-  premioName!: string;
+  rewardName!: string;
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Client', required: true })
-  clienteId!: string;
+  clientId!: string;
 
   @Prop({ type: String, required: true })
-  clienteName!: string;
+  clientName!: string;
 
   @Prop({ type: String, required: true })
-  clienteEmail!: string;
+  clientEmail!: string;
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Admin', required: false })
   adminId?: string;
@@ -28,7 +28,7 @@ export class Canje {
   pointsUsed!: number;
 
   @Prop({ type: Date, default: Date.now })
-  canjeDate!: Date;
+  exchangeDate!: Date;
 
   @Prop({ 
     type: String, 
@@ -41,10 +41,10 @@ export class Canje {
   updatedAt?: Date;
 }
 
-export const CanjeSchema = SchemaFactory.createForClass(Canje);
-export type CanjeDocument = Canje & Document;
+export const ExchangeSchema = SchemaFactory.createForClass(Exchange);
+export type ExchangeDocument = Exchange & Document;
 
-// Índices
-CanjeSchema.index({ canjeDate: -1 });
-CanjeSchema.index({ clienteId: 1 });
-CanjeSchema.index({ premioId: 1 });
+// Indexes
+ExchangeSchema.index({ exchangeDate: -1 });
+ExchangeSchema.index({ clientId: 1 });
+ExchangeSchema.index({ rewardId: 1 });

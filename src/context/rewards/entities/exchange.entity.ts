@@ -1,20 +1,20 @@
-export class Canje {
+export class Exchange {
   id!: string;
-  premioId!: string;
-  premioName!: string;
-  clienteId!: string;
-  clienteName!: string;
-  clienteEmail!: string;
+  rewardId!: string;
+  rewardName!: string;
+  clientId!: string;
+  clientName!: string;
+  clientEmail!: string;
   adminId?: string;
   adminName?: string;
   pointsUsed!: number;
-  canjeDate!: Date;
+  exchangeDate!: Date;
   status!: 'completed' | 'pending' | 'cancelled';
   createdAt!: Date;
   updatedAt!: Date;
 }
 
-export interface CanjeFilters {
+export interface ExchangeFilters {
   startDate?: string;
   endDate?: string;
   search?: string;
@@ -23,8 +23,8 @@ export interface CanjeFilters {
   limit?: number;
 }
 
-export interface CanjeResponse {
-  data: Canje[];
+export interface ExchangeResponse {
+  data: Exchange[];
   pagination: {
     currentPage: number;
     totalPages: number;
@@ -33,15 +33,15 @@ export interface CanjeResponse {
   };
 }
 
-export interface CanjeRequest {
-  premioId: string;
-  clienteId: string;
+export interface ExchangeRequest {
+  rewardId: string;
+  clientId: string;
   adminId?: string;
 }
 
-export interface CanjeResult {
+export interface ExchangeResult {
   success: boolean;
   message: string;
-  puntosRestantes?: number;
-  canje?: Canje;
+  remainingPoints?: number;
+  exchange?: Exchange;
 }

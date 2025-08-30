@@ -16,7 +16,6 @@ import { GymAccessModule } from "@/src/context/gym-access/gym-access.module";
 import { OnboardingModule } from "@/src/context/onboarding/onboarding.module";
 import { OrganizationsModule } from "@/src/context/organizations/organizations.module";
 import { PlansModule } from "@/src/context/plans/plans.module";
-import { PremiosModule } from "@/src/context/premios/premios.module";
 import { ProductsModule } from "@/src/context/products/products.module";
 import { RewardsModule } from "@/src/context/rewards/rewards.module";
 import { RoutinesModule } from "@/src/context/routines/routines.module";
@@ -72,8 +71,7 @@ import { AppConfigModule } from "../context/config/config.module";
     CategoriesModule,
     GymAccessModule,
     RewardsModule,
-    PremiosModule,
-    MongooseModule.forRootAsync({
+        MongooseModule.forRootAsync({
       imports: [ConfigModule],
       // eslint-disable-next-line @typescript-eslint/require-await
       useFactory: async (configService: ConfigService) => {

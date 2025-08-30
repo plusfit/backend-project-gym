@@ -478,8 +478,8 @@ export class GymAccessService {
 			if (reward) {
 				return {
 					name: reward.name,
-					description: reward.description,
-					requiredDays: reward.requiredDays,
+					description: reward.description || '', // Handle undefined description
+					requiredDays: reward.pointsRequired, // Using pointsRequired as proxy for requiredDays
 				};
 			}
 

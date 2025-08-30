@@ -1,111 +1,123 @@
-import { Injectable } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { Model, Types } from "mongoose";
+import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 
-import { Reward } from "../entities/reward.entity";
-import { RewardDocument } from "../schemas/reward.schema";
-import { RewardFilters,RewardRepository } from "./reward.repository";
+import { Reward, RewardFilters, RewardResponse } from '../entities/reward.entity';
+import { Reward as RewardSchema, RewardDocument } from '../schemas/reward.schema';
+import { RewardRepository } from './reward.repository';
 
 @Injectable()
 export class MongoRewardRepository extends RewardRepository {
-	constructor(
-		@InjectModel("Reward")
-		private readonly rewardModel: Model<RewardDocument>,
-	) {
-		super();
-	}
+  constructor(
+    @InjectModel(RewardSchema.name)
+    private readonly rewardModel: Model<RewardDocument>,
+  ) {
+    super();
+  }
 
-	async create(reward: Partial<Reward>): Promise<Reward> {
-		const newReward = new this.rewardModel(reward);
-		const savedReward = await newReward.save();
-		return this.mapToEntity(savedReward);
-	}
+  async create(reward: Partial<Reward>): Promise<Reward> {
+    const createdReward = new this.rewardModel(reward);
+    const savedReward = await createdReward.save();
+    return this.mapToEntity(savedReward);
+  }
 
-	async findAll(page: number, limit: number, filters?: RewardFilters): Promise<{
-		rewards: Reward[];
-		total: number;
-	}> {
-		const query = this.buildFilterQuery(filters);
-		
-		const [rewards, total] = await Promise.all([
-			this.rewardModel
-				.find(query)
-				.sort({ requiredDays: 1 })
-				.skip((page - 1) * limit)
-				.limit(limit)
-				.exec(),
-			this.rewardModel.countDocuments(query).exec(),
-		]);
+  async findAll(filters: RewardFilters): Promise<RewardResponse> {
+    const { search, enabled, page = 1, limit = 10 } = filters;
+    const skip = (page - 1) * limit;
 
-		return {
-			rewards: rewards.map(this.mapToEntity),
-			total,
-		};
-	}
+    // Build query
+    const query: any = {};
+    
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    if (enabled !== undefined) {
+      query.enabled = enabled;
+    }
 
-	async findById(id: string): Promise<Reward | null> {
-		const reward = await this.rewardModel.findById(id).exec();
-		return reward ? this.mapToEntity(reward) : null;
-	}
+    // Execute query with pagination
+    const [data, totalCount] = await Promise.all([
+      this.rewardModel
+        .find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .exec(),
+      this.rewardModel.countDocuments(query).exec(),
+    ]);
 
-	async findByRequiredDays(requiredDays: number): Promise<Reward | null> {
-		const reward = await this.rewardModel.findOne({ requiredDays, isActive: true }).exec();
-		return reward ? this.mapToEntity(reward) : null;
-	}
+    const totalPages = Math.ceil(totalCount / limit);
 
-	async findActiveRewards(): Promise<Reward[]> {
-		const rewards = await this.rewardModel
-			.find({ isActive: true })
-			.sort({ requiredDays: 1 })
-			.exec();
-		
-		return rewards.map(this.mapToEntity);
-	}
+    return {
+      data: data.map(doc => this.mapToEntity(doc)),
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalCount,
+        limit,
+      },
+    };
+  }
 
-	async update(id: string, reward: Partial<Reward>): Promise<Reward | null> {
-		const updatedReward = await this.rewardModel
-			.findByIdAndUpdate(id, reward, { new: true })
-			.exec();
-		
-		return updatedReward ? this.mapToEntity(updatedReward) : null;
-	}
+  async findById(id: string): Promise<Reward | null> {
+    const reward = await this.rewardModel.findById(id).exec();
+    return reward ? this.mapToEntity(reward) : null;
+  }
 
-	async delete(id: string): Promise<boolean> {
-		const result = await this.rewardModel.findByIdAndDelete(id).exec();
-		return !!result;
-	}
+  async findByName(name: string): Promise<Reward | null> {
+    const reward = await this.rewardModel.findOne({ name }).exec();
+    return reward ? this.mapToEntity(reward) : null;
+  }
 
-	private buildFilterQuery(filters?: RewardFilters): any {
-		const query: any = {};
+  async findEnabled(): Promise<Reward[]> {
+    const rewards = await this.rewardModel
+      .find({ enabled: true })
+      .sort({ createdAt: -1 })
+      .exec();
+    return rewards.map(doc => this.mapToEntity(doc));
+  }
 
-		if (filters?.name) {
-			query.name = { $regex: filters.name, $options: "i" };
-		}
+  async update(id: string, reward: Partial<Reward>): Promise<Reward | null> {
+    const updatedReward = await this.rewardModel
+      .findByIdAndUpdate(id, reward, { new: true })
+      .exec();
+    return updatedReward ? this.mapToEntity(updatedReward) : null;
+  }
 
-		if (filters?.isActive !== undefined) {
-			query.isActive = filters.isActive;
-		}
+  async delete(id: string): Promise<boolean> {
+    const result = await this.rewardModel.findByIdAndDelete(id).exec();
+    return !!result;
+  }
 
-		if (filters?.minRequiredDays !== undefined) {
-			query.requiredDays = { ...query.requiredDays, $gte: filters.minRequiredDays };
-		}
+  async incrementExchanges(id: string): Promise<void> {
+    await this.rewardModel
+      .findByIdAndUpdate(id, { $inc: { totalExchanges: 1 } })
+      .exec();
+  }
 
-		if (filters?.maxRequiredDays !== undefined) {
-			query.requiredDays = { ...query.requiredDays, $lte: filters.maxRequiredDays };
-		}
+  async toggleEnabled(id: string): Promise<Reward | null> {
+    const reward = await this.rewardModel.findById(id).exec();
+    if (!reward) return null;
 
-		return query;
-	}
+    reward.enabled = !reward.enabled;
+    const updatedReward = await reward.save();
+    return this.mapToEntity(updatedReward);
+  }
 
-	private mapToEntity(document: RewardDocument): Reward {
-		return {
-			id: (document._id as Types.ObjectId).toString(),
-			name: document.name,
-			description: document.description,
-			requiredDays: document.requiredDays,
-			isActive: document.isActive,
-			createdAt: (document as any).createdAt,
-			updatedAt: (document as any).updatedAt,
-		};
-	}
+  private mapToEntity(doc: RewardDocument): Reward {
+    return {
+      id: doc._id?.toString() || '',
+      name: doc.name,
+      description: doc.description,
+      pointsRequired: doc.pointsRequired,
+      enabled: doc.enabled,
+      totalExchanges: doc.totalExchanges,
+      createdAt: doc.createdAt || new Date(),
+      updatedAt: doc.updatedAt || new Date(),
+    };
+  }
 }

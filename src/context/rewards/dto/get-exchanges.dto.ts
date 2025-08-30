@@ -2,9 +2,9 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import { IsIn,IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
-export class GetCanjesDto {
+export class GetExchangesDto {
   @ApiPropertyOptional({ 
-    description: 'Fecha de inicio para filtrar canjes (ISO format)',
+    description: 'Start date to filter exchanges (ISO format)',
     example: '2024-01-01T00:00:00.000Z'
   })
   @IsOptional()
@@ -12,7 +12,7 @@ export class GetCanjesDto {
   startDate?: string;
 
   @ApiPropertyOptional({ 
-    description: 'Fecha de fin para filtrar canjes (ISO format)',
+    description: 'End date to filter exchanges (ISO format)',
     example: '2024-12-31T23:59:59.999Z'
   })
   @IsOptional()
@@ -20,7 +20,7 @@ export class GetCanjesDto {
   endDate?: string;
 
   @ApiPropertyOptional({ 
-    description: 'Búsqueda por nombre de cliente o premio',
+    description: 'Search by client name or reward',
     example: 'Juan Pérez'
   })
   @IsOptional()
@@ -28,7 +28,7 @@ export class GetCanjesDto {
   search?: string;
 
   @ApiPropertyOptional({ 
-    description: 'Filtrar por estado del canje',
+    description: 'Filter by exchange status',
     enum: ['completed', 'pending', 'cancelled'],
     example: 'completed'
   })
@@ -38,7 +38,7 @@ export class GetCanjesDto {
   status?: 'completed' | 'pending' | 'cancelled';
 
   @ApiPropertyOptional({ 
-    description: 'Número de página',
+    description: 'Page number',
     minimum: 1,
     default: 1,
     example: 1
@@ -50,7 +50,7 @@ export class GetCanjesDto {
   page?: number = 1;
 
   @ApiPropertyOptional({ 
-    description: 'Elementos por página',
+    description: 'Items per page',
     minimum: 1,
     default: 10,
     example: 10

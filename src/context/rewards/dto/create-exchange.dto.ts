@@ -1,23 +1,23 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional,IsString } from 'class-validator';
 
-export class CreateCanjeDto {
+export class CreateExchangeDto {
   @ApiProperty({ 
-    description: 'ID del premio a canjear',
+    description: 'ID of the reward to exchange',
     example: '507f1f77bcf86cd799439011'
   })
   @IsString()
-  premioId!: string;
+  rewardId!: string;
 
   @ApiProperty({ 
-    description: 'ID del cliente que realiza el canje',
+    description: 'ID of the client making the exchange',
     example: '507f1f77bcf86cd799439012'
   })
   @IsString()
-  clienteId!: string;
+  clientId!: string;
 
   @ApiPropertyOptional({ 
-    description: 'ID del administrador que gestiona el canje (opcional)',
+    description: 'ID of the administrator managing the exchange (optional)',
     example: '507f1f77bcf86cd799439013'
   })
   @IsOptional()
