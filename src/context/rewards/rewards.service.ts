@@ -29,7 +29,7 @@ export class RewardsService {
     // Verify that a reward with the same name doesn't exist
     const existingReward = await this.rewardRepository.findByName(createRewardDto.name);
     if (existingReward) {
-      throw new BadRequestException('A reward with that name already exists');
+      throw new BadRequestException('Ya existe un premio con ese nombre');
     }
 
     const reward = await this.rewardRepository.create({
@@ -51,7 +51,7 @@ export class RewardsService {
     this.logger.log(`Finding reward by id: ${id}`);
     const reward = await this.rewardRepository.findById(id);
     if (!reward) {
-      throw new NotFoundException('Reward not found');
+      throw new NotFoundException('Premio no encontrado');
     }
     return reward;
   }
@@ -66,20 +66,20 @@ export class RewardsService {
 
     const existingReward = await this.rewardRepository.findById(id);
     if (!existingReward) {
-      throw new NotFoundException('Reward not found');
+      throw new NotFoundException('Premio no encontrado');
     }
 
     // If updating the name, verify that another reward with the same name doesn't exist
     if (updateRewardDto.name && updateRewardDto.name !== existingReward.name) {
       const duplicateReward = await this.rewardRepository.findByName(updateRewardDto.name);
       if (duplicateReward) {
-        throw new BadRequestException('A reward with that name already exists');
+        throw new BadRequestException('Ya existe un premio con ese nombre');
       }
     }
 
     const updatedReward = await this.rewardRepository.update(id, updateRewardDto);
     if (!updatedReward) {
-      throw new NotFoundException('Reward not found');
+      throw new NotFoundException('Premio no encontrado');
     }
 
     this.logger.log(`Reward updated successfully: ${id}`);
@@ -90,7 +90,7 @@ export class RewardsService {
     this.logger.log(`Toggling reward enabled status: ${id}`);
     const reward = await this.rewardRepository.toggleEnabled(id);
     if (!reward) {
-      throw new NotFoundException('Reward not found');
+      throw new NotFoundException('Premio no encontrado');
     }
     this.logger.log(`Reward status toggled: ${id} - enabled: ${reward.enabled}`);
     return reward;
@@ -101,20 +101,20 @@ export class RewardsService {
 
     const existingReward = await this.rewardRepository.findById(id);
     if (!existingReward) {
-      throw new NotFoundException('Reward not found');
+      throw new NotFoundException('Premio no encontrado');
     }
 
     // Verify if the reward has associated exchanges
     const exchangesCount = await this.exchangeRepository.countByRewardId(id);
     if (exchangesCount > 0) {
       throw new BadRequestException(
-        'Cannot delete the reward because it has associated exchanges. Consider disabling it instead.'
+        'No se puede eliminar el premio porque tiene canjes asociados. Considera deshabilitarlo en su lugar.'
       );
     }
 
     const deleted = await this.rewardRepository.delete(id);
     if (!deleted) {
-      throw new NotFoundException('Reward not found');
+      throw new NotFoundException('Premio no encontrado');
     }
 
     this.logger.log(`Reward deleted successfully: ${id}`);
@@ -131,14 +131,14 @@ export class RewardsService {
       if (!reward) {
         return {
           success: false,
-          message: 'Reward not found',
+          message: 'Premio no encontrado',
         };
       }
 
       if (!reward.enabled) {
         return {
           success: false,
-          message: 'Reward not available for exchange',
+          message: 'Premio no disponible para canje',
         };
       }
 
@@ -147,7 +147,7 @@ export class RewardsService {
       if (!client) {
         return {
           success: false,
-          message: 'Client not found',
+          message: 'Cliente no encontrado',
         };
       }
 
@@ -156,7 +156,7 @@ export class RewardsService {
       if (availablePoints < reward.pointsRequired) {
         return {
           success: false,
-          message: `Insufficient points. You need ${reward.pointsRequired} points, you have ${availablePoints}`,
+          message: `Puntos insuficientes. Necesitas ${reward.pointsRequired} puntos, tienes ${availablePoints}`,
         };
       }
 
@@ -193,7 +193,7 @@ export class RewardsService {
 
       return {
         success: true,
-        message: 'Exchange completed successfully',
+        message: 'Canje completado exitosamente',
         remainingPoints: newAvailablePoints,
         exchange,
       };
@@ -201,7 +201,7 @@ export class RewardsService {
       this.logger.error('Error processing exchange', error);
       return {
         success: false,
-        message: 'Internal system error',
+        message: 'Error interno del sistema',
       };
     }
   }
@@ -215,7 +215,7 @@ export class RewardsService {
     this.logger.log(`Finding exchange by id: ${id}`);
     const exchange = await this.exchangeRepository.findById(id);
     if (!exchange) {
-      throw new NotFoundException('Exchange not found');
+      throw new NotFoundException('Canje no encontrado');
     }
     return exchange;
   }

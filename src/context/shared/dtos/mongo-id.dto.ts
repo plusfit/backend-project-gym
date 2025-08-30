@@ -2,7 +2,7 @@ import { Transform } from "class-transformer";
 import { IsMongoId } from "class-validator";
 
 export class MongoIdDto {
-	@IsMongoId({ message: "The ID provided is not a valid MongoDB ID" })
+	@IsMongoId({ message: "El ID proporcionado no es un ID válido de MongoDB" })
 	@Transform(({ value }) => value.toString())
 	id!: string;
 }

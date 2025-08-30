@@ -87,7 +87,7 @@ export class RoutinesController {
 				throw new NotFoundException(`Routine with ID ${id} not found`);
 			}
 			this.logger.log(`Routine with ID: ${id} deleted successfully.`);
-			return { message: "Routine deleted successfully." };
+			return { message: "Rutina eliminada exitosamente." };
 		}
 			throw new BadRequestException(`${id} is not a valid MongoDB ID`);
 	}
@@ -192,7 +192,7 @@ export class RoutinesController {
 				throw new NotFoundException(`Routine with ID ${id} not found`);
 			}
 			this.logger.log(`Routine with ID: ${id} updated successfully.`);
-			return { message: "Routine updated successfully.", updatedRoutine };
+			return { message: "Rutina actualizada exitosamente.", updatedRoutine };
 		} catch (error) {
 			this.logger.error(`Failed to update routine with ID ${id}:`, error);
 			throw error;
@@ -232,7 +232,7 @@ export class RoutinesController {
 			this.logger.log(
 				`Routine with ID: ${id} assigned to client with ID: ${clientId} successfully.`,
 			);
-			return { message: "Routine assigned successfully.", assignedRoutine };
+			return { message: "Rutina asignada exitosamente.", assignedRoutine };
 		} catch (error) {
 			this.logger.error(
 				`Failed to assign routine with ID ${id} to client with ID ${clientId}:`,
@@ -394,7 +394,7 @@ export class RoutinesController {
 				throw new NotFoundException(`Routine with ID ${id} not found`);
 			}
 			this.logger.log(`Subroutine with ID: ${id} updated successfully.`);
-			return { message: "Subroutine updated successfully.", updatedRoutine };
+			return { message: "Subrutina actualizada exitosamente.", updatedRoutine };
 		} catch (error) {
 			this.logger.error(`Failed to update Subroutine with ID ${id}:`, error);
 			throw error;

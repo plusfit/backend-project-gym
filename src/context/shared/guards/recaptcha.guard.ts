@@ -30,14 +30,14 @@ export class RecaptchaGuard implements CanActivate {
     }
     
     if (!recaptchaToken) {
-      throw new BadRequestException('reCAPTCHA token is required');
+      throw new BadRequestException('Token reCAPTCHA es requerido');
     }
 
     const clientIp = request.ip || request.connection.remoteAddress;
     const isValid = await this.recaptchaService.verifyRecaptcha(recaptchaToken, action, clientIp);
     
     if (!isValid) {
-      throw new BadRequestException('reCAPTCHA verification failed');
+      throw new BadRequestException('Verificación reCAPTCHA fallida');
     }
 
     return true;

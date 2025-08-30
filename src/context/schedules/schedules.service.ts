@@ -25,26 +25,26 @@ export class SchedulesService {
 
 	async createSchedule(createScheduleDto: CreateScheduleDto) {
 		if (!createScheduleDto) {
-			throw new BadRequestException("Invalid schedule data");
+			throw new BadRequestException("Datos de horario inválidos");
 		}
 		return await this.scheduleRepository.createSchedule(createScheduleDto);
 	}
 
 	async deleteSchedule(id: string) {
 		if (!id) {
-			throw new BadRequestException("Schedule ID is required");
+			throw new BadRequestException("ID de horario es requerido");
 		}
 
 		const schedule = await this.scheduleRepository.findById(id);
 		if (!schedule) {
-			throw new NotFoundException(`Schedule with ID ${id} not found`);
+			throw new NotFoundException(`Horario con ID ${id} no encontrado`);
 		}
 		return this.scheduleRepository.deleteSchedule(id);
 	}
 
 	async updateSchedule(scheduleId: string, updateData: UpdateScheduleDto) {
 		if (!scheduleId || !updateData) {
-			throw new BadRequestException("Schedule ID and update data are required");
+			throw new BadRequestException("ID de horario y datos de actualización son requeridos");
 		}
 		//TODO: Change to client repo
 		// if(updateData.clients) {
@@ -57,14 +57,14 @@ export class SchedulesService {
 		// }
 		const schedule = await this.scheduleRepository.findById(scheduleId);
 		if (!schedule) {
-			throw new NotFoundException(`Schedule with ID ${scheduleId} not found`);
+			throw new NotFoundException(`Horario con ID ${scheduleId} no encontrado`);
 		}
 		return this.scheduleRepository.updateSchedule(scheduleId, updateData);
 	}
 
 	async getSchedule(id: string) {
 		if (!id) {
-			throw new BadRequestException("Schedule ID is required");
+			throw new BadRequestException("ID de horario es requerido");
 		}
 
 		const schedule = await this.scheduleRepository.findById(id);
@@ -80,7 +80,7 @@ export class SchedulesService {
 
 	async deleteAllClientSchedules(clientId: string) {
 		if (!clientId) {
-			throw new BadRequestException("Client ID is required");
+			throw new BadRequestException("ID de cliente es requerido");
 		}
 
 		const result =
@@ -97,13 +97,13 @@ export class SchedulesService {
 
 	async assignClientToSchedule(scheduleId: string, clienstIds: string[]) {
 		if (!scheduleId || !clienstIds) {
-			throw new BadRequestException("Schedule ID and Client ID are required");
+			throw new BadRequestException("ID de horario e ID de cliente son requeridos");
 		}
 
 		const schedule = await this.scheduleRepository.findById(scheduleId);
 
 		if (!schedule) {
-			throw new NotFoundException(`Schedule with ID ${scheduleId} not found`);
+			throw new NotFoundException(`Horario con ID ${scheduleId} no encontrado`);
 		}
 		//TODO: Change to clientRepository
 		// const clientExists = await this.scheduleRepository.findById(clientId);
@@ -119,12 +119,12 @@ export class SchedulesService {
 
 	async deleteClientFromSchedule(scheduleId: string, clientId: string) {
 		if (!scheduleId || !clientId) {
-			throw new BadRequestException("Schedule ID and Client ID are required");
+			throw new BadRequestException("ID de horario e ID de cliente son requeridos");
 		}
 
 		const schedule = this.scheduleRepository.findById(scheduleId);
 		if (!schedule) {
-			throw new NotFoundException(`Schedule with ID ${scheduleId} not found`);
+			throw new NotFoundException(`Horario con ID ${scheduleId} no encontrado`);
 		}
 
 		return await this.scheduleRepository.deleteClientFromSchedule(
@@ -136,12 +136,12 @@ export class SchedulesService {
 	async populateSchedulesByConfig() {
 		const schedules = await this.getAllSchedules();
 		if (schedules.length > 0) {
-			throw new BadRequestException("Schedules collection is not empty");
+			throw new BadRequestException("La colección de horarios no está vacía");
 		}
 
 		const config = await this.configService.getConfigs();
 		if (config.schedule.length === 0) {
-			throw new BadRequestException("Config Schedules collection is empty");
+			throw new BadRequestException("La colección de configuración de horarios está vacía");
 		}
 
 		const scheduleConfig = config.schedule;
@@ -166,7 +166,7 @@ export class SchedulesService {
 		const config = await this.configService.getConfigs();
 
 		if (!config.schedule || config.schedule.length === 0) {
-			throw new BadRequestException("Config Schedules collection is empty");
+			throw new BadRequestException("La colección de configuración de horarios está vacía");
 		}
 
 		const scheduleConfig = config.schedule; // Array of days with their hours and maxCount
@@ -240,11 +240,11 @@ export class SchedulesService {
 
 	async getUserScheduleDays(userId: string) {
 		if (!userId) {
-			throw new BadRequestException("User ID is required");
+			throw new BadRequestException("ID de usuario es requerido");
 		}
 
 		if (!/^[\dA-Fa-f]{24}$/.test(userId)) {
-			throw new BadRequestException(`Invalid user ID format: ${userId}`);
+			throw new BadRequestException(`Formato de ID de usuario inválido: ${userId}`);
 		}
 
 		try {

@@ -14,7 +14,7 @@ export class ConfigService {
 
 	createConfig(createConfigDto: CreateConfigDto) {
 		if (!createConfigDto) {
-			throw new BadRequestException("Invalid config data");
+			throw new BadRequestException("Datos de configuración inválidos");
 		}
 
 		return this.configRepository.createConfig(createConfigDto);
@@ -33,7 +33,7 @@ export class ConfigService {
 	async update(id: string, updateConfigDto: UpdateConfigDto) {
 		try {
 			if (!updateConfigDto && !id) {
-				throw new BadRequestException("Invalid config data");
+				throw new BadRequestException("Datos de configuración inválidos");
 			}
 
 			await this.configRepository.update(id, updateConfigDto);

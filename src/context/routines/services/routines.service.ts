@@ -84,7 +84,7 @@ export class RoutinesService {
   ): Promise<Routine | Client> {
     const routine = await this.routineRepository.findById(routineId);
     if (!routine) {
-      throw new NotFoundException("Routine not found");
+      throw new NotFoundException("Rutina no encontrada");
     }
 
     if (!routine.isCustom && clientId) {

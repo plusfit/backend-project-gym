@@ -120,18 +120,18 @@ export class ClientsService {
   async assignRoutineToClient(clientId: string, routineId: string) {
     const client: Client = await this.clientRepository.getClientById(clientId);
     if (!client) {
-      throw new NotFoundException("Client not found");
+      throw new NotFoundException("Cliente no encontrado");
     }
 
     const routine: Routine =
       await this.clientRepository.getRoutineById(routineId);
     if (!routine) {
-      throw new NotFoundException("Routine not found");
+      throw new NotFoundException("Rutina no encontrada");
     }
 
     const plan: Plan = await this.plansService.findOne(client.planId);
     if (!plan) {
-      throw new NotFoundException(`Plan with ID ${client.planId} not found`);
+      throw new NotFoundException(`Plan con ID ${client.planId} no encontrado`);
     }
 
     if (plan.days < routine.subRoutines.length) {
