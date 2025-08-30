@@ -9,7 +9,7 @@ import {
 	Query,
 	UseGuards,
 } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
 
 import { ClientsService } from "@/src/context/clients/clients.service";
 import { GetClientsDto } from "@/src/context/clients/dto/get-clients.dto";
@@ -29,6 +29,13 @@ export class ClientsController {
   @Post("list")
   getListClients(@Body() clientsIdsDto: ClientsIdsDto) {
     return this.clientsService.getListClients(clientsIdsDto.clientsIds);
+  }
+
+  @Get("count/active")
+  @ApiOperation({ summary: "Get total count of active (non-disabled) clients" })
+  @ApiResponse({ status: 200, description: "Returns the number of active clients" })
+  async getActiveClientsCount() {
+    return this.clientsService.getActiveClientsCount();
   }
 
   @Get()

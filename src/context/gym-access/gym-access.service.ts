@@ -195,18 +195,14 @@ export class GymAccessService {
 		allowed: boolean;
 		response?: AccessValidationResponse;
 	}> {
-		// Get current hour to check for schedule-specific access
-		const currentHour = new Date().getHours().toString();
-		const nextHour = (new Date().getHours() + 1).toString();
+		// Check if client already accessed today (any time during the day)
+		const existingAccess = await this.gymAccessRepository.findByCedulaAndDay(cedula, accessDay);
 		
-		// Check if client already accessed today in current or next hour schedule
-		const hasAccessedInCurrentSchedule = await this.checkScheduleSpecificAccess(cedula, accessDay, currentHour, nextHour);
-		
-		if (hasAccessedInCurrentSchedule) {
+		if (existingAccess && existingAccess.successful) {
 			return {
 				allowed: false,
 				response: await this.createDenialResponseWithRecord(
-					`Ya registraste acceso hoy en el horario ${currentHour}:00 - ${parseInt(currentHour) + 1}:00`,
+					"Cliente ya registró acceso el día de hoy",
 					client,
 					cedula,
 					today,

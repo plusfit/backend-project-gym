@@ -264,4 +264,16 @@ export class ClientsService {
       );
     }
   }
+
+  async getActiveClientsCount(): Promise<number> {
+    try {
+      const filters = { disabled: false };
+      return await this.clientRepository.countClients(filters);
+    } catch (error: any) {
+      throw new HttpException(
+        `Error getting active clients count: ${error.message}`,
+        error.status || 500,
+      );
+    }
+  }
 }

@@ -26,6 +26,8 @@ export class GymAccessController {
 	@ApiOperation({ summary: "Validate client access to gym" })
 	@ApiResponse({ status: 200, description: "Access validation result" })
 	async validateAccess(@Body() validateAccessDto: ValidateAccessDto) {
+		console.log("=== GYM ACCESS CONTROLLER - VALIDATE ENDPOINT CALLED ===");
+		console.log("Request body:", validateAccessDto);
 		try {
 			return await this.gymAccessService.validateAccess(validateAccessDto);
 		} catch (error: any) {
