@@ -47,6 +47,14 @@ export class CreateRoutineDto {
 	isGeneral!: boolean;
 
 	@Expose()
+	@IsBoolean()
+	@ApiProperty({
+		description: "Si la rutina debe mostrarse en pantalla",
+		example: false,
+	})
+	showOnScreen!: boolean;
+
+	@Expose()
 	@ValidateIf((o: CreateRoutineDto) => o.isGeneral)
 	@IsString()
 	@ApiProperty({
