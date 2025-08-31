@@ -68,7 +68,6 @@ export class RoutinesService {
       }
     }
 
-    // Validar límite de rutinas con showOnScreen = true
     if (createRoutineDto.showOnScreen === true) {
       await this.validateShowOnScreenLimit();
     }
@@ -101,7 +100,6 @@ export class RoutinesService {
         isCustom: true,
       };
 
-      // Validar límite de rutinas con showOnScreen = true (para rutina nueva personalizada)
       if (updatedRoutineData.showOnScreen === true) {
         await this.validateShowOnScreenLimit();
       }
@@ -138,7 +136,6 @@ export class RoutinesService {
       );
     }
 
-    // Validar límite de rutinas con showOnScreen = true (para actualización de rutina existente)
     if (updateData.showOnScreen === true && routine.showOnScreen !== true) {
       await this.validateShowOnScreenLimit();
     }
