@@ -329,11 +329,20 @@ export class GymAccessService {
 		// Get current schedule information
 		const currentScheduleInfo = await this.getCurrentScheduleInfo((client._id as Types.ObjectId).toString());
 		
-		// Store Uruguay local time in database to maintain consistency with filters
+		// Create a UTC date that represents the same time as Uruguay local time
+		// If it's 15:22 in Uruguay, we want to store 15:22 UTC
+		const uruguayHour = today.getHours();
+		const uruguayMinute = today.getMinutes();
+		const uruguaySecond = today.getSeconds();
+		const uruguayMillisecond = today.getMilliseconds();
+		
+		const utcDate = new Date();
+		utcDate.setUTCHours(uruguayHour, uruguayMinute, uruguaySecond, uruguayMillisecond);
+		
 		await this.gymAccessRepository.create({
 			clientId: (client._id as Types.ObjectId).toString(),
 			cedula,
-			accessDate: today,
+			accessDate: utcDate,
 			accessDay,
 			successful: true,
 			clientName: client.userInfo?.name || "Cliente",
@@ -358,11 +367,19 @@ export class GymAccessService {
 	}
 
 	private async handleValidationError(error: any, cedula: string, today: Date, accessDay: string): Promise<AccessValidationResponse> {
-		// Create failed access record for tracking - store Uruguay local time
+		// Create failed access record for tracking - create UTC date that represents Uruguay local time
+		const uruguayHour = today.getHours();
+		const uruguayMinute = today.getMinutes();
+		const uruguaySecond = today.getSeconds();
+		const uruguayMillisecond = today.getMilliseconds();
+		
+		const utcDate = new Date();
+		utcDate.setUTCHours(uruguayHour, uruguayMinute, uruguaySecond, uruguayMillisecond);
+		
 		await this.gymAccessRepository.create({
 			clientId: "",
 			cedula,
-			accessDate: today,
+			accessDate: utcDate,
 			accessDay,
 			successful: false,
 			reason: AccessErrorMessages.SYSTEM_ERROR,
@@ -461,8 +478,16 @@ export class GymAccessService {
 			consecutiveDays = (client.consecutiveDays || 0) + 1;
 		}
 
-		// Update client stats - store Uruguay local time for consistency
-		client.lastAccess = accessDate;
+		// Update client stats - create UTC date that represents Uruguay local time
+		const uruguayHour = accessDate.getHours();
+		const uruguayMinute = accessDate.getMinutes();
+		const uruguaySecond = accessDate.getSeconds();
+		const uruguayMillisecond = accessDate.getMilliseconds();
+		
+		const utcLastAccess = new Date();
+		utcLastAccess.setUTCHours(uruguayHour, uruguayMinute, uruguaySecond, uruguayMillisecond);
+		
+		client.lastAccess = utcLastAccess;
 		client.totalAccesses = (client.totalAccesses || 0) + 1;
 		client.consecutiveDays = consecutiveDays;
 
@@ -500,11 +525,19 @@ export class GymAccessService {
 		accessDay: string,
 		authorize: boolean = false
 	): Promise<AccessValidationResponse> {
-		// Create failed access record for tracking - store Uruguay local time
+		// Create failed access record for tracking - create UTC date that represents Uruguay local time
+		const uruguayHour = accessDate.getHours();
+		const uruguayMinute = accessDate.getMinutes();
+		const uruguaySecond = accessDate.getSeconds();
+		const uruguayMillisecond = accessDate.getMilliseconds();
+		
+		const utcDate = new Date();
+		utcDate.setUTCHours(uruguayHour, uruguayMinute, uruguaySecond, uruguayMillisecond);
+		
 		await this.gymAccessRepository.create({
 			clientId: client ? (client._id as Types.ObjectId).toString() : "",
 			cedula,
-			accessDate,
+			accessDate: utcDate,
 			accessDay,
 			successful: false,
 			reason,
