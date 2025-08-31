@@ -40,7 +40,8 @@
     "build:clean": "rimraf dist; exit 0",
     "typos": "chmod +x scripts/check_typos.sh && ./scripts/check_typos.sh",
     "update-exercises-media-type": "tsx scripts/update-exercises-media-type.ts",
-    "seed:rewards": "tsx scripts/seed-rewards.ts"
+    "seed:rewards": "tsx scripts/seed-rewards.ts",
+    "seed:exchanges": "tsx scripts/seed-exchanges.ts"
   },
   "dependencies": {
     "@fastify/multipart": "^9.0.3",
