@@ -1,32 +1,32 @@
 import {
-	BadRequestException,
-	Body,
-	Controller,
-	Delete,
-	Get,
-	Logger,
-	NotFoundException,
-	Param,
-	Post,
-	Put,
-	Query,
-	UsePipes,
-	ValidationPipe,
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Logger,
+  NotFoundException,
+  Param,
+  Post,
+  Put,
+  Query,
+  UsePipes,
+  ValidationPipe,
 } from "@nestjs/common";
 import {
-	ApiBody,
-	ApiOperation,
-	ApiParam,
-	ApiQuery,
-	ApiResponse,
-	ApiTags,
+  ApiBody,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
 } from "@nestjs/swagger";
 
 import { ClientsService } from "@/src/context/clients/clients.service";
 import { CreateSubRoutineDto } from "@/src/context/routines/dto/create-sub-routine.dto";
 import { GetRoutinesDto } from "@/src/context/routines/dto/get-routines.dto";
-import { UpdateRoutineDto } from "@/src/context/routines/dto/update-routine.dto";
 import { UpdateRoutineQueryDto } from "@/src/context/routines/dto/update-routine-query.dto";
+import { UpdateRoutineDto } from "@/src/context/routines/dto/update-routine.dto";
 import { UpdateSubRoutineDto } from "@/src/context/routines/dto/update-sub-routine.dto";
 import { RoutinesService } from "@/src/context/routines/services/routines.service";
 import { SubRoutinesService } from "@/src/context/routines/services/sub-routines.service";
@@ -127,6 +127,12 @@ export class RoutinesController {
 		type: String,
 		description: "Filtro por tipo de rutina",
 	})
+	@ApiQuery({
+		name: "showOnScreen",
+		required: false,
+		type: Boolean,
+		description: "Filtro para mostrar rutinas en pantalla",
+	})
 	async findAllRoutines(@Query() getRoutinesDto: GetRoutinesDto) {
 		this.logger.log("Retrieving routines with filters:", getRoutinesDto);
 		try {
@@ -137,6 +143,7 @@ export class RoutinesController {
 				getRoutinesDto.type,
 				getRoutinesDto.mode,
 				getRoutinesDto.isGeneral,
+				getRoutinesDto.showOnScreen,
 			);
 			this.logger.log(`Retrieved ${routines.data.length} routines.`);
 			return routines;
