@@ -22,20 +22,20 @@ export class MongoExchangeRepository extends ExchangeRepository {
   }
 
   async findAll(filters: ExchangeFilters): Promise<ExchangeResponse> {
-    const { startDate, endDate, search, status, page = 1, limit = 10 } = filters;
+    const { dateFrom, dateTo, search, status, page = 1, limit = 10 } = filters;
     const skip = (page - 1) * limit;
 
     // Build query
     const query: any = {};
     
     // Date range filter
-    if (startDate || endDate) {
+    if (dateFrom || dateTo) {
       query.exchangeDate = {};
-      if (startDate) {
-        query.exchangeDate.$gte = new Date(startDate);
+      if (dateFrom) {
+        query.exchangeDate.$gte = new Date(dateFrom);
       }
-      if (endDate) {
-        query.exchangeDate.$lte = new Date(endDate);
+      if (dateTo) {
+        query.exchangeDate.$lte = new Date(dateTo);
       }
     }
     
