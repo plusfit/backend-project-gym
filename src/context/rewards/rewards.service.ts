@@ -1,10 +1,11 @@
-import { BadRequestException, Injectable, Logger,NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 
 import { ClientsService } from '../clients/clients.service';
 import { CreateExchangeDto } from './dto/create-exchange.dto';
 import { CreateRewardDto } from './dto/create-reward.dto';
 import { GetExchangesDto } from './dto/get-exchanges.dto';
 import { GetRewardsDto } from './dto/get-rewards.dto';
+import { UpdateExchangeStatusDto } from './dto/update-exchange-status.dto';
 import { UpdateRewardDto } from './dto/update-reward.dto';
 import { Exchange, ExchangeResponse, ExchangeResult } from './entities/exchange.entity';
 import { Reward, RewardResponse } from './entities/reward.entity';
@@ -243,5 +244,34 @@ export class RewardsService {
     const matchingReward = rewards.data.find(reward => reward.pointsRequired === consecutiveDays);
     
     return matchingReward || null;
+  }
+
+  // ========== EXCHANGE STATUS MANAGEMENT ==========
+
+  async updateExchangeStatus(exchangeId: string, updateExchangeStatusDto: UpdateExchangeStatusDto): Promise<Exchange> {
+    this.logger.log(`Updating exchange status for exchange: ${exchangeId}`);
+
+    // Verify that the exchange exists
+    const existingExchange = await this.exchangeRepository.findById(exchangeId);
+    if (!existingExchange) {
+      this.logger.error(`Exchange not found: ${exchangeId}`);
+      throw new NotFoundException('Canje no encontrado');
+    }
+
+    // Log the current and new status for auditing
+    this.logger.log(`Changing exchange ${exchangeId} status from ${existingExchange.status} to ${updateExchangeStatusDto.status}`);
+
+    // Update the exchange status
+    const updatedExchange = await this.exchangeRepository.update(exchangeId, {
+      status: updateExchangeStatusDto.status,
+    });
+
+    if (!updatedExchange) {
+      this.logger.error(`Failed to update exchange status: ${exchangeId}`);
+      throw new BadRequestException('Error al actualizar el estado del canje');
+    }
+
+    this.logger.log(`Exchange status updated successfully: ${exchangeId}`);
+    return updatedExchange;
   }
 }
