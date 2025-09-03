@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
 import { Reward, RewardFilters, RewardResponse } from '../entities/reward.entity';
-import { Reward as RewardSchema, RewardDocument } from '../schemas/reward.schema';
+import { RewardDocument, Reward as RewardSchema } from '../schemas/reward.schema';
 import { RewardRepository } from './reward.repository';
 
 @Injectable()
@@ -116,6 +116,9 @@ export class MongoRewardRepository extends RewardRepository {
       pointsRequired: doc.pointsRequired,
       enabled: doc.enabled,
       totalExchanges: doc.totalExchanges,
+      imageUrl: doc.imageUrl,
+      imagePath: doc.imagePath,
+      mediaType: doc.mediaType,
       createdAt: doc.createdAt || new Date(),
       updatedAt: doc.updatedAt || new Date(),
     };

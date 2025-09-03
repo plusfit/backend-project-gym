@@ -30,12 +30,37 @@ export class CreateRewardDto {
   @Min(1)
   pointsRequired!: number;
 
-  @ApiPropertyOptional({ 
-    description: 'Reward enabled status', 
+  @ApiPropertyOptional({
+    description: 'Reward enabled status',
     default: false,
     example: true
   })
   @IsOptional()
   @IsBoolean()
   enabled?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Reward image URL from Firebase Storage',
+    example: 'https://firebasestorage.googleapis.com/v0/b/gym-app.appspot.com/o/rewards%2Fabc123.jpg?alt=media'
+  })
+  @IsOptional()
+  @IsString()
+  imageUrl?: string;
+
+  @ApiPropertyOptional({
+    description: 'Reward image path in Firebase Storage',
+    example: 'rewards/abc123.jpg'
+  })
+  @IsOptional()
+  @IsString()
+  imagePath?: string;
+
+  @ApiPropertyOptional({
+    description: 'Media type of the reward image',
+    enum: ['image', 'video'],
+    example: 'image'
+  })
+  @IsOptional()
+  @IsString()
+  mediaType?: 'image' | 'video';
 }

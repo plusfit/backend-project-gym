@@ -5,6 +5,9 @@ export class Reward {
   pointsRequired!: number;
   enabled!: boolean;
   totalExchanges!: number;
+  imageUrl?: string;
+  imagePath?: string;
+  mediaType?: 'image' | 'video';
   createdAt!: Date;
   updatedAt!: Date;
 }
