@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
 import { Exchange, ExchangeFilters, ExchangeResponse } from '../entities/exchange.entity';
-import { Exchange as ExchangeSchema, ExchangeDocument } from '../schemas/exchange.schema';
+import { ExchangeDocument, Exchange as ExchangeSchema } from '../schemas/exchange.schema';
 import { ExchangeRepository } from './exchange.repository';
 
 @Injectable()
@@ -53,10 +53,15 @@ export class MongoExchangeRepository extends ExchangeRepository {
       query.status = status;
     }
 
-    // Execute query with pagination
+    // Execute query with pagination and populate reward datanpm
     const [data, totalCount] = await Promise.all([
       this.exchangeModel
         .find(query)
+        .populate({
+          path: 'rewardId',
+          select: 'imageUrl imagePath mediaType',
+          model: 'Reward'
+        })
         .sort({ exchangeDate: -1 })
         .skip(skip)
         .limit(limit)
@@ -78,13 +83,25 @@ export class MongoExchangeRepository extends ExchangeRepository {
   }
 
   async findById(id: string): Promise<Exchange | null> {
-    const exchange = await this.exchangeModel.findById(id).exec();
+    const exchange = await this.exchangeModel
+      .findById(id)
+      .populate({
+        path: 'rewardId',
+        select: 'imageUrl imagePath mediaType',
+        model: 'Reward'
+      })
+      .exec();
     return exchange ? this.mapToEntity(exchange) : null;
   }
 
   async findByClientId(clientId: string): Promise<Exchange[]> {
     const exchanges = await this.exchangeModel
       .find({ clientId })
+      .populate({
+        path: 'rewardId',
+        select: 'imageUrl imagePath mediaType',
+        model: 'Reward'
+      })
       .sort({ exchangeDate: -1 })
       .exec();
     return exchanges.map(doc => this.mapToEntity(doc));
@@ -93,6 +110,11 @@ export class MongoExchangeRepository extends ExchangeRepository {
   async findByRewardId(rewardId: string): Promise<Exchange[]> {
     const exchanges = await this.exchangeModel
       .find({ rewardId })
+      .populate({
+        path: 'rewardId',
+        select: 'imageUrl imagePath mediaType',
+        model: 'Reward'
+      })
       .sort({ exchangeDate: -1 })
       .exec();
     return exchanges.map(doc => this.mapToEntity(doc));
@@ -115,10 +137,19 @@ export class MongoExchangeRepository extends ExchangeRepository {
   }
 
   private mapToEntity(doc: ExchangeDocument): Exchange {
+    // Handle populated reward data
+    const populatedReward = doc.rewardId as any;
+    const rewardImageUrl = doc.rewardImageUrl || (populatedReward?.imageUrl);
+    const rewardImagePath = doc.rewardImagePath || (populatedReward?.imagePath);
+    const rewardMediaType = doc.rewardMediaType || (populatedReward?.mediaType);
+
     return {
       id: doc._id?.toString() || '',
-      rewardId: doc.rewardId,
+      rewardId: typeof doc.rewardId === 'string' ? doc.rewardId : (doc.rewardId as any)?.toString() || '',
       rewardName: doc.rewardName,
+      rewardImageUrl,
+      rewardImagePath,
+      rewardMediaType,
       clientId: doc.clientId,
       clientName: doc.clientName,
       clientEmail: doc.clientEmail,

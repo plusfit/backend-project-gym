@@ -173,6 +173,9 @@ export class RewardsService {
       const exchange = await this.exchangeRepository.create({
         rewardId: reward.id,
         rewardName: reward.name,
+        rewardImageUrl: reward.imageUrl,
+        rewardImagePath: reward.imagePath,
+        rewardMediaType: reward.mediaType,
         clientId: client.id,
         clientName: client.name,
         clientEmail: client.email,

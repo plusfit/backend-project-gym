@@ -9,6 +9,15 @@ export class Exchange {
   @Prop({ type: String, required: true })
   rewardName!: string;
 
+  @Prop({ type: String, trim: true })
+  rewardImageUrl?: string;
+
+  @Prop({ type: String, trim: true })
+  rewardImagePath?: string;
+
+  @Prop({ type: String, enum: ['image', 'video'] })
+  rewardMediaType?: 'image' | 'video';
+
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Client', required: true })
   clientId!: string;
 
