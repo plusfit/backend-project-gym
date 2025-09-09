@@ -1,19 +1,21 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional,IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateExchangeDto {
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'ID of the reward to exchange',
     example: '507f1f77bcf86cd799439011'
   })
   @IsString()
+  @IsNotEmpty()
   rewardId!: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'ID of the client making the exchange',
     example: '507f1f77bcf86cd799439012'
   })
   @IsString()
+  @IsNotEmpty()
   clientId!: string;
 
   @ApiPropertyOptional({ 

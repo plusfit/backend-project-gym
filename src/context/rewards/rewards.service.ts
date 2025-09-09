@@ -177,7 +177,7 @@ export class RewardsService {
         rewardImagePath: reward.imagePath,
         rewardMediaType: reward.mediaType,
         clientId: client.id,
-        clientName: client.name,
+        clientName: client.userInfo?.name || client.email || 'Cliente',
         clientEmail: client.email,
         adminId: createExchangeDto.adminId,
         adminName,
@@ -205,7 +205,7 @@ export class RewardsService {
       this.logger.error('Error processing exchange', error);
       return {
         success: false,
-        message: 'Error interno del sistema',
+        message: error instanceof Error ? error.message : 'Error interno del sistema',
       };
     }
   }
