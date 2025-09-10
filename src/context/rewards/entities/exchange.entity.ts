@@ -18,8 +18,8 @@ export class Exchange {
 }
 
 export interface ExchangeFilters {
-  startDate?: string;
-  endDate?: string;
+  dateFrom?: string;
+  dateTo?: string;
   search?: string;
   status?: 'completed' | 'pending' | 'cancelled';
   page?: number;
