@@ -78,4 +78,12 @@ export class MongoScheduleRepository implements ScheduleRepository {
 	async getSchedulesByUserId(userId: string): Promise<Schedule[]> {
 		return this.scheduleModel.find({ clients: userId }).exec();
 	}
+
+	async getSchedulesByDay(day: string): Promise<Schedule[]> {
+		return this.scheduleModel.find({ day }).exec();
+	}
+
+	async getDisabledSchedules(): Promise<Schedule[]> {
+		return this.scheduleModel.find({ disabled: true }).exec();
+	}
 }

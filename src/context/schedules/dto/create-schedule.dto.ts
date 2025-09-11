@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsInt, IsMongoId, IsString } from "class-validator";
+import { IsArray, IsInt, IsMongoId, IsString, IsOptional, IsBoolean } from "class-validator";
 
 export class CreateScheduleDto {
 	@ApiProperty({
@@ -37,4 +37,22 @@ export class CreateScheduleDto {
 	})
 	@IsString()
 	day!: string;
+
+	@ApiProperty({
+		description: "Estado de habilitación del horario",
+		example: false,
+		required: false,
+	})
+	@IsOptional()
+	@IsBoolean()
+	disabled?: boolean;
+
+	@ApiProperty({
+		description: "Razón por la cual se deshabilita el horario (opcional)",
+		example: "Mantenimiento del gimnasio",
+		required: false,
+	})
+	@IsOptional()
+	@IsString()
+	disabledReason?: string;
 }

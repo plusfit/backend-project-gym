@@ -23,4 +23,6 @@ export interface ScheduleRepository {
 		updateConfigDto: UpdateConfigDto,
 	): Promise<any>;
 	getSchedulesByUserId(userId: string): Promise<Schedule[]>;
+	getSchedulesByDay(day: string): Promise<Schedule[]>;
+	getDisabledSchedules(): Promise<Schedule[]>;
 }
