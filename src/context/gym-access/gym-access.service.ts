@@ -633,7 +633,9 @@ export class GymAccessService {
 				return [];
 			}
 			
-			const todaySchedules = schedules.filter((schedule: any) => schedule.day === currentDay);
+			const todaySchedules = schedules.filter((schedule: any) => 
+				schedule.day === currentDay && !schedule.disabled // Filter out disabled schedules
+			);
 			
 			const [currentHour] = currentTime.split(':').map(Number);
 			const nextHour = currentHour + 1;
