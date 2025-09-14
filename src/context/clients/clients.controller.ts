@@ -9,7 +9,7 @@ import {
 	Query,
 	UseGuards,
 } from "@nestjs/common";
-import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { ApiOperation, ApiResponse,ApiTags } from "@nestjs/swagger";
 
 import { ClientsService } from "@/src/context/clients/clients.service";
 import { GetClientsDto } from "@/src/context/clients/dto/get-clients.dto";

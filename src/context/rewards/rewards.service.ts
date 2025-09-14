@@ -10,6 +10,7 @@ import { Exchange, ExchangeResponse, ExchangeResult } from './entities/exchange.
 import { Reward, RewardResponse } from './entities/reward.entity';
 import { ExchangeRepository } from './repositories/exchange.repository';
 import { RewardRepository } from './repositories/reward.repository';
+import { Client } from '../clients/schemas/client.schema';
 
 @Injectable()
 export class RewardsService {
@@ -143,12 +144,9 @@ export class RewardsService {
       }
 
       // Verify that the client exists and has sufficient points
-      const client = await this.clientsService.findOne(createExchangeDto.clientId);
+      let client: Client = await this.clientsService.findOne(createExchangeDto.clientId);
       if (!client) {
-        return {
-          success: false,
-          message: 'Cliente no encontrado',
-        };
+        throw new NotFoundException('Cliente no encontrado');
       }
 
       // Verify available points (assuming the client has an availablePoints field)
@@ -167,13 +165,12 @@ export class RewardsService {
         // adminName = await this.getAdminName(createExchangeDto.adminId);
         adminName = 'Administrator'; // Placeholder
       }
-
       // Create the exchange
       const exchange = await this.exchangeRepository.create({
         rewardId: reward.id,
         rewardName: reward.name,
         clientId: client.id,
-        clientName: client.name,
+        clientName: client.userInfo?.name,
         clientEmail: client.email,
         adminId: createExchangeDto.adminId,
         adminName,
@@ -182,9 +179,7 @@ export class RewardsService {
         status: 'completed',
       });
 
-      // Update client points
-      const newAvailablePoints = availablePoints - reward.pointsRequired;
-      await this.clientsService.updatePoints(client.id, newAvailablePoints);
+      const newAvailablePoints = availablePoints;
 
       // Increment exchange counter for the reward
       await this.rewardRepository.incrementExchanges(reward.id);
@@ -197,12 +192,11 @@ export class RewardsService {
         remainingPoints: newAvailablePoints,
         exchange,
       };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error processing exchange', error);
-      return {
-        success: false,
-        message: 'Error interno del sistema',
-      };
+      this.logger.error('Error details:', error instanceof Error ? error.message : String(error));
+      this.logger.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
+      throw new Error(`Error processing exchange: ${error.message}`)
     }
   }
 
