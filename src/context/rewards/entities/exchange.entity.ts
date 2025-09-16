@@ -2,6 +2,9 @@ export class Exchange {
   id!: string;
   rewardId!: string;
   rewardName!: string;
+  rewardImageUrl?: string;
+  rewardImagePath?: string;
+  rewardMediaType?: 'image' | 'video';
   clientId!: string;
   clientName!: string;
   clientEmail!: string;

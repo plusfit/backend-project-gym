@@ -18,6 +18,15 @@ export class Reward {
   @Prop({ type: Number, default: 0 })
   totalExchanges!: number;
 
+  @Prop({ type: String, trim: true })
+  imageUrl?: string;
+
+  @Prop({ type: String, trim: true })
+  imagePath?: string;
+
+  @Prop({ type: String, enum: ['image', 'video'] })
+  mediaType?: 'image' | 'video';
+
   createdAt?: Date;
   updatedAt?: Date;
 }

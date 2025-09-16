@@ -9,7 +9,7 @@ export class GetExchangesDto {
   })
   @IsOptional()
   @IsString()
-  startDate?: string;
+  dateFrom?: string;
 
   @ApiPropertyOptional({ 
     description: 'End date to filter exchanges (ISO format)',
@@ -17,7 +17,7 @@ export class GetExchangesDto {
   })
   @IsOptional()
   @IsString()
-  endDate?: string;
+  dateTo?: string;
 
   @ApiPropertyOptional({ 
     description: 'Search by client name or reward',

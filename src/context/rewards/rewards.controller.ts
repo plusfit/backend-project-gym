@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -8,7 +7,7 @@ import {
   Patch,
   Post,
   Query,
-  UseGuards,
+  UseGuards
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
@@ -20,6 +19,7 @@ import { CreateExchangeDto } from './dto/create-exchange.dto';
 import { CreateRewardDto } from './dto/create-reward.dto';
 import { GetExchangesDto } from './dto/get-exchanges.dto';
 import { GetRewardsDto } from './dto/get-rewards.dto';
+import { UpdateExchangeStatusDto } from './dto/update-exchange-status.dto';
 import { UpdateRewardDto } from './dto/update-reward.dto';
 import { RewardsService } from './rewards.service';
 
@@ -177,6 +177,24 @@ export class RewardsController {
     const exchange = await this.rewardsService.findExchangeById(id);
     return {
       success: true,
+      data: exchange,
+    };
+  }
+
+  @Patch('exchanges/:exchangeId/status')
+  @ApiOperation({ summary: 'Actualizar estado de un canje' })
+  @ApiResponse({ status: 200, description: 'Estado del canje actualizado exitosamente' })
+  @ApiResponse({ status: 404, description: 'Canje no encontrado' })
+  @ApiResponse({ status: 400, description: 'Error al actualizar el estado del canje' })
+  async updateExchangeStatus(
+    @Param('exchangeId') exchangeId: string,
+    @Body() updateExchangeStatusDto: UpdateExchangeStatusDto,
+  ) {
+    const exchange = await this.rewardsService.updateExchangeStatus(exchangeId, updateExchangeStatusDto);
+    
+    return {
+      success: true,
+      message: `Estado del canje actualizado a ${updateExchangeStatusDto.status}`,
       data: exchange,
     };
   }
