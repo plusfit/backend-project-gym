@@ -461,6 +461,10 @@ export class GymAccessService {
 		client.lastAccess = accessDate;
 		client.totalAccesses = (client.totalAccesses || 0) + 1;
 		client.consecutiveDays = consecutiveDays;
+		
+		// Add points for gym access (1 point per access)
+		const POINTS_PER_ACCESS = 1;
+		client.availablePoints = (client.availablePoints || 0) + POINTS_PER_ACCESS;
 
 		return client.save();
 	}

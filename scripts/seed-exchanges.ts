@@ -9,9 +9,9 @@ import { MongooseModule } from "@nestjs/mongoose";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 
+import { Client, ClientSchema } from "../src/context/clients/schemas/client.schema";
 import { Exchange, ExchangeSchema } from "../src/context/rewards/schemas/exchange.schema";
 import { Reward, RewardSchema } from "../src/context/rewards/schemas/reward.schema";
-import { Client, ClientSchema } from "../src/context/clients/schemas/client.schema";
 
 @Injectable()
 class SeedService {
