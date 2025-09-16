@@ -1,6 +1,8 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform, Type } from 'class-transformer';
-import { IsIn,IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsIn, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+
+import { ExchangeStatus } from '@/src/context/shared/enums/exchange-status.enum';
 
 export class GetExchangesDto {
   @ApiPropertyOptional({ 
@@ -29,13 +31,13 @@ export class GetExchangesDto {
 
   @ApiPropertyOptional({ 
     description: 'Filter by exchange status',
-    enum: ['completed', 'pending', 'cancelled'],
-    example: 'completed'
+    enum: Object.values(ExchangeStatus),
+    example: ExchangeStatus.COMPLETED
   })
   @IsOptional()
   @IsString()
-  @IsIn(['completed', 'pending', 'cancelled'])
-  status?: 'completed' | 'pending' | 'cancelled';
+  @IsIn(Object.values(ExchangeStatus))
+  status?: ExchangeStatus;
 
   @ApiPropertyOptional({ 
     description: 'Page number',

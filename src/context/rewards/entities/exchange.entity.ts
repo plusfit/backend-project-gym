@@ -1,3 +1,5 @@
+import { ExchangeStatus } from '@/src/context/shared/enums/exchange-status.enum';
+
 export class Exchange {
   id!: string;
   rewardId!: string;
@@ -12,7 +14,7 @@ export class Exchange {
   adminName?: string;
   pointsUsed!: number;
   exchangeDate!: Date;
-  status!: 'completed' | 'pending' | 'cancelled';
+  status!: ExchangeStatus;
   createdAt!: Date;
   updatedAt!: Date;
 }
@@ -21,7 +23,7 @@ export interface ExchangeFilters {
   dateFrom?: string;
   dateTo?: string;
   search?: string;
-  status?: 'completed' | 'pending' | 'cancelled';
+  status?: ExchangeStatus;
   page?: number;
   limit?: number;
 }

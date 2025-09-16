@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
 import { Reward, RewardFilters, RewardResponse } from '../entities/reward.entity';
-import { RewardDocument, Reward as RewardSchema } from '../schemas/reward.schema';
+import { Reward as RewardSchema,RewardDocument } from '../schemas/reward.schema';
 import { RewardRepository } from './reward.repository';
 
 @Injectable()

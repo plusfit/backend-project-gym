@@ -1,6 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 
+import { ExchangeStatus } from '../../shared/enums/exchange-status.enum';
+
+
 @Schema({ collection: 'exchanges', timestamps: true })
 export class Exchange {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Reward', required: true })
@@ -41,10 +44,10 @@ export class Exchange {
 
   @Prop({ 
     type: String, 
-    enum: ['completed', 'pending', 'cancelled'], 
-    default: 'completed' 
+    enum: Object.values(ExchangeStatus), 
+    default: ExchangeStatus.COMPLETED 
   })
-  status!: 'completed' | 'pending' | 'cancelled';
+  status!: ExchangeStatus;
 
   createdAt?: Date;
   updatedAt?: Date;

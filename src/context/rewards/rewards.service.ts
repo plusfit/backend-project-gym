@@ -1,6 +1,9 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 
+import { ExchangeStatus } from '@/src/context/shared/enums/exchange-status.enum';
+
 import { ClientsService } from '../clients/clients.service';
+import { Client } from '../clients/schemas/client.schema';
 import { CreateExchangeDto } from './dto/create-exchange.dto';
 import { CreateRewardDto } from './dto/create-reward.dto';
 import { GetExchangesDto } from './dto/get-exchanges.dto';
@@ -11,7 +14,6 @@ import { Exchange, ExchangeResponse, ExchangeResult } from './entities/exchange.
 import { Reward, RewardResponse } from './entities/reward.entity';
 import { ExchangeRepository } from './repositories/exchange.repository';
 import { RewardRepository } from './repositories/reward.repository';
-import { Client } from '../clients/schemas/client.schema';
 
 @Injectable()
 export class RewardsService {
@@ -128,7 +130,6 @@ export class RewardsService {
     this.logger.log('Processing exchange request', createExchangeDto);
 
     try {
-      // Verify that the reward exists and is enabled
       const reward = await this.rewardRepository.findById(createExchangeDto.rewardId);
       if (!reward) {
         return {
@@ -144,13 +145,11 @@ export class RewardsService {
         };
       }
 
-      // Verify that the client exists and has sufficient points
-      let client: Client = await this.clientsService.findOne(createExchangeDto.clientId);
+      const client: Client = await this.clientsService.findOne(createExchangeDto.clientId);
       if (!client) {
         throw new NotFoundException('Cliente no encontrado');
       }
 
-      // Verify available points (assuming the client has an availablePoints field)
       const availablePoints = client.availablePoints || 0;
       if (availablePoints < reward.pointsRequired) {
         return {
@@ -159,14 +158,14 @@ export class RewardsService {
         };
       }
 
-      // Get admin information if provided
       let adminName: string | undefined;
+      // TODO: Review if this is necessary
       if (createExchangeDto.adminId) {
         // Here you should get the admin information
         // adminName = await this.getAdminName(createExchangeDto.adminId);
         adminName = 'Administrator'; // Placeholder
       }
-      // Create the exchange
+      
       const exchange = await this.exchangeRepository.create({
         rewardId: reward.id,
         rewardName: reward.name,
@@ -180,7 +179,7 @@ export class RewardsService {
         adminName,
         pointsUsed: reward.pointsRequired,
         exchangeDate: new Date(),
-        status: 'completed',
+        status: ExchangeStatus.PENDING,
       });
 
       const newAvailablePoints = availablePoints;

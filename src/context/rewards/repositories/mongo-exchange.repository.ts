@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
 import { Exchange, ExchangeFilters, ExchangeResponse } from '../entities/exchange.entity';
-import { ExchangeDocument, Exchange as ExchangeSchema } from '../schemas/exchange.schema';
+import { Exchange as ExchangeSchema,ExchangeDocument } from '../schemas/exchange.schema';
 import { ExchangeRepository } from './exchange.repository';
 
 @Injectable()
@@ -143,9 +143,18 @@ export class MongoExchangeRepository extends ExchangeRepository {
     const rewardImagePath = doc.rewardImagePath || (populatedReward?.imagePath);
     const rewardMediaType = doc.rewardMediaType || (populatedReward?.mediaType);
 
+    let rewardId: string;
+    if (typeof doc.rewardId === 'string') {
+      rewardId = doc.rewardId;
+    } else if (doc.rewardId && typeof doc.rewardId === 'object' && (doc.rewardId as any)._id) {
+      rewardId = (doc.rewardId as any)._id.toString();
+    } else {
+      rewardId = String(doc.rewardId) || '';
+    }
+
     return {
       id: doc._id?.toString() || '',
-      rewardId: typeof doc.rewardId === 'string' ? doc.rewardId : (doc.rewardId as any)?.toString() || '',
+      rewardId,
       rewardName: doc.rewardName,
       rewardImageUrl,
       rewardImagePath,
