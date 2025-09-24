@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString } from "class-validator";
+import { IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator";
 
 export class RegisterAuthDto {
 	@ApiProperty({ example: "user@example.com" })
@@ -14,4 +14,13 @@ export class RegisterAuthDto {
 	@IsString()
 	@IsNotEmpty()
 	recaptchaToken!: string;
+
+	@ApiProperty({ 
+		example: "mySecurePassword123", 
+		description: "User password (optional)" 
+	})
+	@IsOptional()
+	@IsString()
+	@MinLength(6, { message: 'Password must be at least 6 characters long' })
+	password?: string;
 }

@@ -24,11 +24,17 @@ export class RecaptchaService {
 
   async verifyRecaptcha(token: string, expectedAction: string, clientIp?: string): Promise<boolean> {
     try {
+      console.log('🤖 reCAPTCHA verification starting');
+      console.log('Expected action:', expectedAction);
+      console.log('Token length:', token?.length);
+      console.log('Client IP:', clientIp);
+
       if (!token || token.trim() === '') {
-        console.error('reCAPTCHA token is empty or invalid');
+        console.error('❌ reCAPTCHA token is empty or invalid');
         return false;
       }
 
+      console.log('🌐 Making request to Google reCAPTCHA API...');
       const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
         method: 'POST',
         headers: {
@@ -42,14 +48,15 @@ export class RecaptchaService {
       });
 
       if (!response.ok) {
-        console.error(`reCAPTCHA API request failed with status: ${response.status}`);
+        console.error(`❌ reCAPTCHA API request failed with status: ${response.status}`);
         return false;
       }
 
       const data: RecaptchaResponse = await response.json();
+      console.log('📋 reCAPTCHA API response:', JSON.stringify(data, null, 2));
 
       if (!data.success) {
-        console.error('reCAPTCHA verification failed:', data['error-codes']);
+        console.error('❌ reCAPTCHA verification failed:', data['error-codes']);
         return false;
       }
 
@@ -58,21 +65,25 @@ export class RecaptchaService {
       const isValidGoogleAction = data.action === 'google_login' || data.action === 'google_register';
       
       if (isGoogleAction && isValidGoogleAction) {
-        // Para acciones de Google, aceptamos tanto google_login como google_register
+        console.log('✅ Google action validated');
       } else if (data.action !== expectedAction) {
-        console.error(`reCAPTCHA action mismatch. Expected: ${expectedAction}, Got: ${data.action}`);
+        console.error(`❌ reCAPTCHA action mismatch. Expected: ${expectedAction}, Got: ${data.action}`);
         return false;
+      } else {
+        console.log('✅ Action validated:', data.action);
       }
 
       // Verificar el score (para reCAPTCHA v3)
+      console.log('📊 reCAPTCHA score:', data.score, 'Min required:', this.minScore);
       if (data.score < this.minScore) {
-        console.warn(`reCAPTCHA score too low: ${data.score}. Minimum required: ${this.minScore}`);
+        console.warn(`⚠️ reCAPTCHA score too low: ${data.score}. Minimum required: ${this.minScore}`);
         return false;
       }
 
+      console.log('🎉 reCAPTCHA verification successful!');
       return true;
     } catch (error) {
-      console.error('Error verifying reCAPTCHA:', error);
+      console.error('❌ Error verifying reCAPTCHA:', error);
       return false;
     }
   }

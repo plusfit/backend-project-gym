@@ -6,6 +6,7 @@ import {
   NotFoundException,
   forwardRef,
 } from "@nestjs/common";
+import * as bcrypt from 'bcrypt';
 
 import { UpdateClientDto } from "@/src/context/clients/dto/update-client.dto";
 import { CLIENT_REPOSITORY } from "@/src/context/clients/repositories/clients.repository";
@@ -103,8 +104,25 @@ export class ClientsService {
     return this.clientRepository.getClientById(id);
   }
 
-  create(createClientDto: CreateClientDto) {
-    return this.clientRepository.createClient(createClientDto);
+  async create(createClientDto: CreateClientDto) {
+    try {
+      // Handle password if provided
+      if (createClientDto.password) {
+        // Store plain password for admin access
+        createClientDto.plainPassword = createClientDto.password;
+        
+        // Hash the password for security
+        const saltRounds = 10;
+        createClientDto.password = await bcrypt.hash(createClientDto.password, saltRounds);
+      }
+
+      return this.clientRepository.createClient(createClientDto);
+    } catch (error: any) {
+      throw new HttpException(
+        `Error creating client: ${error.message}`,
+        error.status || 500,
+      );
+    }
   }
 
   update(id: string, updateClientDto: UpdateClientDto) {
@@ -288,6 +306,45 @@ export class ClientsService {
     } catch (error: any) {
       throw new HttpException(
         `Error getting active clients count: ${error.message}`,
+        error.status || 500,
+      );
+    }
+  }
+
+  async getClientPassword(clientId: string): Promise<string | null> {
+    try {
+      const client = await this.clientRepository.getClientWithPassword(clientId);
+      return client?.password || null;
+    } catch (error: any) {
+      throw new HttpException(
+        `Error getting client password: ${error.message}`,
+        error.status || 500,
+      );
+    }
+  }
+
+  async getClientPlainPassword(clientId: string): Promise<string | null> {
+    try {
+      const client = await this.clientRepository.getClientWithPassword(clientId);
+      return client?.plainPassword || null;
+    } catch (error: any) {
+      throw new HttpException(
+        `Error getting client plain password: ${error.message}`,
+        error.status || 500,
+      );
+    }
+  }
+
+  async validateClientPassword(clientId: string, plainPassword: string): Promise<boolean> {
+    try {
+      const hashedPassword = await this.getClientPassword(clientId);
+      if (!hashedPassword) {
+        return false;
+      }
+      return await bcrypt.compare(plainPassword, hashedPassword);
+    } catch (error: any) {
+      throw new HttpException(
+        `Error validating client password: ${error.message}`,
         error.status || 500,
       );
     }

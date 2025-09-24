@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
+import { Inject, Injectable, UnauthorizedException, forwardRef } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios from "axios";
 import jwt from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
 import firebaseAdmin from "firebase-admin";
+import * as bcrypt from 'bcrypt';
 
 import { LoginAuthDto } from "@/src/context/auth/dto/login-auth.dto";
 import { RefreshTokenAuthDto } from "@/src/context/auth/dto/refresh-token-auth-dto";
@@ -13,6 +14,7 @@ import { InternalRegisterAuthDto } from "@/src/context/auth/dto/internal-registe
 import { AUTH_REPOSITORY } from "@/src/context/auth/repositories/auth.repository";
 import { OnboardingService } from "../onboarding/onboarding.service";
 import { GoogleAuthDto } from "@/src/context/auth/dto/google-auth.dto";
+import { ClientsService } from "../clients/clients.service";
 
 @Injectable()
 export class AuthService {
@@ -21,13 +23,27 @@ export class AuthService {
 		private readonly authRepository: any,
 		private readonly onboardingService: OnboardingService,
 		private readonly configService: ConfigService,
+		@Inject(forwardRef(() => ClientsService))
+		private readonly clientsService: ClientsService,
 	) {}
 
 	async register(registerDto: RegisterAuthDto) {
 		try {
-			return await this.authRepository.register(registerDto);
+			// Handle password if provided
+			if (registerDto.password) {
+				// Store original password for potential admin access
+				const originalPassword = registerDto.password;
+				
+				// Hash the password
+				const saltRounds = 10;
+				registerDto.password = await bcrypt.hash(registerDto.password, saltRounds);
+				
+				// Add plain password to the DTO
+				(registerDto as any).plainPassword = originalPassword;
+			}
+			const result = await this.authRepository.register(registerDto);
+			return result;
 		} catch (error: any) {
-			console.log(error);
 			throw new UnauthorizedException("Error al registrar, verifique datos");
 		}
 	}
@@ -46,6 +62,11 @@ export class AuthService {
 				throw new UnauthorizedException(
 					"Usuario deshabilitado. Contacte al administrador",
 				);
+			}
+
+			// Verificar y actualizar contraseña si es necesario
+			if (loginDto.password) {
+				await this.checkAndUpdatePassword(_doc._id, loginDto.password);
 			}
 
 			//elimino el refresh tokenS
@@ -321,6 +342,34 @@ export class AuthService {
 		} catch (error) {
 			console.error("Firebase token verification error:", error);
 			throw new Error("Error verifying Firebase token");
+		}
+	}
+
+	private async checkAndUpdatePassword(userId: string, plainPassword: string): Promise<void> {
+		try {
+			// Obtener la contraseña actual del usuario
+			const currentPassword = await this.clientsService.getClientPassword(userId);
+			
+			// Si no hay contraseña guardada, guardar la nueva
+			if (!currentPassword) {
+				const hashedPassword = await bcrypt.hash(plainPassword, 10);
+				await this.authRepository.updatePassword(userId, hashedPassword);
+				await this.authRepository.updatePlainPassword(userId, plainPassword);
+				return;
+			}
+			
+			// Verificar si la contraseña actual es diferente a la ingresada
+			const isSamePassword = await bcrypt.compare(plainPassword, currentPassword);
+			
+			// Si son diferentes, actualizar con la nueva contraseña
+			if (!isSamePassword) {
+				const hashedPassword = await bcrypt.hash(plainPassword, 10);
+				await this.authRepository.updatePassword(userId, hashedPassword);
+				await this.authRepository.updatePlainPassword(userId, plainPassword);
+			}
+		} catch (error: any) {
+			console.error("Error checking and updating password:", error);
+			// No lanzamos el error para no interrumpir el login si hay problemas con la contraseña
 		}
 	}
 }
