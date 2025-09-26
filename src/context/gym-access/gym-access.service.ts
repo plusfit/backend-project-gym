@@ -16,6 +16,7 @@ import { GetGymAccessHistoryDto } from "./dto/get-gym-access-history.dto";
 enum AccessErrorMessages {
 	CLIENT_NOT_FOUND = "Cliente no encontrado en el sistema",
 	CLIENT_DISABLED = "Cliente deshabilitado",
+	NO_AVAILABLE_DAYS = "Sin días disponibles, debes abonar el mes",
 	ALREADY_ACCESSED = "Cliente ya registró acceso el día de hoy",
 	OUTSIDE_OPERATING_HOURS = "Fuera del horario de atención del gimnasio",
 	SYSTEM_ERROR = "Error interno del sistema",
@@ -189,6 +190,20 @@ export class GymAccessService {
 			};
 		}
 
+		// Check if client has available days
+		if (!client.availableDays || client.availableDays <= 0) {
+			return {
+				isValid: false,
+				response: await this.createDenialResponseWithRecord(
+					AccessErrorMessages.NO_AVAILABLE_DAYS,
+					client,
+					cedula,
+					today,
+					accessDay
+				)
+			};
+		}
+
 		return { isValid: true, client };
 	}
 
@@ -352,7 +367,7 @@ export class GymAccessService {
 			scheduleId: currentScheduleInfo?.scheduleId,
 		});
 
-		// Update client statistics
+		// Update client statistics and decrement available days
 		const updatedClient = await this.updateClientStats((client._id as Types.ObjectId).toString(), today);
 
 		// Check for rewards
@@ -490,6 +505,8 @@ export class GymAccessService {
 		client.lastAccess = utcLastAccess;
 		client.totalAccesses = (client.totalAccesses || 0) + 1;
 		client.consecutiveDays = consecutiveDays;
+		
+		
 
 		return client.save();
 	}
