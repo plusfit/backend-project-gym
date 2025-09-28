@@ -13,6 +13,8 @@ import { PlansModule } from "@/src/context/plans/plans.module";
 import { SchedulesService } from "../schedules/schedules.service";
 import { SchedulesModule } from "../schedules/schedules.module";
 import { Routine, RoutineSchema } from "../routines/schemas/routine.schema";
+import { DailyDecrementService } from "./services/daily-decrement.service";
+import { AvailableDaysController } from "./available-days.controller";
 
 @Module({
   imports: [
@@ -23,14 +25,15 @@ import { Routine, RoutineSchema } from "../routines/schemas/routine.schema";
       { name: Routine.name, schema: RoutineSchema },
     ]),
   ],
-  controllers: [ClientsController],
+  controllers: [ClientsController, AvailableDaysController],
   providers: [
     ClientsService,
+    DailyDecrementService,
     {
       provide: CLIENT_REPOSITORY,
       useClass: MongoClientsRepository,
     },
   ],
-  exports: [MongooseModule, CLIENT_REPOSITORY, ClientsService],
+  exports: [MongooseModule, CLIENT_REPOSITORY, ClientsService, DailyDecrementService],
 })
 export class ClientsModule {}

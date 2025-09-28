@@ -7,6 +7,7 @@ import {
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { MongooseModule } from "@nestjs/mongoose";
 import { LoggerModule } from "nestjs-pino";
+import { ScheduleModule } from '@nestjs/schedule';
 
 import { CorrelationIdMiddleware } from "../app/config/correlation-id/correlation-id.middleware" //"@/app/config/correlation-id/correlation-id.middleware";
 import { HealthModule } from "../app/health/health.module" //@/app/health/health.module";
@@ -31,6 +32,7 @@ import { CategoriesModule } from "../context/categories/categories.module";
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, cache: true }),
+    ScheduleModule.forRoot(),
     LoggerModule.forRoot({
       pinoHttp: {
         transport: {

@@ -292,4 +292,114 @@ export class ClientsService {
       );
     }
   }
+
+  /**
+   * Find client by ID
+   */
+  async findById(clientId: string): Promise<Client> {
+    try {
+      const client = await this.clientRepository.findById(clientId);
+      if (!client) {
+        throw new NotFoundException(`Client with ID ${clientId} not found`);
+      }
+      return client;
+    } catch (error: any) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new HttpException(
+        `Error finding client: ${error.message}`,
+        error.status || 500,
+      );
+    }
+  }
+
+
+  
+  async addAvailableDays(clientId: string, daysToAdd: number): Promise<Client> {
+    try {
+      if (daysToAdd <= 0) {
+        throw new HttpException(
+          'Days to add must be greater than 0',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const client = await this.clientRepository.getClientById(clientId);
+      if (!client) {
+        throw new NotFoundException(`Client with ID ${clientId} not found`);
+      }
+
+      const currentDays = client.availableDays || 0;
+      const newDays = currentDays + daysToAdd;
+
+      const updatedClient = await this.clientRepository.updateClient(clientId, {
+        availableDays: newDays,
+        updatedAt: new Date(),
+      });
+
+      return updatedClient;
+    } catch (error: any) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new HttpException(
+        `Error adding available days: ${error.message}`,
+        error.status || 500,
+      );
+    }
+  }
+
+  async getClientAvailableDays(clientId: string): Promise<{ clientId: string; availableDays: number }> {
+    try {
+      const client = await this.clientRepository.getClientById(clientId);
+      if (!client) {
+        throw new NotFoundException(`Client with ID ${clientId} not found`);
+      }
+
+      return {
+        clientId: client._id,
+        availableDays: client.availableDays || 0,
+      };
+    } catch (error: any) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new HttpException(
+        `Error getting available days: ${error.message}`,
+        error.status || 500,
+      );
+    }
+  }
+
+  async updateAvailableDays(clientId: string, newDays: number): Promise<Client> {
+    try {
+      if (newDays < 0) {
+        throw new HttpException(
+          'Available days cannot be negative',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const client = await this.clientRepository.getClientById(clientId);
+      if (!client) {
+        throw new NotFoundException(`Client with ID ${clientId} not found`);
+      }
+
+      const updatedClient = await this.clientRepository.updateClient(clientId, {
+        availableDays: newDays,
+        updatedAt: new Date(),
+      });
+
+      return updatedClient;
+    } catch (error: any) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new HttpException(
+        `Error updating available days: ${error.message}`,
+        error.status || 500,
+      );
+    }
+  }
 }
