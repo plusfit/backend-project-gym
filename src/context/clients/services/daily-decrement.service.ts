@@ -14,21 +14,29 @@ export class DailyDecrementService {
 	) {}
 
 	/**
-	 * Cron job that runs daily at 00:00 (midnight) to decrement available days
+	 * Cron job that runs daily at 00:00 (midnight) Montevideo time to decrement available days
 	 * Only decrements if availableDays > 0, never goes below 0
+	 * Timezone: America/Montevideo (UTC-3)
 	 */
-	@Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+	@Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
+		timeZone: 'America/Montevideo'
+	})
 	async decrementAvailableDays(): Promise<void> {
 		try {
-			this.logger.log('Starting daily decrement of available days...');
+			const now = new Date();
+			const montevideoTime = now.toLocaleString('es-UY', { 
+				timeZone: 'America/Montevideo',
+				dateStyle: 'full',
+				timeStyle: 'long'
+			});
+			
+			this.logger.log(`Starting daily decrement of available days at ${montevideoTime}...`);
 
 			// Find all clients that have available days > 0
 			const clientsWithAvailableDays = await this.clientModel.find({
 				availableDays: { $gt: 0 },
 				disabled: { $ne: true } // Only process active clients
 			});
-
-			this.logger.log(`Found ${clientsWithAvailableDays.length} clients with available days > 0`);
 
 			let decrementedCount = 0;
 			let expiredCount = 0;
@@ -54,7 +62,6 @@ export class DailyDecrementService {
 				// Check if client expired (reached 0 days)
 				if (newDays === 0 && currentDays > 0) {
 					expiredCount++;
-					this.logger.warn(`Client ${client.userInfo?.name || client.email} has expired (0 days remaining)`);
 				}
 
 				this.logger.debug(`Client ${client.userInfo?.name || client.email}: ${currentDays} → ${newDays} days`);
