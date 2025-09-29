@@ -1,10 +1,10 @@
 import {
+  forwardRef,
   HttpException,
   HttpStatus,
   Inject,
   Injectable,
   NotFoundException,
-  forwardRef,
 } from "@nestjs/common";
 
 import { UpdateClientDto } from "@/src/context/clients/dto/update-client.dto";
@@ -14,9 +14,9 @@ import { PlansService } from "@/src/context/plans/plans.service";
 import { Plan } from "@/src/context/plans/schemas/plan.schema";
 import { Routine } from "@/src/context/routines/schemas/routine.schema";
 
+import { SchedulesService } from "../schedules/schedules.service";
 import { CreateClientDto } from "./dto/create-client.dto";
 import { ClientFilters } from "./interfaces/clients.interface";
-import { SchedulesService } from "../schedules/schedules.service";
 
 @Injectable()
 export class ClientsService {
@@ -171,18 +171,18 @@ export class ClientsService {
   async assignRoutineToClient(clientId: string, routineId: string) {
     const client: Client = await this.clientRepository.getClientById(clientId);
     if (!client) {
-      throw new NotFoundException("Client not found");
+      throw new NotFoundException("Cliente no encontrado");
     }
 
     const routine: Routine =
       await this.clientRepository.getRoutineById(routineId);
     if (!routine) {
-      throw new NotFoundException("Routine not found");
+      throw new NotFoundException("Rutina no encontrada");
     }
 
     const plan: Plan = await this.plansService.findOne(client.planId);
     if (!plan) {
-      throw new NotFoundException(`Plan with ID ${client.planId} not found`);
+      throw new NotFoundException(`Plan con ID ${client.planId} no encontrado`);
     }
 
     if (plan.days < routine.subRoutines.length) {
@@ -281,6 +281,41 @@ export class ClientsService {
     }
   }
 
+  async updatePoints(clientId: string, availablePoints: number) {
+    try {
+      const client = await this.findOne(clientId);
+      if (!client) {
+        throw new NotFoundException(`Client with ID ${clientId} not found`);
+      }
+
+      return await this.update(clientId, { availablePoints });
+    } catch (error: any) {
+      throw new HttpException(
+        `Error updating client points: ${error.message}`,
+        error.status || 500,
+      );
+    }
+  }
+
+  async addPoints(clientId: string, points: number) {
+    try {
+      const client = await this.findOne(clientId);
+      if (!client) {
+        throw new NotFoundException(`Client with ID ${clientId} not found`);
+      }
+
+      const currentPoints = client.availablePoints || 0;
+      const newPoints = currentPoints + points;
+
+      return await this.update(clientId, { availablePoints: newPoints });
+    } catch (error: any) {
+      throw new HttpException(
+        `Error adding points to client: ${error.message}`,
+        error.status || 500,
+      );
+    }
+  }
+
   async getActiveClientsCount(): Promise<number> {
     try {
       const filters = { disabled: false };
@@ -288,6 +323,116 @@ export class ClientsService {
     } catch (error: any) {
       throw new HttpException(
         `Error getting active clients count: ${error.message}`,
+        error.status || 500,
+      );
+    }
+  }
+
+  /**
+   * Find client by ID
+   */
+  async findById(clientId: string): Promise<Client> {
+    try {
+      const client = await this.clientRepository.findById(clientId);
+      if (!client) {
+        throw new NotFoundException(`Client with ID ${clientId} not found`);
+      }
+      return client;
+    } catch (error: any) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new HttpException(
+        `Error finding client: ${error.message}`,
+        error.status || 500,
+      );
+    }
+  }
+
+
+  
+  async addAvailableDays(clientId: string, daysToAdd: number): Promise<Client> {
+    try {
+      if (daysToAdd <= 0) {
+        throw new HttpException(
+          'Days to add must be greater than 0',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const client = await this.clientRepository.getClientById(clientId);
+      if (!client) {
+        throw new NotFoundException(`Client with ID ${clientId} not found`);
+      }
+
+      const currentDays = client.availableDays || 0;
+      const newDays = currentDays + daysToAdd;
+
+      const updatedClient = await this.clientRepository.updateClient(clientId, {
+        availableDays: newDays,
+        updatedAt: new Date(),
+      });
+
+      return updatedClient;
+    } catch (error: any) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new HttpException(
+        `Error adding available days: ${error.message}`,
+        error.status || 500,
+      );
+    }
+  }
+
+  async getClientAvailableDays(clientId: string): Promise<{ clientId: string; availableDays: number }> {
+    try {
+      const client = await this.clientRepository.getClientById(clientId);
+      if (!client) {
+        throw new NotFoundException(`Client with ID ${clientId} not found`);
+      }
+
+      return {
+        clientId: client._id,
+        availableDays: client.availableDays || 0,
+      };
+    } catch (error: any) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new HttpException(
+        `Error getting available days: ${error.message}`,
+        error.status || 500,
+      );
+    }
+  }
+
+  async updateAvailableDays(clientId: string, newDays: number): Promise<Client> {
+    try {
+      if (newDays < 0) {
+        throw new HttpException(
+          'Available days cannot be negative',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const client = await this.clientRepository.getClientById(clientId);
+      if (!client) {
+        throw new NotFoundException(`Client with ID ${clientId} not found`);
+      }
+
+      const updatedClient = await this.clientRepository.updateClient(clientId, {
+        availableDays: newDays,
+        updatedAt: new Date(),
+      });
+
+      return updatedClient;
+    } catch (error: any) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new HttpException(
+        `Error updating available days: ${error.message}`,
         error.status || 500,
       );
     }

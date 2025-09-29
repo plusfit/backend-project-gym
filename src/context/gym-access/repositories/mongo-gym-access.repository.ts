@@ -2,10 +2,10 @@ import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
 
-import { GymAccess, AccessStats } from "../entities/gym-access.entity";
-import { GymAccessDocument } from "../schemas/gym-access.schema";
-import { GymAccessRepository, GymAccessFilters } from "./gym-access.repository";
 import { GetGymAccessHistoryDto } from "../dto/get-gym-access-history.dto";
+import { AccessStats,GymAccess } from "../entities/gym-access.entity";
+import { GymAccessDocument } from "../schemas/gym-access.schema";
+import { GymAccessFilters,GymAccessRepository } from "./gym-access.repository";
 
 @Injectable()
 export class MongoGymAccessRepository extends GymAccessRepository {

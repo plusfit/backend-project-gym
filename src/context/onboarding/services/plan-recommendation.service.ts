@@ -1,12 +1,13 @@
-import { Injectable, Inject, NotFoundException } from "@nestjs/common";
-import { StepData, TrainingPreferences } from "../schemas/onboarding.schema";
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+
 import { PLAN_REPOSITORY } from "../../plans/repositories/plans.repository";
+import { Plan } from "../../plans/schemas/plan.schema";
 import {
   PlanGoal,
   PlanType,
   SexType,
 } from "../../shared/enums/plan.enum";
-import { Plan } from "../../plans/schemas/plan.schema";
+import { StepData, TrainingPreferences } from "../schemas/onboarding.schema";
 @Injectable()
 export class PlanRecommendationService {
   constructor(

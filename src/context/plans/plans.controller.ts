@@ -112,7 +112,7 @@ export class PlansController {
 		return this.plansService.findByUserId(userId);
 	}
 
-	@ApiResponse({ status: 200, description: "Plan updated successfully." })
+	@ApiResponse({ status: 200, description: "Plan actualizado exitosamente." })
 	@ApiResponse({ status: 404, description: "Plan not found." })
 	@ApiResponse({ status: 500, description: "Internal server error." })
 	@Patch(":id")
@@ -125,7 +125,7 @@ export class PlansController {
 		}
 		this.logger.log(`Plan with ID: ${id} updated successfully.`);
 		return {
-			message: "Plan updated successfully.",
+			message: "Plan actualizado exitosamente.",
 			plan,
 		};
 	}
@@ -186,7 +186,7 @@ export class PlansController {
 			}
 
 			return {
-				message: "Plan assigned to user successfully.",
+				message: "Plan asignado al usuario exitosamente.",
 			};
 		} catch (error: any) {
 			this.logger.error(`Failed to assign plan to user: ${error.message}`);

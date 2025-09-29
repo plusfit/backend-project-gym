@@ -1,10 +1,11 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from '../src/app/app.module';
-import { EXERCISE_REPOSITORY } from '../src/context/exercises/repositories/exercise.repository';
-import { MediaType } from '../src/context/exercises/dto/create-exercise.dto';
-import { Model } from 'mongoose';
-import { Exercise } from '../src/context/exercises/schemas/exercise.schema';
 import { getModelToken } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+
+import { AppModule } from '../src/app/app.module';
+import { MediaType } from '../src/context/exercises/dto/create-exercise.dto';
+import { EXERCISE_REPOSITORY } from '../src/context/exercises/repositories/exercise.repository';
+import { Exercise } from '../src/context/exercises/schemas/exercise.schema';
 
 async function detectMediaType(url: string): Promise<MediaType> {
   if (!url) return MediaType.IMAGE; // default

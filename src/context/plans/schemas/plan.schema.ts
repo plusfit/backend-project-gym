@@ -10,28 +10,28 @@ import {
 
 @Schema()
 export class Plan extends Document {
-  @Prop({ required: true })
+  @Prop({ required: true, type: String })
   name!: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, type: String })
   type!: string;
 
-  @Prop({ required: true, enum: Object.values(PlanGoal) })
+  @Prop({ required: true, type: String, enum: Object.values(PlanGoal) })
   goal!: string;
 
-  @Prop({ required: true, enum: Object.values(SexType) })
+  @Prop({ required: true, type: String, enum: Object.values(SexType) })
   sexType!: string;
 
-  @Prop({ required: false, enum: Object.values(InjuryType), default: null })
+  @Prop({ required: false, type: String, enum: Object.values(InjuryType), default: null })
   injuryType?: string;
 
-  @Prop({ required: false })
+  @Prop({ required: false, type: Number })
   minAge?: number;
 
-  @Prop({ required: false })
+  @Prop({ required: false, type: Number })
   maxAge?: number;
 
-  @Prop({ default: false })
+  @Prop({ default: false, type: Boolean })
   includesCoach!: boolean;
 
   @Prop({ type: [String], enum: Object.values(Tags), default: [] })
@@ -40,13 +40,13 @@ export class Plan extends Document {
   @Prop({ type: Types.ObjectId, ref: "Routine", required: true })
   defaultRoutine!: Types.ObjectId;
 
-  @Prop({ required: true })
+  @Prop({ required: true, type: Number })
   days!: number;
 
-  @Prop({ default: Date.now })
+  @Prop({ default: Date.now, type: Date })
   updatedAt!: Date;
 
-  @Prop({ default: Date.now })
+  @Prop({ default: Date.now, type: Date })
   createdAt!: Date;
 }
 

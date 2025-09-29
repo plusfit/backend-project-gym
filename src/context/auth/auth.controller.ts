@@ -1,12 +1,12 @@
 import { Body, Controller, Post, UseGuards } from "@nestjs/common";
-import { ApiTags, ApiResponse } from "@nestjs/swagger";
+import { ApiResponse,ApiTags } from "@nestjs/swagger";
 
 import { AuthService } from "@/src/context/auth/auth.service";
+import { GoogleAuthDto } from "@/src/context/auth/dto/google-auth.dto";
 import { LoginAuthDto } from "@/src/context/auth/dto/login-auth.dto";
 import { RefreshTokenAuthDto } from "@/src/context/auth/dto/refresh-token-auth-dto";
 import { RegisterAuthDto } from "@/src/context/auth/dto/register-auth.dto";
-import { GoogleAuthDto } from "@/src/context/auth/dto/google-auth.dto";
-import { RecaptchaGuard, RecaptchaAction } from "@/src/context/shared/guards/recaptcha.guard";
+import { RecaptchaAction,RecaptchaGuard } from "@/src/context/shared/guards/recaptcha.guard";
 
 @ApiTags("auth")
 @Controller("auth")

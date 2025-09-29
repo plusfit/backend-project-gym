@@ -86,6 +86,12 @@ export class Client extends Document {
 
 	@Prop({ type: Number, default: 0 })
 	consecutiveDays?: number; // Current consecutive days streak
+
+	@Prop({ type: Number, default: 0 })
+	availablePoints?: number; // Points available for prize redemption
+	
+	@Prop({ type: Number, default: 0 })
+	availableDays?: number; // Days available for gym access (decremented daily)
 }
 
 export const ClientSchema = SchemaFactory.createForClass(Client);
