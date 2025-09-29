@@ -12,22 +12,28 @@ import {
 import { PlansModule } from "@/src/context/plans/plans.module";
 
 import { SchedulesModule } from "../schedules/schedules.module";
-import { SchedulesService } from "../schedules/schedules.service";
+import { Routine, RoutineSchema } from "../routines/schemas/routine.schema";
+import { DailyDecrementService } from "./services/daily-decrement.service";
+import { AvailableDaysController } from "./available-days.controller";
 
 @Module({
   imports: [
     forwardRef(() => PlansModule),
 	SchedulesModule,
-    MongooseModule.forFeature([{ name: Client.name, schema: ClientSchema }]),
+    MongooseModule.forFeature([
+      { name: Client.name, schema: ClientSchema },
+      { name: Routine.name, schema: RoutineSchema },
+    ]),
   ],
-  controllers: [ClientsController],
+  controllers: [ClientsController, AvailableDaysController],
   providers: [
     ClientsService,
+    DailyDecrementService,
     {
       provide: CLIENT_REPOSITORY,
       useClass: MongoClientsRepository,
     },
   ],
-  exports: [MongooseModule, CLIENT_REPOSITORY, ClientsService],
+  exports: [MongooseModule, CLIENT_REPOSITORY, ClientsService, DailyDecrementService],
 })
 export class ClientsModule {}

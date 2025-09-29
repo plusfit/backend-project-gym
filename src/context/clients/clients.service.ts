@@ -113,8 +113,59 @@ export class ClientsService {
   }
 
   async remove(id: string) {
-    await this.clientRepository.removeClientFirebase(id);
-    return this.clientRepository.removeClient(id);
+    try {
+      // First, check if the client exists
+      const client = await this.findOne(id);
+      if (!client) {
+        throw new NotFoundException(`Client with ID ${id} not found`);
+      }
+
+      // Remove client from all schedules (similar to what's done in toggleDisabled)
+      try {
+        const schedules = await this.schedulesService.getAllSchedules();
+
+        // Filter and update only the schedules that have the client
+        const updates = schedules
+          .filter((schedule: any) => schedule.clients.includes(id))
+          .map((schedule: any) => {
+            const updatedSchedule = {
+              ...schedule.toObject(), // If it's a Mongoose document
+              clients: schedule.clients.filter((clientId: string) => clientId !== id),
+            };
+
+            return this.schedulesService.updateSchedule(
+              schedule._id,
+              updatedSchedule,
+            );
+          });
+
+        // Wait for all schedule updates to complete
+        await Promise.all(updates);
+      } catch (scheduleError) {
+        // Log the error but don't fail the delete operation
+        console.error(`Error removing client ${id} from schedules:`, scheduleError);
+      }
+      
+      // Remove from MongoDB
+      const result = await this.clientRepository.removeClient(id);
+      
+      if (!result) {
+        throw new HttpException(
+          `Failed to delete client with ID ${id}`,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      return { message: `Client with ID ${id} deleted successfully`, deleted: true };
+    } catch (error: any) {
+      if (error instanceof NotFoundException || error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        `Error deleting client: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async assignRoutineToClient(clientId: string, routineId: string) {
@@ -272,6 +323,116 @@ export class ClientsService {
     } catch (error: any) {
       throw new HttpException(
         `Error getting active clients count: ${error.message}`,
+        error.status || 500,
+      );
+    }
+  }
+
+  /**
+   * Find client by ID
+   */
+  async findById(clientId: string): Promise<Client> {
+    try {
+      const client = await this.clientRepository.findById(clientId);
+      if (!client) {
+        throw new NotFoundException(`Client with ID ${clientId} not found`);
+      }
+      return client;
+    } catch (error: any) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new HttpException(
+        `Error finding client: ${error.message}`,
+        error.status || 500,
+      );
+    }
+  }
+
+
+  
+  async addAvailableDays(clientId: string, daysToAdd: number): Promise<Client> {
+    try {
+      if (daysToAdd <= 0) {
+        throw new HttpException(
+          'Days to add must be greater than 0',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const client = await this.clientRepository.getClientById(clientId);
+      if (!client) {
+        throw new NotFoundException(`Client with ID ${clientId} not found`);
+      }
+
+      const currentDays = client.availableDays || 0;
+      const newDays = currentDays + daysToAdd;
+
+      const updatedClient = await this.clientRepository.updateClient(clientId, {
+        availableDays: newDays,
+        updatedAt: new Date(),
+      });
+
+      return updatedClient;
+    } catch (error: any) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new HttpException(
+        `Error adding available days: ${error.message}`,
+        error.status || 500,
+      );
+    }
+  }
+
+  async getClientAvailableDays(clientId: string): Promise<{ clientId: string; availableDays: number }> {
+    try {
+      const client = await this.clientRepository.getClientById(clientId);
+      if (!client) {
+        throw new NotFoundException(`Client with ID ${clientId} not found`);
+      }
+
+      return {
+        clientId: client._id,
+        availableDays: client.availableDays || 0,
+      };
+    } catch (error: any) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new HttpException(
+        `Error getting available days: ${error.message}`,
+        error.status || 500,
+      );
+    }
+  }
+
+  async updateAvailableDays(clientId: string, newDays: number): Promise<Client> {
+    try {
+      if (newDays < 0) {
+        throw new HttpException(
+          'Available days cannot be negative',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const client = await this.clientRepository.getClientById(clientId);
+      if (!client) {
+        throw new NotFoundException(`Client with ID ${clientId} not found`);
+      }
+
+      const updatedClient = await this.clientRepository.updateClient(clientId, {
+        availableDays: newDays,
+        updatedAt: new Date(),
+      });
+
+      return updatedClient;
+    } catch (error: any) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new HttpException(
+        `Error updating available days: ${error.message}`,
         error.status || 500,
       );
     }

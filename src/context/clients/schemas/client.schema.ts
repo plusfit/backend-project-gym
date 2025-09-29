@@ -89,6 +89,7 @@ export class Client extends Document {
 
 	@Prop({ type: Number, default: 0 })
 	availablePoints?: number; // Points available for prize redemption
+	availableDays?: number; // Days available for gym access (decremented daily)
 }
 
 export const ClientSchema = SchemaFactory.createForClass(Client);

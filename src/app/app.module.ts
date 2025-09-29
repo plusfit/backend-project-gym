@@ -7,6 +7,7 @@ import {
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { MongooseModule } from "@nestjs/mongoose";
 import { LoggerModule } from "nestjs-pino";
+import { ScheduleModule } from '@nestjs/schedule';
 
 import { AuthModule } from "@/src/context/auth/auth.module";
 import { AuthMiddleware } from "@/src/context/auth/middlewares/auth.middleware";
@@ -31,6 +32,7 @@ import { AppConfigModule } from "../context/config/config.module";
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, cache: true }),
+    ScheduleModule.forRoot(),
     LoggerModule.forRoot({
       pinoHttp: {
         transport: {

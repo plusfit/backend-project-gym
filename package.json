@@ -53,6 +53,7 @@
     "@nestjs/mongoose": "^10.0.10",
     "@nestjs/platform-express": "^10.4.20",
     "@nestjs/platform-fastify": "^10.3.10",
+    "@nestjs/schedule": "^6.0.1",
     "@nestjs/swagger": "^7.4.0",
     "@types/multer": "^2.0.0",
     "axios": "^1.7.6",

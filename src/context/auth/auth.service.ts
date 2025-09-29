@@ -55,8 +55,6 @@ export class AuthService {
 
 			const onboarding = await this.onboardingService.findByUserId(_doc._id);
 
-			_doc.isOnboardingCompleted = false;
-
 			//verifico si el onboarding esta completo
 			if (onboarding && onboarding.completed) {
 				_doc.isOnboardingCompleted = true;

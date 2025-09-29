@@ -16,6 +16,7 @@ import { GymAccessFilters,GymAccessRepository } from "./repositories/gym-access.
 enum AccessErrorMessages {
 	CLIENT_NOT_FOUND = "Cliente no encontrado en el sistema",
 	CLIENT_DISABLED = "Cliente deshabilitado",
+	NO_AVAILABLE_DAYS = "Sin días disponibles, debes abonar el mes",
 	ALREADY_ACCESSED = "Cliente ya registró acceso el día de hoy",
 	OUTSIDE_OPERATING_HOURS = "Fuera del horario de atención del gimnasio",
 	SYSTEM_ERROR = "Error interno del sistema",
@@ -65,8 +66,9 @@ export class GymAccessService {
 
 	async validateAccess(validateAccessDto: ValidateAccessDto): Promise<AccessValidationResponse> {
 		const { cedula } = validateAccessDto;
-		const today = new Date();
-		const accessDay = this.formatDateAsAccessDay(today);
+		// Use Uruguay timezone for all date calculations
+		const today = this.getUruguayTime();
+		const accessDay = this.formatDateAsAccessDay(today, true);
 
 		try {
 			// 1. Validate client existence and status
@@ -180,6 +182,20 @@ export class GymAccessService {
 				isValid: false,
 				response: await this.createDenialResponseWithRecord(
 					AccessErrorMessages.CLIENT_DISABLED,
+					client,
+					cedula,
+					today,
+					accessDay
+				)
+			};
+		}
+
+		// Check if client has available days
+		if (!client.availableDays || client.availableDays <= 0) {
+			return {
+				isValid: false,
+				response: await this.createDenialResponseWithRecord(
+					AccessErrorMessages.NO_AVAILABLE_DAYS,
 					client,
 					cedula,
 					today,
@@ -328,11 +344,20 @@ export class GymAccessService {
 		// Get current schedule information
 		const currentScheduleInfo = await this.getCurrentScheduleInfo((client._id as Types.ObjectId).toString());
 		
-		// Create successful access record
+		// Create a UTC date that represents the same time as Uruguay local time
+		// If it's 15:22 in Uruguay, we want to store 15:22 UTC
+		const uruguayHour = today.getHours();
+		const uruguayMinute = today.getMinutes();
+		const uruguaySecond = today.getSeconds();
+		const uruguayMillisecond = today.getMilliseconds();
+		
+		const utcDate = new Date();
+		utcDate.setUTCHours(uruguayHour, uruguayMinute, uruguaySecond, uruguayMillisecond);
+		
 		await this.gymAccessRepository.create({
 			clientId: (client._id as Types.ObjectId).toString(),
 			cedula,
-			accessDate: today,
+			accessDate: utcDate,
 			accessDay,
 			successful: true,
 			clientName: client.userInfo?.name || "Cliente",
@@ -342,7 +367,7 @@ export class GymAccessService {
 			scheduleId: currentScheduleInfo?.scheduleId,
 		});
 
-		// Update client statistics
+		// Update client statistics and decrement available days
 		const updatedClient = await this.updateClientStats((client._id as Types.ObjectId).toString(), today);
 
 		// Check for rewards
@@ -357,11 +382,19 @@ export class GymAccessService {
 	}
 
 	private async handleValidationError(error: any, cedula: string, today: Date, accessDay: string): Promise<AccessValidationResponse> {
-		// Create failed access record for tracking
+		// Create failed access record for tracking - create UTC date that represents Uruguay local time
+		const uruguayHour = today.getHours();
+		const uruguayMinute = today.getMinutes();
+		const uruguaySecond = today.getSeconds();
+		const uruguayMillisecond = today.getMilliseconds();
+		
+		const utcDate = new Date();
+		utcDate.setUTCHours(uruguayHour, uruguayMinute, uruguaySecond, uruguayMillisecond);
+		
 		await this.gymAccessRepository.create({
 			clientId: "",
 			cedula,
-			accessDate: today,
+			accessDate: utcDate,
 			accessDay,
 			successful: false,
 			reason: AccessErrorMessages.SYSTEM_ERROR,
@@ -397,7 +430,8 @@ export class GymAccessService {
 
 	private async checkOperatingHours(clientId?: string): Promise<boolean> {
 		try {
-			const currentDay = this.getCurrentDayName();
+			let currentDay = this.getCurrentDayName();
+			if(currentDay == "Sabado") currentDay = "Sábado"
 			const schedules = await this.schedulesService.getAllSchedules();
 			
 			if (!schedules || !Array.isArray(schedules)) {
@@ -410,7 +444,9 @@ export class GymAccessService {
 				return false;
 			}
 
-			const currentHour = new Date().getHours();
+			// Use local timezone for hour calculation
+			const localTime = this.getUruguayTime();
+			const currentHour = localTime.getHours();
 			const nextHour = currentHour + 1;
 			
 			const relevantSchedules = todaySchedules.filter((schedule: any) => {
@@ -442,9 +478,9 @@ export class GymAccessService {
 			throw new NotFoundException("Cliente no encontrado");
 		}
 
-		const yesterday = new Date(accessDate);
-		yesterday.setDate(yesterday.getDate() - 1);
-		const yesterdayAccessDay = this.formatDateAsAccessDay(yesterday);
+		// Calculate yesterday in Uruguay timezone
+		const yesterday = new Date(accessDate.getTime() - (24 * 60 * 60 * 1000));
+		const yesterdayAccessDay = this.formatDateAsAccessDay(yesterday, true);
 
 		// Check if client accessed yesterday to calculate consecutive days
 		const yesterdayAccess = await this.gymAccessRepository.findByCedulaAndDay(
@@ -457,14 +493,23 @@ export class GymAccessService {
 			consecutiveDays = (client.consecutiveDays || 0) + 1;
 		}
 
-		// Update client stats
-		client.lastAccess = accessDate;
+		// Update client stats - create UTC date that represents Uruguay local time
+		const uruguayHour = accessDate.getHours();
+		const uruguayMinute = accessDate.getMinutes();
+		const uruguaySecond = accessDate.getSeconds();
+		const uruguayMillisecond = accessDate.getMilliseconds();
+		
+		const utcLastAccess = new Date();
+		utcLastAccess.setUTCHours(uruguayHour, uruguayMinute, uruguaySecond, uruguayMillisecond);
+		
+		client.lastAccess = utcLastAccess;
 		client.totalAccesses = (client.totalAccesses || 0) + 1;
 		client.consecutiveDays = consecutiveDays;
 		
 		// Add points for gym access (1 point per access)
 		const POINTS_PER_ACCESS = 1;
 		client.availablePoints = (client.availablePoints || 0) + POINTS_PER_ACCESS;
+		
 
 		return client.save();
 	}
@@ -500,11 +545,19 @@ export class GymAccessService {
 		accessDay: string,
 		authorize: boolean = false
 	): Promise<AccessValidationResponse> {
-		// Create failed access record for tracking
+		// Create failed access record for tracking - create UTC date that represents Uruguay local time
+		const uruguayHour = accessDate.getHours();
+		const uruguayMinute = accessDate.getMinutes();
+		const uruguaySecond = accessDate.getSeconds();
+		const uruguayMillisecond = accessDate.getMilliseconds();
+		
+		const utcDate = new Date();
+		utcDate.setUTCHours(uruguayHour, uruguayMinute, uruguaySecond, uruguayMillisecond);
+		
 		await this.gymAccessRepository.create({
 			clientId: client ? (client._id as Types.ObjectId).toString() : "",
 			cedula,
-			accessDate,
+			accessDate: utcDate,
 			accessDay,
 			successful: false,
 			reason,
@@ -529,18 +582,39 @@ export class GymAccessService {
 
 	// ========== TIME AND DATE UTILITY METHODS ==========
 
-	private formatDateAsAccessDay(date: Date): string {
-		return date.toISOString().split('T')[0]; // Returns "YYYY-MM-DD"
+	/**
+	 * Get current date and time in Uruguay timezone (UTC-3)
+	 * Since the system is already running in Uruguay, we just use local time
+	 * @returns Date object representing the current local time
+	 */
+	private getUruguayTime(): Date {
+		// If the system is already in Uruguay timezone, just return current time
+		return new Date();
+	}
+
+	/**
+	 * Format date as access day in local timezone
+	 * @param date - Date to format
+	 * @param isAlreadyAdjusted - Not used anymore since we use local time
+	 * @returns String in YYYY-MM-DD format for local date
+	 */
+	private formatDateAsAccessDay(date: Date, isAlreadyAdjusted: boolean = false): string {
+		// Use local timezone formatting
+		const year = date.getFullYear();
+		const month = (date.getMonth() + 1).toString().padStart(2, '0');
+		const day = date.getDate().toString().padStart(2, '0');
+		return `${year}-${month}-${day}`;
 	}
 
 	private getCurrentDayName(): string {
 		const days = ["Domingo", "Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado"];
-		return days[new Date().getDay()];
+		const localTime = this.getUruguayTime();
+		return days[localTime.getDay()];
 	}
 
 	private getCurrentTimeString(): string {
-		const now = new Date();
-		return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+		const localTime = this.getUruguayTime();
+		return `${localTime.getHours().toString().padStart(2, '0')}:${localTime.getMinutes().toString().padStart(2, '0')}`;
 	}
 
 	/**
@@ -572,7 +646,8 @@ export class GymAccessService {
 	 */
 	private async checkScheduleAccess(clientId: string): Promise<{ allowed: boolean; message: string }> {
 		try {
-			const currentDay = this.getCurrentDayName();
+			let currentDay = this.getCurrentDayName();
+			if(currentDay == "Sabado") currentDay = "Sábado"
 			const currentTime = this.getCurrentTimeString();
 			
 			// Get schedules for current and next hour
