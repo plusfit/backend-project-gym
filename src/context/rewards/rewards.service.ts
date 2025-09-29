@@ -38,7 +38,7 @@ export class RewardsService {
 
     const reward = await this.rewardRepository.create({
       ...createRewardDto,
-      enabled: createRewardDto.enabled ?? false,
+      disabled: createRewardDto.disabled ?? false,
       totalExchanges: 0,
     });
 
@@ -60,9 +60,9 @@ export class RewardsService {
     return reward;
   }
 
-  async findEnabledRewards(): Promise<Reward[]> {
-    this.logger.log('Finding enabled rewards for catalog');
-    return await this.rewardRepository.findEnabled();
+  async findNotDisabledRewards(): Promise<Reward[]> {
+    this.logger.log('Finding not disabled rewards for catalog');
+    return await this.rewardRepository.findNotDisabled();
   }
 
   async updateReward(id: string, updateRewardDto: UpdateRewardDto): Promise<Reward> {
@@ -90,13 +90,13 @@ export class RewardsService {
     return updatedReward;
   }
 
-  async toggleRewardEnabled(id: string): Promise<Reward> {
-    this.logger.log(`Toggling reward enabled status: ${id}`);
-    const reward = await this.rewardRepository.toggleEnabled(id);
+  async toggleRewardDisabled(id: string): Promise<Reward> {
+    this.logger.log(`Toggling reward disabled status: ${id}`);
+    const reward = await this.rewardRepository.toggleDisabled(id);
     if (!reward) {
       throw new NotFoundException('Premio no encontrado');
     }
-    this.logger.log(`Reward status toggled: ${id} - enabled: ${reward.enabled}`);
+    this.logger.log(`Reward status toggled: ${id} - disabled: ${reward.disabled}`);
     return reward;
   }
 
@@ -138,7 +138,7 @@ export class RewardsService {
         };
       }
 
-      if (!reward.enabled) {
+      if (reward.disabled) {
         return {
           success: false,
           message: 'Premio no disponible para canje',
@@ -232,7 +232,7 @@ export class RewardsService {
     const rewards = await this.rewardRepository.findAll({ 
       page: 1, 
       limit: 100, 
-      enabled: true 
+      disabled: false 
     });
     
     // Find a reward where the pointsRequired matches or is close to the consecutive days

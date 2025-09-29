@@ -22,7 +22,7 @@ export class MongoRewardRepository extends RewardRepository {
   }
 
   async findAll(filters: RewardFilters): Promise<RewardResponse> {
-    const { search, enabled, page = 1, limit = 10 } = filters;
+    const { search, disabled, page = 1, limit = 10 } = filters;
     const skip = (page - 1) * limit;
 
     // Build query
@@ -35,8 +35,8 @@ export class MongoRewardRepository extends RewardRepository {
       ];
     }
     
-    if (enabled !== undefined) {
-      query.enabled = enabled;
+    if (disabled !== undefined) {
+      query.disabled = disabled;
     }
 
     // Execute query with pagination
@@ -73,9 +73,9 @@ export class MongoRewardRepository extends RewardRepository {
     return reward ? this.mapToEntity(reward) : null;
   }
 
-  async findEnabled(): Promise<Reward[]> {
+  async findNotDisabled(): Promise<Reward[]> {
     const rewards = await this.rewardModel
-      .find({ enabled: true })
+      .find({ disabled: false })
       .sort({ createdAt: -1 })
       .exec();
     return rewards.map(doc => this.mapToEntity(doc));
@@ -99,11 +99,11 @@ export class MongoRewardRepository extends RewardRepository {
       .exec();
   }
 
-  async toggleEnabled(id: string): Promise<Reward | null> {
+  async toggleDisabled(id: string): Promise<Reward | null> {
     const reward = await this.rewardModel.findById(id).exec();
     if (!reward) return null;
 
-    reward.enabled = !reward.enabled;
+    reward.disabled = !reward.disabled;
     const updatedReward = await reward.save();
     return this.mapToEntity(updatedReward);
   }
@@ -114,7 +114,7 @@ export class MongoRewardRepository extends RewardRepository {
       name: doc.name,
       description: doc.description,
       pointsRequired: doc.pointsRequired,
-      enabled: doc.enabled,
+      disabled: doc.disabled,
       totalExchanges: doc.totalExchanges,
       imageUrl: doc.imageUrl,
       imagePath: doc.imagePath,

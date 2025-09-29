@@ -67,7 +67,7 @@ export class RewardsController {
   @ApiOperation({ summary: 'Obtener catálogo público de premios habilitados' })
   @ApiResponse({ status: 200, description: 'Lista de premios disponibles para canje' })
   async getCatalog() {
-    const rewards = await this.rewardsService.findEnabledRewards();
+    const rewards = await this.rewardsService.findNotDisabledRewards();
     return {
       success: true,
       data: rewards,
@@ -104,17 +104,17 @@ export class RewardsController {
     };
   }
 
-  @Patch(':id/toggle-enabled')
+  @Patch(':id/toggle-disabled')
   @Roles(Role.Admin)
   @UseGuards(RolesGuard)
   @ApiOperation({ summary: 'Habilitar/deshabilitar un premio' })
   @ApiResponse({ status: 200, description: 'Estado del premio actualizado' })
   @ApiResponse({ status: 404, description: 'Premio no encontrado' })
-  async toggleEnabled(@Param('id') id: string) {
-    const reward = await this.rewardsService.toggleRewardEnabled(id);
+  async toggleDisabled(@Param('id') id: string) {
+    const reward = await this.rewardsService.toggleRewardDisabled(id);
     return {
       success: true,
-      message: `Reward ${reward.enabled ? 'enabled' : 'disabled'} successfully`,
+      message: `Reward ${reward.disabled ? 'disabled' : 'enabled'} successfully`,
       data: reward,
     };
   }

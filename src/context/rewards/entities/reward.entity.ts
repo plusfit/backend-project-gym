@@ -3,7 +3,7 @@ export class Reward {
   name!: string;
   description?: string;
   pointsRequired!: number;
-  enabled!: boolean;
+  disabled!: boolean;
   totalExchanges!: number;
   imageUrl?: string;
   imagePath?: string;
@@ -14,7 +14,7 @@ export class Reward {
 
 export interface RewardFilters {
   search?: string;
-  enabled?: boolean;
+  disabled?: boolean;
   page?: number;
   limit?: number;
 }

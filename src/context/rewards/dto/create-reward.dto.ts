@@ -31,13 +31,13 @@ export class CreateRewardDto {
   pointsRequired!: number;
 
   @ApiPropertyOptional({
-    description: 'Reward enabled status',
+    description: 'Reward disabled status',
     default: false,
-    example: true
+    example: false
   })
   @IsOptional()
   @IsBoolean()
-  enabled?: boolean;
+  disabled?: boolean;
 
   @ApiPropertyOptional({
     description: 'Reward image URL from Firebase Storage',

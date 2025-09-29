@@ -12,8 +12,8 @@ export class GetRewardsDto {
   search?: string;
 
   @ApiPropertyOptional({ 
-    description: 'Filter by enabled status',
-    example: true
+    description: 'Filter by disabled status',
+    example: false
   })
   @IsOptional()
   @Transform(({ value }) => {
@@ -22,7 +22,7 @@ export class GetRewardsDto {
     return value;
   })
   @IsBoolean()
-  enabled?: boolean;
+  disabled?: boolean;
 
   @ApiPropertyOptional({ 
     description: 'Page number',

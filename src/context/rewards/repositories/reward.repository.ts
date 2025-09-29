@@ -5,9 +5,9 @@ export abstract class RewardRepository {
   abstract findAll(filters: RewardFilters): Promise<RewardResponse>;
   abstract findById(id: string): Promise<Reward | null>;
   abstract findByName(name: string): Promise<Reward | null>;
-  abstract findEnabled(): Promise<Reward[]>;
+  abstract findNotDisabled(): Promise<Reward[]>;
   abstract update(id: string, reward: Partial<Reward>): Promise<Reward | null>;
   abstract delete(id: string): Promise<boolean>;
   abstract incrementExchanges(id: string): Promise<void>;
-  abstract toggleEnabled(id: string): Promise<Reward | null>;
+  abstract toggleDisabled(id: string): Promise<Reward | null>;
 }

@@ -13,7 +13,7 @@ export class Reward {
   pointsRequired!: number;
 
   @Prop({ type: Boolean, default: false })
-  enabled!: boolean;
+  disabled!: boolean;
 
   @Prop({ type: Number, default: 0 })
   totalExchanges!: number;
@@ -36,5 +36,5 @@ export type RewardDocument = Reward & Document;
 
 // Indexes
 RewardSchema.index({ name: 'text' });
-RewardSchema.index({ enabled: 1 });
+RewardSchema.index({ disabled: 1 });
 RewardSchema.index({ createdAt: -1 });
