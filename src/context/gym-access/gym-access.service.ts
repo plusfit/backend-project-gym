@@ -50,6 +50,7 @@ interface ClientData {
 	plan?: string;
 	consecutiveDays: number;
 	totalAccesses: number;
+	availableDays: number;
 }
 
 @Injectable()
@@ -414,6 +415,7 @@ export class GymAccessService {
 			plan: client.userInfo?.plan,
 			consecutiveDays: client.consecutiveDays || 0,
 			totalAccesses: client.totalAccesses || 0,
+			availableDays: client.availableDays || 0,
 		};
 	}
 
