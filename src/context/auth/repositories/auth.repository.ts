@@ -1,5 +1,5 @@
-import { RegisterAuthDto } from "@/src/context/auth/dto/register-auth.dto";
 import { InternalRegisterAuthDto } from "@/src/context/auth/dto/internal-register-auth.dto";
+import { RegisterAuthDto } from "@/src/context/auth/dto/register-auth.dto";
 import { Client } from "@/src/context/clients/schemas/client.schema";
 
 export const AUTH_REPOSITORY = "AuthRepository";

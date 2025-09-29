@@ -33,7 +33,7 @@ export class SubRoutinesService {
 			// Validar que cada ID de ejercicio esté presente y exista
 			for (const exerciseId of createSubRoutineDto.exercises) {
 				if (!exerciseId) {
-					throw new HttpException("Exercise ID is required", 400);
+					throw new HttpException("ID de ejercicio es requerido", 400);
 				}
 				const exerciseExists =
 					await this.exerciseRepository.findOne(exerciseId);
@@ -91,7 +91,7 @@ export class SubRoutinesService {
 		try {
 			const routine = await this.subRoutineRepository.findById(routineId);
 			if (!routine) {
-				throw new NotFoundException("Routine not found");
+				throw new NotFoundException("Rutina no encontrada");
 			}
 
 			if (!routine.isCustom && clientId) {
@@ -191,7 +191,7 @@ export class SubRoutinesService {
 					500,
 				);
 			} else {
-				throw new NotFoundException("Exercise not found");
+				throw new NotFoundException("Ejercicio no encontrado");
 			}
 		} catch (error: any) {
 			throw new HttpException(

@@ -1,16 +1,16 @@
-import { Injectable, NotFoundException, Logger } from "@nestjs/common";
+import { Injectable, Logger,NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
 
 import { ClientsService } from "@/src/context/clients/clients.service";
-import { SchedulesService } from "@/src/context/schedules/schedules.service";
-import { RewardsService } from "@/src/context/rewards/rewards.service";
 import { ClientDocument } from "@/src/context/clients/schemas/client.schema";
+import { RewardsService } from "@/src/context/rewards/rewards.service";
+import { SchedulesService } from "@/src/context/schedules/schedules.service";
 
-import { GymAccessRepository, GymAccessFilters } from "./repositories/gym-access.repository";
-import { AccessValidationResponse, GymAccess, AccessStats } from "./entities/gym-access.entity";
-import { ValidateAccessDto } from "./dto/validate-access.dto";
 import { GetGymAccessHistoryDto } from "./dto/get-gym-access-history.dto";
+import { ValidateAccessDto } from "./dto/validate-access.dto";
+import { AccessStats,AccessValidationResponse, GymAccess } from "./entities/gym-access.entity";
+import { GymAccessFilters,GymAccessRepository } from "./repositories/gym-access.repository";
 
 // Error messages enum for consistency
 enum AccessErrorMessages {
@@ -506,6 +506,9 @@ export class GymAccessService {
 		client.totalAccesses = (client.totalAccesses || 0) + 1;
 		client.consecutiveDays = consecutiveDays;
 		
+		// Add points for gym access (1 point per access)
+		const POINTS_PER_ACCESS = 1;
+		client.availablePoints = (client.availablePoints || 0) + POINTS_PER_ACCESS;
 		
 
 		return client.save();
@@ -520,8 +523,8 @@ export class GymAccessService {
 			if (reward) {
 				return {
 					name: reward.name,
-					description: reward.description,
-					requiredDays: reward.requiredDays,
+					description: reward.description || '', // Handle undefined description
+					requiredDays: reward.pointsRequired, // Using pointsRequired as proxy for requiredDays
 				};
 			}
 

@@ -1,5 +1,5 @@
-import { IsOptional, IsNumber, Min, Max, IsString, IsDateString, ValidationArguments, registerDecorator, ValidationOptions } from "class-validator";
 import { Transform } from "class-transformer";
+import { IsDateString, IsNumber, IsOptional, IsString, Max, Min, registerDecorator, ValidationArguments, ValidationOptions } from "class-validator";
 
 export class GetGymAccessHistoryDto {
 	@IsOptional()

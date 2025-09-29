@@ -2,17 +2,18 @@
 import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios from "axios";
-import jwt from "jsonwebtoken";
-import { OAuth2Client } from "google-auth-library";
 import firebaseAdmin from "firebase-admin";
+import { OAuth2Client } from "google-auth-library";
+import jwt from "jsonwebtoken";
 
+import { GoogleAuthDto } from "@/src/context/auth/dto/google-auth.dto";
+import { InternalRegisterAuthDto } from "@/src/context/auth/dto/internal-register-auth.dto";
 import { LoginAuthDto } from "@/src/context/auth/dto/login-auth.dto";
 import { RefreshTokenAuthDto } from "@/src/context/auth/dto/refresh-token-auth-dto";
 import { RegisterAuthDto } from "@/src/context/auth/dto/register-auth.dto";
-import { InternalRegisterAuthDto } from "@/src/context/auth/dto/internal-register-auth.dto";
 import { AUTH_REPOSITORY } from "@/src/context/auth/repositories/auth.repository";
+
 import { OnboardingService } from "../onboarding/onboarding.service";
-import { GoogleAuthDto } from "@/src/context/auth/dto/google-auth.dto";
 
 @Injectable()
 export class AuthService {
@@ -82,7 +83,7 @@ export class AuthService {
 
 	validateLogin(loginDto: LoginAuthDto) {
 		if (!loginDto.token) {
-			throw new Error("Token is required");
+			throw new Error("Token es requerido");
 		}
 	}
 
@@ -101,7 +102,7 @@ export class AuthService {
 			const kid = decodedHeader?.header?.kid;
 
 			if (!kid || !publicKeys[kid]) {
-				throw new Error("Invalid token");
+				throw new Error("Token inválido");
 			}
 
 			//Verificar el token con la clave publica
@@ -110,7 +111,7 @@ export class AuthService {
 			//Validar que venga de Firebase
 			if (decoded.aud !== this.configService.get("AUD")) {
 				//dtf-central a modo de prueba
-				throw new Error("Token is not from Firebase");
+				throw new Error("Token no es de Firebase");
 			}
 
 			//Valido que tenga un email
@@ -119,7 +120,7 @@ export class AuthService {
 				!decoded.firebase ||
 				!decoded.firebase.identities?.email?.length
 			) {
-				throw new Error("Invalid token");
+				throw new Error("Token inválido");
 			}
 
 			return decoded.email;
@@ -135,7 +136,7 @@ export class AuthService {
 
 		const refreshSecret = this.configService.get<string>("JWT_REFRESH_SECRET");
 		if (!refreshSecret) {
-			throw new Error("JWT_REFRESH_SECRET is not set in the configuration.");
+			throw new Error("JWT_REFRESH_SECRET no está configurado.");
 		}
 		const refreshExpiresIn = this.configService.get("JWT_REFRESH_EXPIRES_IN");
 
@@ -170,7 +171,7 @@ export class AuthService {
 				this.configService.get<string>("JWT_REFRESH_SECRET");
 
 			if (!refreshSecret) {
-				throw new Error("JWT_REFRESH_SECRET is not set in the configuration.");
+				throw new Error("JWT_REFRESH_SECRET no está configurado.");
 			}
 
 			//verifico y decodifico el refresh token
@@ -185,7 +186,7 @@ export class AuthService {
 				await this.authRepository.getRefreshToken(userId);
 
 			if (storedRefreshToken !== _refreshToken) {
-				throw new Error("Invalid refresh token");
+				throw new Error("Token de actualización inválido");
 			}
 
 			// elimino los campos exp e iat para que se generen de nuevo a lo que no uso las variables tengo que comentarlas con eslint
@@ -216,7 +217,7 @@ export class AuthService {
 	async googleLogin(googleAuthDto: GoogleAuthDto) {
 		try {
 			if (!googleAuthDto.idToken) {
-				throw new Error("Google ID token is required");
+				throw new Error("Token de Google ID es requerido");
 			}
 
 			// Verificar el token de Google y obtener el email
@@ -312,13 +313,13 @@ export class AuthService {
 
 			// Verificar que el token tenga un email
 			if (!decodedToken.email) {
-				throw new Error("Invalid email in token");
+				throw new Error("Email inválido en token");
 			}
 
 			return decodedToken.email;
 		} catch (error) {
 			console.error("Firebase token verification error:", error);
-			throw new Error("Error verifying Firebase token");
+			throw new Error("Error verificando token de Firebase");
 		}
 	}
 }

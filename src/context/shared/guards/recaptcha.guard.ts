@@ -1,5 +1,6 @@
-import { Injectable, CanActivate, ExecutionContext, BadRequestException, SetMetadata } from '@nestjs/common';
+import { BadRequestException, CanActivate, ExecutionContext, Injectable, SetMetadata } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+
 import { RecaptchaService } from '../services/recaptcha.service';
 
 // Decorador para marcar qué acción de reCAPTCHA se espera
@@ -29,14 +30,14 @@ export class RecaptchaGuard implements CanActivate {
     }
     
     if (!recaptchaToken) {
-      throw new BadRequestException('reCAPTCHA token is required');
+      throw new BadRequestException('Token reCAPTCHA es requerido');
     }
 
     const clientIp = request.ip || request.connection.remoteAddress;
     const isValid = await this.recaptchaService.verifyRecaptcha(recaptchaToken, action, clientIp);
     
     if (!isValid) {
-      throw new BadRequestException('reCAPTCHA verification failed');
+      throw new BadRequestException('Verificación reCAPTCHA fallida');
     }
 
     return true;

@@ -1,17 +1,18 @@
 import {
 	BadRequestException,
+	forwardRef,
+	Inject,
 	Injectable,
 	NotFoundException,
-	Inject,
-	forwardRef,
 } from "@nestjs/common";
+
+import { ClientsService } from "../clients/clients.service";
+import { Plan } from "../plans/schemas/plan.schema";
 import { CreateOnboardingDto } from "./dto/create-onboarding.dto";
 import { UpdateOnboardingDto } from "./dto/update-onboarding.dto";
 import { OnboardingRepository } from "./repositories/onboarding.repository";
 import { Onboarding, StepData } from "./schemas/onboarding.schema";
 import { PlanRecommendationService } from "./services/plan-recommendation.service";
-import { ClientsService } from "../clients/clients.service";
-import { Plan } from "../plans/schemas/plan.schema";
 
 @Injectable()
 export class OnboardingService {
@@ -27,7 +28,7 @@ export class OnboardingService {
 			createOnboardingDto.userId,
 		);
 		if (existing) {
-			throw new BadRequestException("Onboarding already exists for user");
+			throw new BadRequestException("El onboarding ya existe para este usuario");
 		}
 
 		return this.onboardingRepository.create(createOnboardingDto);
@@ -167,13 +168,13 @@ export class OnboardingService {
 
 	private ensureUserIdProvided(userId: string): void {
 		if (!userId) {
-			throw new BadRequestException("User ID is required");
+			throw new BadRequestException("ID de usuario es requerido");
 		}
 	}
 
 	private ensureStepIsValid(step: number): void {
 		if (step < 1 || step > 3) {
-			throw new BadRequestException("Step must be between 1 and 3");
+			throw new BadRequestException("El paso debe estar entre 1 y 3");
 		}
 	}
 
@@ -202,7 +203,7 @@ export class OnboardingService {
 
 	private ensurePlanIsValid(plan: Plan): void {
 		if (!plan || !plan._id) {
-			throw new NotFoundException("No suitable plan found");
+			throw new NotFoundException("No se encontró un plan adecuado");
 		}
 	}
 }
