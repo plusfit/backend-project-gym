@@ -17,6 +17,12 @@ export class Schedule extends Document {
 
 	@Prop({ type: String, required: true })
 	day!: string;
+
+	@Prop({ type: Boolean, default: false })
+	disabled!: boolean;
+
+	@Prop({ type: String, required: false })
+	disabledReason?: string;
 }
 
 export const ScheduleSchema = SchemaFactory.createForClass(Schedule);
