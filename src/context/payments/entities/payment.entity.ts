@@ -3,7 +3,6 @@ export class Payment {
     amount: number;
     clientId: string;
     clientName: string;
-    deleted: boolean;
     createdAt?: Date;
 
     constructor(payment: Partial<Payment>) {
@@ -11,7 +10,6 @@ export class Payment {
         this.amount = payment.amount!;
         this.clientId = payment.clientId!;
         this.clientName = payment.clientName!;
-        this.deleted = payment.deleted ?? false;
         this.createdAt = payment.createdAt;
     }
 }
@@ -19,17 +17,12 @@ export class Payment {
 export interface PaymentFilters {
     clientId?: string;
     clientName?: string;
-    deleted?: boolean;
     startDate?: string;
     endDate?: string;
     minAmount?: number;
     maxAmount?: number;
-}
-
-export interface PaymentStats {
+}export interface PaymentStats {
     totalPayments: number;
     totalAmount: number;
     averageAmount: number;
-    activePayments: number;
-    deletedPayments: number;
 }

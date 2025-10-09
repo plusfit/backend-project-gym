@@ -13,9 +13,6 @@ export class Payment {
 
     @Prop({ required: true, type: String })
     clientName!: string;
-
-    @Prop({ required: true, type: Boolean, default: false })
-    deleted!: boolean;
 }
 
 export const PaymentSchema = SchemaFactory.createForClass(Payment);

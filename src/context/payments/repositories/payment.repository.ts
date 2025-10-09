@@ -67,23 +67,16 @@ export class PaymentRepository {
         }
     }
 
-    async softDelete(id: string): Promise<Payment | null> {
+    async delete(id: string): Promise<boolean> {
         try {
             if (!Types.ObjectId.isValid(id)) {
-                return null;
+                return false;
             }
 
-            const payment = await this.paymentModel
-                .findByIdAndUpdate(
-                    id,
-                    { deleted: true },
-                    { new: true }
-                )
-                .exec();
-
-            return payment ? new Payment(payment.toObject()) : null;
+            const result = await this.paymentModel.findByIdAndDelete(id).exec();
+            return result !== null;
         } catch (error) {
-            this.logger.error('Error soft deleting payment', { error, id });
+            this.logger.error('Error deleting payment', { error, id });
             throw error;
         }
     }
@@ -92,10 +85,8 @@ export class PaymentRepository {
         try {
             const query = this.buildQuery(filters || {});
 
-            const [totalPayments, activePayments, deletedPayments, amountStats] = await Promise.all([
+            const [totalPayments, amountStats] = await Promise.all([
                 this.paymentModel.countDocuments(query).exec(),
-                this.paymentModel.countDocuments({ ...query, deleted: false }).exec(),
-                this.paymentModel.countDocuments({ ...query, deleted: true }).exec(),
                 this.paymentModel.aggregate([
                     { $match: query },
                     {
@@ -114,8 +105,6 @@ export class PaymentRepository {
                 totalPayments,
                 totalAmount: stats.totalAmount || 0,
                 averageAmount: stats.averageAmount || 0,
-                activePayments,
-                deletedPayments,
             };
         } catch (error) {
             this.logger.error('Error getting payment stats', { error, filters });
@@ -132,10 +121,6 @@ export class PaymentRepository {
 
         if (filters.clientName) {
             query.clientName = { $regex: filters.clientName, $options: 'i' };
-        }
-
-        if (filters.deleted !== undefined) {
-            query.deleted = filters.deleted;
         }
 
         if (filters.startDate || filters.endDate) {

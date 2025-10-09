@@ -9,7 +9,7 @@ import {
     HttpCode,
     HttpStatus,
     UseGuards,
-
+    Logger,
 } from '@nestjs/common';
 import { Role } from "@/src/context/shared/constants/roles.constant";
 import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
@@ -20,6 +20,7 @@ import { PaymentsService } from './payments.service';
 
 @Controller('payments')
 export class PaymentsController {
+    private readonly logger = new Logger(PaymentsController.name);
 
     constructor(private readonly paymentsService: PaymentsService) { }
 
@@ -65,12 +66,16 @@ export class PaymentsController {
     }
 
     @Delete(':id')
-    @Roles(Role.Admin)
-    @UseGuards(RolesGuard)
     @HttpCode(HttpStatus.OK)
-    async softDelete(@Param('id') id: string) {
-        const payment = await this.paymentsService.softDelete(id);
+    async delete(@Param('id') id: string) {
+        this.logger.log('Deleting payment', { id });
 
-        return payment;
+        const result = await this.paymentsService.delete(id);
+
+        return {
+            success: true,
+            message: 'Pago eliminado exitosamente',
+            data: result,
+        };
     }
 }

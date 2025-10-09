@@ -23,15 +23,6 @@ export class GetPaymentsDto {
     clientName?: string;
 
     @IsOptional()
-    @Transform(({ value }) => {
-        if (value === 'true') return true;
-        if (value === 'false') return false;
-        return value;
-    })
-    @IsBoolean({ message: 'El campo deleted debe ser un booleano' })
-    deleted?: boolean;
-
-    @IsOptional()
     @IsDateString({}, { message: 'La fecha de inicio debe ser una fecha válida' })
     startDate?: string;
 

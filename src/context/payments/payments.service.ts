@@ -28,7 +28,6 @@ export class PaymentsService {
                 amount: createPaymentDto.amount,
                 clientId: createPaymentDto.clientId,
                 clientName: createPaymentDto.clientName,
-                deleted: false,
             };
 
             const payment = await this.paymentRepository.create(paymentData);
@@ -47,7 +46,6 @@ export class PaymentsService {
             const filters: PaymentFilters = {
                 clientId: filterOptions.clientId,
                 clientName: filterOptions.clientName,
-                deleted: filterOptions.deleted,
                 startDate: filterOptions.startDate,
                 endDate: filterOptions.endDate,
                 minAmount: filterOptions.minAmount,
@@ -84,23 +82,23 @@ export class PaymentsService {
         }
     }
 
-    async softDelete(id: string): Promise<Payment> {
+    async delete(id: string): Promise<{ success: boolean }> {
         try {
-            this.logger.log('Soft deleting payment', { paymentId: id });
+            this.logger.log('Deleting payment', { paymentId: id });
 
-            const payment = await this.paymentRepository.softDelete(id);
+            const deleted = await this.paymentRepository.delete(id);
 
-            if (!payment) {
+            if (!deleted) {
                 throw new NotFoundException('Pago no encontrado');
             }
 
-            this.logger.log('Payment soft deleted successfully', { paymentId: id });
-            return payment;
+            this.logger.log('Payment deleted successfully', { paymentId: id });
+            return { success: true };
         } catch (error: any) {
             if (error instanceof NotFoundException) {
                 throw error;
             }
-            this.logger.error('Error soft deleting payment', { error: error.message, id });
+            this.logger.error('Error deleting payment', { error: error.message, id });
             throw new BadRequestException('Error al eliminar el pago: ' + error.message);
         }
     }
@@ -110,7 +108,6 @@ export class PaymentsService {
             const paymentFilters: PaymentFilters = filters ? {
                 clientId: filters.clientId,
                 clientName: filters.clientName,
-                deleted: filters.deleted,
                 startDate: filters.startDate,
                 endDate: filters.endDate,
                 minAmount: filters.minAmount,
