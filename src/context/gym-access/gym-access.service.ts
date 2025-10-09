@@ -32,17 +32,6 @@ enum AccessErrorMessages {
 	SCHEDULE_ACCESS_WINDOW_OK = "Acceso autorizado dentro del horario"
 }
 
-// Pagination result interface for reusability
-interface PaginationResult<T> {
-	data: T[];
-	pagination: {
-		currentPage: number;
-		totalPages: number;
-		totalCount: number;
-		limit: number;
-	};
-}
-
 // Client data interface for mapping
 interface ClientData {
 	name: string;
@@ -432,9 +421,12 @@ export class GymAccessService {
 
 	private async checkOperatingHours(clientId?: string): Promise<boolean> {
 		try {
+			this.logger.log("=============== Checking operating hours ================");
 			let currentDay = this.getCurrentDayName();
 			if (currentDay == "Sabado") currentDay = "Sábado"
-			const schedules = await this.schedulesService.getAllSchedules();
+			this.logger.log("Current day:", currentDay);
+			const schedules = await this.schedulesService.getAllSchedules();;
+			this.logger.log("Schedules:", schedules);
 
 			if (!schedules || !Array.isArray(schedules)) {
 				return true;
@@ -450,6 +442,11 @@ export class GymAccessService {
 			const localTime = this.getUruguayTime();
 			const currentHour = localTime.getHours();
 			const nextHour = currentHour + 1;
+
+			this.logger.log('localTime:', localTime);
+			this.logger.log("Current hour:", currentHour);
+			this.logger.log("Next hour:", nextHour);
+			this.logger.log("Today schedules:", todaySchedules);
 
 			const relevantSchedules = todaySchedules.filter((schedule: any) => {
 				const scheduleStartHour = parseInt(schedule.startTime);
@@ -654,7 +651,8 @@ export class GymAccessService {
 
 			// Get schedules for current and next hour
 			const relevantSchedules = await this.getRelevantSchedules(currentDay, currentTime);
-
+			this.logger.log("=============== Relevant schedules ================");
+			this.logger.log("Relevant schedules:", relevantSchedules);
 			if (relevantSchedules.length === 0) {
 				return {
 					allowed: false,
@@ -770,7 +768,6 @@ export class GymAccessService {
 
 		const currentMinutes = currentHour * 60 + currentMinute;
 		const startMinutes = startHour * 60 + startMinute;
-		const endMinutes = endHour * 60 + endMinute;
 
 		// Allow access 10 minutes before start time
 		const earlyAccessMinutes = startMinutes - 10;
