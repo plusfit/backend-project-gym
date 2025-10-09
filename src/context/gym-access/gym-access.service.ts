@@ -1,4 +1,4 @@
-import { Injectable, Logger,NotFoundException } from "@nestjs/common";
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
 
@@ -9,8 +9,8 @@ import { SchedulesService } from "@/src/context/schedules/schedules.service";
 
 import { GetGymAccessHistoryDto } from "./dto/get-gym-access-history.dto";
 import { ValidateAccessDto } from "./dto/validate-access.dto";
-import { AccessStats,AccessValidationResponse, GymAccess } from "./entities/gym-access.entity";
-import { GymAccessFilters,GymAccessRepository } from "./repositories/gym-access.repository";
+import { AccessStats, AccessValidationResponse, GymAccess } from "./entities/gym-access.entity";
+import { GymAccessFilters, GymAccessRepository } from "./repositories/gym-access.repository";
 
 // Error messages enum for consistency
 enum AccessErrorMessages {
@@ -63,7 +63,7 @@ export class GymAccessService {
 		private readonly rewardsService: RewardsService,
 		@InjectModel("Client")
 		private readonly clientModel: Model<ClientDocument>,
-	) {}
+	) { }
 
 	async validateAccess(validateAccessDto: ValidateAccessDto): Promise<AccessValidationResponse> {
 		const { cedula } = validateAccessDto;
@@ -110,7 +110,7 @@ export class GymAccessService {
 		};
 	}> {
 		const { page = 1, limit = 10, cedula, clientName, successful, startDate, endDate } = queryDto;
-		
+
 		const filters: GymAccessFilters = {
 			cedula,
 			clientName,
@@ -214,7 +214,7 @@ export class GymAccessService {
 	}> {
 		// Check if client already accessed today (any time during the day)
 		const existingAccess = await this.gymAccessRepository.findByCedulaAndDay(cedula, accessDay);
-		
+
 		if (existingAccess && existingAccess.successful) {
 			return {
 				allowed: false,
@@ -243,21 +243,21 @@ export class GymAccessService {
 		try {
 			// First get all accesses for today
 			const existingAccess = await this.gymAccessRepository.findByCedulaAndDay(cedula, accessDay);
-			
+
 			if (!existingAccess || !existingAccess.successful) {
 				return false;
 			}
-			
+
 			// Check if the existing access was in current or next hour schedule
 			if (existingAccess.scheduleStartTime) {
 				const accessStartTime = this.normalizeTimeFormat(existingAccess.scheduleStartTime).split(':')[0];
-				
+
 				// Check if the previous access was in current or next hour
 				if (accessStartTime === currentHour || accessStartTime === nextHour) {
 					return true;
 				}
 			}
-			
+
 			return false;
 		} catch (error) {
 			this.logger.error('Error checking schedule specific access', { error, cedula, accessDay });
@@ -274,29 +274,29 @@ export class GymAccessService {
 		try {
 			const currentDay = this.getCurrentDayName();
 			const currentTime = this.getCurrentTimeString();
-			
+
 			// Get schedules for current and next hour
 			const relevantSchedules = await this.getRelevantSchedules(currentDay, currentTime);
-			
+
 			if (relevantSchedules.length === 0) {
 				return null;
 			}
-			
+
 			// Find the schedule where the client is enrolled
-			const clientSchedule = relevantSchedules.find(schedule => 
+			const clientSchedule = relevantSchedules.find(schedule =>
 				schedule.clients.some((client: any) => client.toString() === clientId)
 			);
-			
+
 			if (!clientSchedule) {
 				return null;
 			}
-			
+
 			return {
 				startTime: clientSchedule.startTime,
 				endTime: clientSchedule.endTime,
 				scheduleId: clientSchedule._id.toString()
 			};
-			
+
 		} catch (error) {
 			this.logger.error('Error getting current schedule info', { error, clientId });
 			return null;
@@ -344,17 +344,17 @@ export class GymAccessService {
 	private async processSuccessfulAccess(client: ClientDocument, cedula: string, today: Date, accessDay: string): Promise<AccessValidationResponse> {
 		// Get current schedule information
 		const currentScheduleInfo = await this.getCurrentScheduleInfo((client._id as Types.ObjectId).toString());
-		
+
 		// Create a UTC date that represents the same time as Uruguay local time
 		// If it's 15:22 in Uruguay, we want to store 15:22 UTC
 		const uruguayHour = today.getHours();
 		const uruguayMinute = today.getMinutes();
 		const uruguaySecond = today.getSeconds();
 		const uruguayMillisecond = today.getMilliseconds();
-		
+
 		const utcDate = new Date();
 		utcDate.setUTCHours(uruguayHour, uruguayMinute, uruguaySecond, uruguayMillisecond);
-		
+
 		await this.gymAccessRepository.create({
 			clientId: (client._id as Types.ObjectId).toString(),
 			cedula,
@@ -388,10 +388,10 @@ export class GymAccessService {
 		const uruguayMinute = today.getMinutes();
 		const uruguaySecond = today.getSeconds();
 		const uruguayMillisecond = today.getMilliseconds();
-		
+
 		const utcDate = new Date();
 		utcDate.setUTCHours(uruguayHour, uruguayMinute, uruguaySecond, uruguayMillisecond);
-		
+
 		await this.gymAccessRepository.create({
 			clientId: "",
 			cedula,
@@ -433,15 +433,15 @@ export class GymAccessService {
 	private async checkOperatingHours(clientId?: string): Promise<boolean> {
 		try {
 			let currentDay = this.getCurrentDayName();
-			if(currentDay == "Sabado") currentDay = "Sábado"
+			if (currentDay == "Sabado") currentDay = "Sábado"
 			const schedules = await this.schedulesService.getAllSchedules();
-			
+
 			if (!schedules || !Array.isArray(schedules)) {
 				return true;
 			}
 
 			const todaySchedules = schedules.filter((schedule: any) => schedule.day === currentDay);
-			
+
 			if (!todaySchedules || todaySchedules.length === 0) {
 				return false;
 			}
@@ -450,23 +450,23 @@ export class GymAccessService {
 			const localTime = this.getUruguayTime();
 			const currentHour = localTime.getHours();
 			const nextHour = currentHour + 1;
-			
+
 			const relevantSchedules = todaySchedules.filter((schedule: any) => {
 				const scheduleStartHour = parseInt(schedule.startTime);
 				return scheduleStartHour === currentHour || scheduleStartHour === nextHour;
 			});
-			
+
 			if (!relevantSchedules || relevantSchedules.length === 0) {
 				return false;
 			}
-			
+
 			if (clientId) {
-				const isClientEnrolled = relevantSchedules.some((schedule: any) => 
+				const isClientEnrolled = relevantSchedules.some((schedule: any) =>
 					schedule.clients && schedule.clients.includes(clientId)
 				);
 				return isClientEnrolled;
 			}
-			
+
 			return relevantSchedules.length > 0;
 		} catch (error) {
 			this.logger.error('Error checking operating hours', { error });
@@ -500,18 +500,18 @@ export class GymAccessService {
 		const uruguayMinute = accessDate.getMinutes();
 		const uruguaySecond = accessDate.getSeconds();
 		const uruguayMillisecond = accessDate.getMilliseconds();
-		
+
 		const utcLastAccess = new Date();
 		utcLastAccess.setUTCHours(uruguayHour, uruguayMinute, uruguaySecond, uruguayMillisecond);
-		
+
 		client.lastAccess = utcLastAccess;
 		client.totalAccesses = (client.totalAccesses || 0) + 1;
 		client.consecutiveDays = consecutiveDays;
-		
+
 		// Add points for gym access (1 point per access)
 		const POINTS_PER_ACCESS = 1;
 		client.availablePoints = (client.availablePoints || 0) + POINTS_PER_ACCESS;
-		
+
 
 		return client.save();
 	}
@@ -521,7 +521,7 @@ export class GymAccessService {
 	private async checkForRewards(consecutiveDays: number): Promise<{ name: string; description: string; requiredDays: number } | undefined> {
 		try {
 			const reward = await this.rewardsService.findByRequiredDays(consecutiveDays);
-			
+
 			if (reward) {
 				return {
 					name: reward.name,
@@ -540,10 +540,10 @@ export class GymAccessService {
 	// ========== RESPONSE CREATION METHODS ==========
 
 	private async createDenialResponseWithRecord(
-		reason: string, 
-		client: ClientDocument | null, 
-		cedula: string, 
-		accessDate: Date, 
+		reason: string,
+		client: ClientDocument | null,
+		cedula: string,
+		accessDate: Date,
 		accessDay: string,
 		authorize: boolean = false
 	): Promise<AccessValidationResponse> {
@@ -552,10 +552,10 @@ export class GymAccessService {
 		const uruguayMinute = accessDate.getMinutes();
 		const uruguaySecond = accessDate.getSeconds();
 		const uruguayMillisecond = accessDate.getMilliseconds();
-		
+
 		const utcDate = new Date();
 		utcDate.setUTCHours(uruguayHour, uruguayMinute, uruguaySecond, uruguayMillisecond);
-		
+
 		await this.gymAccessRepository.create({
 			clientId: client ? (client._id as Types.ObjectId).toString() : "",
 			cedula,
@@ -625,18 +625,18 @@ export class GymAccessService {
 	 */
 	private normalizeTimeFormat(time: string): string {
 		if (!time) return time;
-		
+
 		// If already in HH:MM format, return as is
 		if (time.includes(':')) {
 			return time;
 		}
-		
+
 		// If it's just a number (hour), add :00 for minutes
 		const hour = parseInt(time, 10);
 		if (!isNaN(hour) && hour >= 0 && hour <= 23) {
 			return `${hour.toString().padStart(2, '0')}:00`;
 		}
-		
+
 		// Return original if can't normalize
 		return time;
 	}
@@ -649,9 +649,9 @@ export class GymAccessService {
 	private async checkScheduleAccess(clientId: string): Promise<{ allowed: boolean; message: string }> {
 		try {
 			let currentDay = this.getCurrentDayName();
-			if(currentDay == "Sabado") currentDay = "Sábado"
+			if (currentDay == "Sabado") currentDay = "Sábado"
 			const currentTime = this.getCurrentTimeString();
-			
+
 			// Get schedules for current and next hour
 			const relevantSchedules = await this.getRelevantSchedules(currentDay, currentTime);
 
@@ -661,12 +661,12 @@ export class GymAccessService {
 					message: AccessErrorMessages.NO_SCHEDULES_AVAILABLE
 				};
 			}
-			
+
 			// Check if client is enrolled in any relevant schedule
-			const clientSchedule = relevantSchedules.find(schedule => 
+			const clientSchedule = relevantSchedules.find(schedule =>
 				schedule.clients.some((client: any) => client.toString() === clientId)
 			);
-			
+
 			if (!clientSchedule) {
 				// Find the most relevant schedule to show in error message
 				const nearestSchedule = relevantSchedules[0];
@@ -675,22 +675,22 @@ export class GymAccessService {
 					message: `${AccessErrorMessages.NOT_ENROLLED_SCHEDULE}: ${nearestSchedule.startTime} - ${nearestSchedule.endTime}`
 				};
 			}
-			
+
 			// Check if client is within allowed time window
 			const accessWindow = this.calculateAccessWindow(clientSchedule.startTime, clientSchedule.endTime, currentTime);
-			
+
 			if (!accessWindow.allowed) {
 				return {
 					allowed: false,
 					message: accessWindow.message
 				};
 			}
-			
+
 			return {
 				allowed: true,
 				message: AccessErrorMessages.SCHEDULE_ACCESS_AUTHORIZED
 			};
-			
+
 		} catch (error) {
 			this.logger.error('Error checking schedule access', { error, clientId });
 			return {
@@ -709,15 +709,15 @@ export class GymAccessService {
 	private async getRelevantSchedules(currentDay: string, currentTime: string): Promise<any[]> {
 		try {
 			const schedules = await this.schedulesService.getAllSchedules();
-			
+
 			if (!schedules || !Array.isArray(schedules)) {
 				return [];
 			}
-			
-			const todaySchedules = schedules.filter((schedule: any) => 
-				schedule.day === currentDay && !schedule.disabled // Filter out disabled schedules
+
+			const todaySchedules = schedules.filter((schedule: any) =>
+				schedule.day === currentDay
 			);
-			
+
 			const [currentHour] = currentTime.split(':').map(Number);
 			const nextHour = currentHour + 1;
 
@@ -726,7 +726,7 @@ export class GymAccessService {
 				const [scheduleHour] = schedule.startTime.split(':').map(Number);
 				return scheduleHour === currentHour || scheduleHour === nextHour;
 			});
-			
+
 		} catch (error) {
 			this.logger.error('Error getting relevant schedules', { error, currentDay, currentTime });
 			return [];

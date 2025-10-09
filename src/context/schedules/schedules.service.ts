@@ -21,7 +21,7 @@ export class SchedulesService {
 		@Inject(ConfigService)
 		private readonly configService: ConfigService,
 		//Client Repository
-	) {}
+	) { }
 
 	async createSchedule(createScheduleDto: CreateScheduleDto) {
 		if (!createScheduleDto) {
@@ -114,6 +114,11 @@ export class SchedulesService {
 		if (!schedule) {
 			throw new NotFoundException(`Horario con ID ${scheduleId} no encontrado`);
 		}
+
+		if (schedule.maxCount >= schedule.clients.length + clienstIds.length) {
+			throw new BadRequestException(`El horario ha alcanzado su capacidad máxima`);
+		}
+
 		//TODO: Change to clientRepository
 		// const clientExists = await this.scheduleRepository.findById(clientId);
 		// if (!clientExists) {
@@ -355,7 +360,7 @@ export class SchedulesService {
 	async getDisabledDays() {
 		try {
 			const disabledSchedules = await this.scheduleRepository.getDisabledSchedules();
-			
+
 			// Group by day
 			const disabledByDay = disabledSchedules.reduce((acc: any, schedule: any) => {
 				if (!acc[schedule.day]) {
