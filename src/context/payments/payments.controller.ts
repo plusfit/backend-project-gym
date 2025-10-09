@@ -68,14 +68,7 @@ export class PaymentsController {
     @Delete(':id')
     @HttpCode(HttpStatus.OK)
     async delete(@Param('id') id: string) {
-        this.logger.log('Deleting payment', { id });
-
         const result = await this.paymentsService.delete(id);
-
-        return {
-            success: true,
-            message: 'Pago eliminado exitosamente',
-            data: result,
-        };
+        return result;
     }
 }

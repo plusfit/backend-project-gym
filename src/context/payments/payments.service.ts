@@ -59,7 +59,6 @@ export class PaymentsService {
                 pagination: this.createPaginationInfo(page, limit, result.total),
             };
         } catch (error: any) {
-            this.logger.error('Error finding payments', { error: error.message, queryDto });
             throw new BadRequestException('Error al obtener los pagos: ' + error.message);
         }
     }
@@ -77,28 +76,22 @@ export class PaymentsService {
             if (error instanceof NotFoundException) {
                 throw error;
             }
-            this.logger.error('Error finding payment by id', { error: error.message, id });
             throw new BadRequestException('Error al obtener el pago: ' + error.message);
         }
     }
 
     async delete(id: string): Promise<{ success: boolean }> {
         try {
-            this.logger.log('Deleting payment', { paymentId: id });
-
             const deleted = await this.paymentRepository.delete(id);
-
             if (!deleted) {
                 throw new NotFoundException('Pago no encontrado');
             }
 
-            this.logger.log('Payment deleted successfully', { paymentId: id });
             return { success: true };
         } catch (error: any) {
             if (error instanceof NotFoundException) {
                 throw error;
             }
-            this.logger.error('Error deleting payment', { error: error.message, id });
             throw new BadRequestException('Error al eliminar el pago: ' + error.message);
         }
     }
