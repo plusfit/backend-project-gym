@@ -421,12 +421,12 @@ export class GymAccessService {
 
 	private async checkOperatingHours(clientId?: string): Promise<boolean> {
 		try {
-			this.logger.log("=============== Checking operating hours ================");
+			console.log("=============== Checking operating hours ================");
 			let currentDay = this.getCurrentDayName();
 			if (currentDay == "Sabado") currentDay = "Sábado"
-			this.logger.log("Current day:", currentDay);
+			console.log("Current day:", currentDay);
 			const schedules = await this.schedulesService.getAllSchedules();;
-			this.logger.log("Schedules:", schedules);
+			console.log("Schedules:", schedules);
 
 			if (!schedules || !Array.isArray(schedules)) {
 				return true;
@@ -443,10 +443,10 @@ export class GymAccessService {
 			const currentHour = localTime.getHours();
 			const nextHour = currentHour + 1;
 
-			this.logger.log('localTime:', localTime);
-			this.logger.log("Current hour:", currentHour);
-			this.logger.log("Next hour:", nextHour);
-			this.logger.log("Today schedules:", todaySchedules);
+			console.log('localTime:', localTime);
+			console.log("Current hour:", currentHour);
+			console.log("Next hour:", nextHour);
+			console.log("Today schedules:", todaySchedules);
 
 			const relevantSchedules = todaySchedules.filter((schedule: any) => {
 				const scheduleStartHour = parseInt(schedule.startTime);
@@ -651,8 +651,8 @@ export class GymAccessService {
 
 			// Get schedules for current and next hour
 			const relevantSchedules = await this.getRelevantSchedules(currentDay, currentTime);
-			this.logger.log("=============== Relevant schedules ================");
-			this.logger.log("Relevant schedules:", relevantSchedules);
+			console.log("=============== Relevant schedules ================");
+			console.log("Relevant schedules:", relevantSchedules);
 			if (relevantSchedules.length === 0) {
 				return {
 					allowed: false,
