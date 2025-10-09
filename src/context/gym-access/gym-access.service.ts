@@ -426,7 +426,6 @@ export class GymAccessService {
 			if (currentDay == "Sabado") currentDay = "Sábado"
 			console.log("Current day:", currentDay);
 			const schedules = await this.schedulesService.getAllSchedules();;
-			console.log("Schedules:", schedules);
 
 			if (!schedules || !Array.isArray(schedules)) {
 				return true;
@@ -647,6 +646,8 @@ export class GymAccessService {
 		try {
 			let currentDay = this.getCurrentDayName();
 			if (currentDay == "Sabado") currentDay = "Sábado"
+			if (currentDay == "Miercoles") currentDay = "Miércoles"
+			
 			const currentTime = this.getCurrentTimeString();
 
 			// Get schedules for current and next hour
