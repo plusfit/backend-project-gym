@@ -143,17 +143,17 @@ export class PaymentRepository {
             if (filters.startDate) {
                 const startDate = this.parseToStartOfDay(filters.startDate);
                 query.createdAt.$gte = startDate;
-                this.logger.log('Start date filter', { 
-                    input: filters.startDate, 
-                    parsed: startDate.toISOString() 
+                this.logger.log('Start date filter', {
+                    input: filters.startDate,
+                    parsed: startDate.toISOString()
                 });
             }
             if (filters.endDate) {
                 const endDate = this.parseToEndOfDay(filters.endDate);
                 query.createdAt.$lte = endDate;
-                this.logger.log('End date filter', { 
-                    input: filters.endDate, 
-                    parsed: endDate.toISOString() 
+                this.logger.log('End date filter', {
+                    input: filters.endDate,
+                    parsed: endDate.toISOString()
                 });
             }
             this.logger.log('Final query for createdAt', { createdAtQuery: query.createdAt });
@@ -176,21 +176,21 @@ export class PaymentRepository {
      */
     private parseToStartOfDay(dateString: string): Date {
         // Si viene en formato YYYY-MM-DD, parseamos correctamente
-        const dateParts = dateString.includes('T') 
-            ? dateString.split('T')[0] 
+        const dateParts = dateString.includes('T')
+            ? dateString.split('T')[0]
             : dateString;
-        
+
         const [year, month, day] = dateParts.split('-').map(Number);
-        
+
         // Crear fecha en la zona horaria local
         const date = new Date(year, month - 1, day, 0, 0, 0, 0);
-        
-        this.logger.log('Parsing start of day', { 
-            input: dateString, 
+
+        this.logger.log('Parsing start of day', {
+            input: dateString,
             parsed: date.toISOString(),
             local: date.toString()
         });
-        
+
         return date;
     }
 
@@ -200,21 +200,21 @@ export class PaymentRepository {
      */
     private parseToEndOfDay(dateString: string): Date {
         // Si viene en formato YYYY-MM-DD, parseamos correctamente
-        const dateParts = dateString.includes('T') 
-            ? dateString.split('T')[0] 
+        const dateParts = dateString.includes('T')
+            ? dateString.split('T')[0]
             : dateString;
-        
+
         const [year, month, day] = dateParts.split('-').map(Number);
-        
+
         // Crear fecha en la zona horaria local
         const date = new Date(year, month - 1, day, 23, 59, 59, 999);
-        
-        this.logger.log('Parsing end of day', { 
-            input: dateString, 
+
+        this.logger.log('Parsing end of day', {
+            input: dateString,
             parsed: date.toISOString(),
             local: date.toString()
         });
-        
+
         return date;
     }
 }
