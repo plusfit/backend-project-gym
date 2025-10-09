@@ -15,8 +15,8 @@ export class Routine extends Document {
 	@Prop({ required: true, default: false })
 	isGeneral!: boolean;
 
-	@Prop({ required: true, default: false })
-	showOnScreen!: boolean;
+	@Prop({ required: false, default: false })
+	showOnScreen?: boolean;
 
 	@Prop({ required: false })
 	type!: string;
