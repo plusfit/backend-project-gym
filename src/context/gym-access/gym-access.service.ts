@@ -582,12 +582,15 @@ export class GymAccessService {
 
 	/**
 	 * Get current date and time in Uruguay timezone (UTC-3)
-	 * Since the system is already running in Uruguay, we just use local time
-	 * @returns Date object representing the current local time
+	 * This ensures consistent timezone handling across the application
+	 * @returns Date object representing the current time in Uruguay timezone
 	 */
 	private getUruguayTime(): Date {
-		// If the system is already in Uruguay timezone, just return current time
-		return new Date();
+		const now = new Date();
+		const uruguayTime = new Date(now.toLocaleString('en-US', {
+			timeZone: 'America/Montevideo'
+		}));
+		return uruguayTime;
 	}
 
 	/**
