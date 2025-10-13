@@ -12,10 +12,11 @@ import { OAuth2Client } from "google-auth-library";
 import firebaseAdmin from "firebase-admin";
 import * as bcrypt from "bcrypt";
 
+import { GoogleAuthDto } from "@/src/context/auth/dto/google-auth.dto";
+import { InternalRegisterAuthDto } from "@/src/context/auth/dto/internal-register-auth.dto";
 import { LoginAuthDto } from "@/src/context/auth/dto/login-auth.dto";
 import { RefreshTokenAuthDto } from "@/src/context/auth/dto/refresh-token-auth-dto";
 import { RegisterAuthDto } from "@/src/context/auth/dto/register-auth.dto";
-import { InternalRegisterAuthDto } from "@/src/context/auth/dto/internal-register-auth.dto";
 import { AUTH_REPOSITORY } from "@/src/context/auth/repositories/auth.repository";
 import { OnboardingService } from "../onboarding/onboarding.service";
 import { GoogleAuthDto } from "@/src/context/auth/dto/google-auth.dto";
@@ -120,6 +121,11 @@ export class AuthService {
       throw new Error("Token is required");
     }
   }
+	validateLogin(loginDto: LoginAuthDto) {
+		if (!loginDto.token) {
+			throw new Error("Token es requerido");
+		}
+	}
 
   async getEmailFromJWTFirebase(token: string) {
     try {
@@ -138,6 +144,9 @@ export class AuthService {
       if (!kid || !publicKeys[kid]) {
         throw new Error("Invalid token");
       }
+			if (!kid || !publicKeys[kid]) {
+				throw new Error("Token inválido");
+			}
 
       //Verificar el token con la clave publica
       const decoded = jwt.verify(token, publicKeys[kid]) as jwt.JwtPayload;
@@ -147,6 +156,11 @@ export class AuthService {
         //dtf-central a modo de prueba
         throw new Error("Token is not from Firebase");
       }
+			//Validar que venga de Firebase
+			if (decoded.aud !== this.configService.get("AUD")) {
+				//dtf-central a modo de prueba
+				throw new Error("Token no es de Firebase");
+			}
 
       //Valido que tenga un email
       if (
@@ -156,6 +170,14 @@ export class AuthService {
       ) {
         throw new Error("Invalid token");
       }
+			//Valido que tenga un email
+			if (
+				!decoded.email ||
+				!decoded.firebase ||
+				!decoded.firebase.identities?.email?.length
+			) {
+				throw new Error("Token inválido");
+			}
 
       return decoded.email;
     } catch (error: any) {
@@ -173,6 +195,11 @@ export class AuthService {
       throw new Error("JWT_REFRESH_SECRET is not set in the configuration.");
     }
     const refreshExpiresIn = this.configService.get("JWT_REFRESH_EXPIRES_IN");
+		const refreshSecret = this.configService.get<string>("JWT_REFRESH_SECRET");
+		if (!refreshSecret) {
+			throw new Error("JWT_REFRESH_SECRET no está configurado.");
+		}
+		const refreshExpiresIn = this.configService.get("JWT_REFRESH_EXPIRES_IN");
 
     const tokenPayload = {
       ...payload,
@@ -207,6 +234,9 @@ export class AuthService {
       if (!refreshSecret) {
         throw new Error("JWT_REFRESH_SECRET is not set in the configuration.");
       }
+			if (!refreshSecret) {
+				throw new Error("JWT_REFRESH_SECRET no está configurado.");
+			}
 
       //verifico y decodifico el refresh token
       const decoded = jwt.verify(
@@ -222,6 +252,9 @@ export class AuthService {
       if (storedRefreshToken !== _refreshToken) {
         throw new Error("Invalid refresh token");
       }
+			if (storedRefreshToken !== _refreshToken) {
+				throw new Error("Token de actualización inválido");
+			}
 
       // elimino los campos exp e iat para que se generen de nuevo a lo que no uso las variables tengo que comentarlas con eslint
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -253,6 +286,11 @@ export class AuthService {
       if (!googleAuthDto.idToken) {
         throw new Error("Google ID token is required");
       }
+	async googleLogin(googleAuthDto: GoogleAuthDto) {
+		try {
+			if (!googleAuthDto.idToken) {
+				throw new Error("Token de Google ID es requerido");
+			}
 
       // Verificar el token de Google y obtener el email
       const email = await this.verifyGoogleToken(googleAuthDto.idToken);
@@ -349,6 +387,10 @@ export class AuthService {
       if (!decodedToken.email) {
         throw new Error("Invalid email in token");
       }
+			// Verificar que el token tenga un email
+			if (!decodedToken.email) {
+				throw new Error("Email inválido en token");
+			}
 
       return decodedToken.email;
     } catch (error) {
@@ -391,4 +433,10 @@ export class AuthService {
       // No lanzamos el error para no interrumpir el login si hay problemas con la contraseña
     }
   }
+			return decodedToken.email;
+		} catch (error) {
+			console.error("Firebase token verification error:", error);
+			throw new Error("Error verificando token de Firebase");
+		}
+	}
 }

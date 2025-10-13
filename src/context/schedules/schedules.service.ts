@@ -21,30 +21,30 @@ export class SchedulesService {
 		@Inject(ConfigService)
 		private readonly configService: ConfigService,
 		//Client Repository
-	) {}
+	) { }
 
 	async createSchedule(createScheduleDto: CreateScheduleDto) {
 		if (!createScheduleDto) {
-			throw new BadRequestException("Invalid schedule data");
+			throw new BadRequestException("Datos de horario inválidos");
 		}
 		return await this.scheduleRepository.createSchedule(createScheduleDto);
 	}
 
 	async deleteSchedule(id: string) {
 		if (!id) {
-			throw new BadRequestException("Schedule ID is required");
+			throw new BadRequestException("ID de horario es requerido");
 		}
 
 		const schedule = await this.scheduleRepository.findById(id);
 		if (!schedule) {
-			throw new NotFoundException(`Schedule with ID ${id} not found`);
+			throw new NotFoundException(`Horario con ID ${id} no encontrado`);
 		}
 		return this.scheduleRepository.deleteSchedule(id);
 	}
 
 	async updateSchedule(scheduleId: string, updateData: UpdateScheduleDto) {
 		if (!scheduleId || !updateData) {
-			throw new BadRequestException("Schedule ID and update data are required");
+			throw new BadRequestException("ID de horario y datos de actualización son requeridos");
 		}
 		//TODO: Change to client repo
 		// if(updateData.clients) {
@@ -57,14 +57,14 @@ export class SchedulesService {
 		// }
 		const schedule = await this.scheduleRepository.findById(scheduleId);
 		if (!schedule) {
-			throw new NotFoundException(`Schedule with ID ${scheduleId} not found`);
+			throw new NotFoundException(`Horario con ID ${scheduleId} no encontrado`);
 		}
 		return this.scheduleRepository.updateSchedule(scheduleId, updateData);
 	}
 
 	async getSchedule(id: string) {
 		if (!id) {
-			throw new BadRequestException("Schedule ID is required");
+			throw new BadRequestException("ID de horario es requerido");
 		}
 
 		const schedule = await this.scheduleRepository.findById(id);
@@ -78,9 +78,18 @@ export class SchedulesService {
 		return await this.scheduleRepository.getSchedules();
 	}
 
+	/**
+	 * Get only enabled schedules
+	 * @returns Array of enabled schedules
+	 */
+	async getEnabledSchedules() {
+		const allSchedules = await this.scheduleRepository.getSchedules();
+		return allSchedules.filter((schedule: any) => !schedule.disabled);
+	}
+
 	async deleteAllClientSchedules(clientId: string) {
 		if (!clientId) {
-			throw new BadRequestException("Client ID is required");
+			throw new BadRequestException("ID de cliente es requerido");
 		}
 
 		const result =
@@ -97,14 +106,19 @@ export class SchedulesService {
 
 	async assignClientToSchedule(scheduleId: string, clienstIds: string[]) {
 		if (!scheduleId || !clienstIds) {
-			throw new BadRequestException("Schedule ID and Client ID are required");
+			throw new BadRequestException("ID de horario e ID de cliente son requeridos");
 		}
 
 		const schedule = await this.scheduleRepository.findById(scheduleId);
 
 		if (!schedule) {
-			throw new NotFoundException(`Schedule with ID ${scheduleId} not found`);
+			throw new NotFoundException(`Horario con ID ${scheduleId} no encontrado`);
 		}
+
+		if (schedule.maxCount >= schedule.clients.length + clienstIds.length) {
+			throw new BadRequestException(`El horario ha alcanzado su capacidad máxima`);
+		}
+
 		//TODO: Change to clientRepository
 		// const clientExists = await this.scheduleRepository.findById(clientId);
 		// if (!clientExists) {
@@ -119,12 +133,12 @@ export class SchedulesService {
 
 	async deleteClientFromSchedule(scheduleId: string, clientId: string) {
 		if (!scheduleId || !clientId) {
-			throw new BadRequestException("Schedule ID and Client ID are required");
+			throw new BadRequestException("ID de horario e ID de cliente son requeridos");
 		}
 
 		const schedule = this.scheduleRepository.findById(scheduleId);
 		if (!schedule) {
-			throw new NotFoundException(`Schedule with ID ${scheduleId} not found`);
+			throw new NotFoundException(`Horario con ID ${scheduleId} no encontrado`);
 		}
 
 		return await this.scheduleRepository.deleteClientFromSchedule(
@@ -136,12 +150,12 @@ export class SchedulesService {
 	async populateSchedulesByConfig() {
 		const schedules = await this.getAllSchedules();
 		if (schedules.length > 0) {
-			throw new BadRequestException("Schedules collection is not empty");
+			throw new BadRequestException("La colección de horarios no está vacía");
 		}
 
 		const config = await this.configService.getConfigs();
 		if (config.schedule.length === 0) {
-			throw new BadRequestException("Config Schedules collection is empty");
+			throw new BadRequestException("La colección de configuración de horarios está vacía");
 		}
 
 		const scheduleConfig = config.schedule;
@@ -153,6 +167,7 @@ export class SchedulesService {
 					endTime: (Number(hour) + 1).toString(),
 					clients: [],
 					maxCount: day.maxCount,
+					disabled: false,
 				};
 				await this.createSchedule(schedule);
 			}
@@ -166,7 +181,7 @@ export class SchedulesService {
 		const config = await this.configService.getConfigs();
 
 		if (!config.schedule || config.schedule.length === 0) {
-			throw new BadRequestException("Config Schedules collection is empty");
+			throw new BadRequestException("La colección de configuración de horarios está vacía");
 		}
 
 		const scheduleConfig = config.schedule; // Array of days with their hours and maxCount
@@ -216,6 +231,7 @@ export class SchedulesService {
 						endTime: (Number(hour) + 1).toString(),
 						clients: [], // No clients yet
 						maxCount: day.maxCount,
+						disabled: false, // New schedules are enabled by default
 					};
 					schedulesToCreate.push(newSchedule);
 				}
@@ -240,11 +256,11 @@ export class SchedulesService {
 
 	async getUserScheduleDays(userId: string) {
 		if (!userId) {
-			throw new BadRequestException("User ID is required");
+			throw new BadRequestException("ID de usuario es requerido");
 		}
 
 		if (!/^[\dA-Fa-f]{24}$/.test(userId)) {
-			throw new BadRequestException(`Invalid user ID format: ${userId}`);
+			throw new BadRequestException(`Formato de ID de usuario inválido: ${userId}`);
 		}
 
 		try {
@@ -285,6 +301,134 @@ export class SchedulesService {
 			throw new BadRequestException(
 				`Error fetching schedules: ${errorMessage}`,
 			);
+		}
+	}
+
+	/**
+	 * Disable all schedules for a specific day without removing clients
+	 * @param day - Day to disable (e.g., "Monday", "Tuesday", etc.)
+	 * @param disabled - Boolean indicating if the day should be disabled
+	 * @param disabledReason - Optional reason for disabling the day
+	 * @returns Success message
+	 */
+	async toggleDayDisabled(day: string, disabled: boolean, disabledReason?: string) {
+		if (!day) {
+			throw new BadRequestException("Day is required");
+		}
+
+		try {
+			// Get all schedules for the specified day
+			const daySchedules = await this.scheduleRepository.getSchedulesByDay(day);
+
+			if (!daySchedules || daySchedules.length === 0) {
+				throw new NotFoundException(`No schedules found for day: ${day}`);
+			}
+
+			// Update all schedules for the day
+			const updatePromises = daySchedules.map(async (schedule: any) => {
+				const updateData: any = { disabled };
+
+				// Add or remove disabled reason based on the disabled status
+				if (disabled && disabledReason) {
+					updateData.disabledReason = disabledReason;
+				} else if (!disabled) {
+					updateData.disabledReason = null; // Clear the reason when enabling
+				}
+
+				return this.scheduleRepository.updateSchedule(schedule._id, updateData);
+			});
+
+			await Promise.all(updatePromises);
+
+			const action = disabled ? "disabled" : "enabled";
+			const reasonText = disabled && disabledReason ? ` (Reason: ${disabledReason})` : '';
+			return {
+				message: `Day ${day} has been ${action}${reasonText}`,
+				affectedSchedules: daySchedules.length
+			};
+
+		} catch (error: unknown) {
+			const errorMessage = error instanceof Error ? error.message : "Unknown error";
+			throw new BadRequestException(`Error toggling day status: ${errorMessage}`);
+		}
+	}
+
+	/**
+	 * Get all disabled days
+	 * @returns Array of disabled days with their schedules
+	 */
+	async getDisabledDays() {
+		try {
+			const disabledSchedules = await this.scheduleRepository.getDisabledSchedules();
+
+			// Group by day
+			const disabledByDay = disabledSchedules.reduce((acc: any, schedule: any) => {
+				if (!acc[schedule.day]) {
+					acc[schedule.day] = {
+						schedules: [],
+						disabledReason: schedule.disabledReason || null
+					};
+				}
+				acc[schedule.day].schedules.push({
+					scheduleId: schedule._id,
+					startTime: schedule.startTime,
+					endTime: schedule.endTime,
+					maxCount: schedule.maxCount,
+					clientsCount: schedule.clients?.length || 0
+				});
+				return acc;
+			}, {});
+
+			return {
+				message: "Disabled days retrieved successfully",
+				data: disabledByDay
+			};
+
+		} catch (error: unknown) {
+			const errorMessage = error instanceof Error ? error.message : "Unknown error";
+			throw new BadRequestException(`Error retrieving disabled days: ${errorMessage}`);
+		}
+	}
+
+	/**
+	 * Toggle disabled status for a specific schedule without removing clients
+	 * @param scheduleId - Schedule ID to toggle
+	 * @param disabled - Boolean indicating if the schedule should be disabled
+	 * @param disabledReason - Optional reason for disabling the schedule
+	 * @returns Updated schedule
+	 */
+	async toggleScheduleDisabled(scheduleId: string, disabled: boolean, disabledReason?: string) {
+		if (!scheduleId) {
+			throw new BadRequestException("Schedule ID is required");
+		}
+
+		try {
+			const schedule = await this.scheduleRepository.findById(scheduleId);
+			if (!schedule) {
+				throw new NotFoundException(`Schedule with ID ${scheduleId} not found`);
+			}
+
+			const updateData: any = { disabled };
+
+			// Add or remove disabled reason based on the disabled status
+			if (disabled && disabledReason) {
+				updateData.disabledReason = disabledReason;
+			} else if (!disabled) {
+				updateData.disabledReason = null; // Clear the reason when enabling
+			}
+
+			const updatedSchedule = await this.scheduleRepository.updateSchedule(scheduleId, updateData);
+
+			const action = disabled ? "disabled" : "enabled";
+			const reasonText = disabled && disabledReason ? ` (Reason: ${disabledReason})` : '';
+			return {
+				message: `Schedule has been ${action}${reasonText}`,
+				schedule: updatedSchedule
+			};
+
+		} catch (error: unknown) {
+			const errorMessage = error instanceof Error ? error.message : "Unknown error";
+			throw new BadRequestException(`Error toggling schedule status: ${errorMessage}`);
 		}
 	}
 }

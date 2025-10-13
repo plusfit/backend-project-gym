@@ -32,13 +32,13 @@ export class RolesGuard implements CanActivate {
 		const userRole = decoded?.role; //del token obtengo el rol del usuario
 
 		if (!userRole) {
-			throw new ForbiddenException("User role not found");
+			throw new ForbiddenException("Rol de usuario no encontrado");
 		}
 
 		const hasRole = this.userHasRequiredRole(userRole, requiredRoles);
 
 		if (!hasRole) {
-			throw new ForbiddenException("User does not have required role");
+			throw new ForbiddenException("El usuario no tiene el rol requerido");
 		}
 		return true;
 	}
@@ -52,12 +52,12 @@ export class RolesGuard implements CanActivate {
 
 	private extractTokenFromHeader(authHeader: string | undefined): string {
 		if (!authHeader) {
-			throw new UnauthorizedException("Authorization header not found");
+			throw new UnauthorizedException("Encabezado de autorización no encontrado");
 		}
 
 		const token = authHeader.split(" ")[1];
 		if (!token) {
-			throw new UnauthorizedException("Token not found");
+			throw new UnauthorizedException("Token no encontrado");
 		}
 
 		return token;
@@ -66,13 +66,13 @@ export class RolesGuard implements CanActivate {
 	private verifyToken(token: string): any {
 		const secret = this.configService.get<string>("JWT_ACCESS_SECRET");
 		if (!secret) {
-			throw new UnauthorizedException("JWT secret is not set");
+			throw new UnauthorizedException("JWT secret no está configurado");
 		}
 
 		try {
 			return jwt.verify(token, secret);
 		} catch {
-			throw new UnauthorizedException("Invalid token");
+			throw new UnauthorizedException("Token inválido");
 		}
 	}
 

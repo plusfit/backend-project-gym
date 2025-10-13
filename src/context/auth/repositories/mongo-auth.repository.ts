@@ -1,8 +1,8 @@
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 
-import { RegisterAuthDto } from "@/src/context/auth/dto/register-auth.dto";
 import { InternalRegisterAuthDto } from "@/src/context/auth/dto/internal-register-auth.dto";
+import { RegisterAuthDto } from "@/src/context/auth/dto/register-auth.dto";
 import { AuthRepository } from "@/src/context/auth/repositories/auth.repository";
 import { Client } from "@/src/context/clients/schemas/client.schema";
 

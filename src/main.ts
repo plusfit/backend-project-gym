@@ -7,12 +7,13 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
-import { Logger } from "nestjs-pino";
 import firebaseAdmin from "firebase-admin";
+import { Logger } from "nestjs-pino";
 
-import { AppModule } from "./app/app.module";
 import { AllExceptionsFilter } from "@/src/context/shared/filters/all-exceptions.filter";
 import { ResponseInterceptor } from "@/src/context/shared/interceptors/response-success.interceptor";
+
+import { AppModule } from "./app/app.module";
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -26,7 +27,7 @@ async function bootstrap() {
     firebaseAdmin.initializeApp({
       projectId: configService.get<string>("FIREBASE_PROJECT_ID"),
     });
-    const auth = firebaseAdmin.auth();
+    firebaseAdmin.auth();
     console.log(
       "Firebase Admin inicializado correctamente con servicio de auth",
     );
@@ -46,6 +47,8 @@ async function bootstrap() {
     "CLIENT_URL",
     "https://www.plusfit.uy",
   );
+
+  // Configuración CORS
 
   await app
     .getHttpAdapter()
@@ -97,7 +100,7 @@ bootstrap().catch(handleError);
 function handleError(error: unknown) {
   // eslint-disable-next-line no-console
   console.error(error);
-  // eslint-disable-next-line unicorn/no-process-exit
+  // eslint-disable-next-line no-process-exit
   process.exit(1);
 }
 

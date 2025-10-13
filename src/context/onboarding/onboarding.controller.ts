@@ -1,4 +1,5 @@
 import {
+	BadRequestException,
 	Body,
 	Controller,
 	Delete,
@@ -7,7 +8,6 @@ import {
 	Param,
 	Patch,
 	Post,
-	BadRequestException,
 	Req,
 } from "@nestjs/common";
 import {
@@ -18,6 +18,7 @@ import {
 	ApiParam,
 	ApiTags,
 } from "@nestjs/swagger";
+
 import { CreateOnboardingDto } from "./dto/create-onboarding.dto";
 import {
 	HealthInfoDto,

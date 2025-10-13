@@ -1,10 +1,10 @@
 import {
+  forwardRef,
   HttpException,
   HttpStatus,
   Inject,
   Injectable,
   NotFoundException,
-  forwardRef,
 } from "@nestjs/common";
 import * as bcrypt from 'bcrypt';
 
@@ -15,9 +15,9 @@ import { PlansService } from "@/src/context/plans/plans.service";
 import { Plan } from "@/src/context/plans/schemas/plan.schema";
 import { Routine } from "@/src/context/routines/schemas/routine.schema";
 
+import { SchedulesService } from "../schedules/schedules.service";
 import { CreateClientDto } from "./dto/create-client.dto";
 import { ClientFilters } from "./interfaces/clients.interface";
-import { SchedulesService } from "../schedules/schedules.service";
 
 @Injectable()
 export class ClientsService {
@@ -189,18 +189,18 @@ export class ClientsService {
   async assignRoutineToClient(clientId: string, routineId: string) {
     const client: Client = await this.clientRepository.getClientById(clientId);
     if (!client) {
-      throw new NotFoundException("Client not found");
+      throw new NotFoundException("Cliente no encontrado");
     }
 
     const routine: Routine =
       await this.clientRepository.getRoutineById(routineId);
     if (!routine) {
-      throw new NotFoundException("Routine not found");
+      throw new NotFoundException("Rutina no encontrada");
     }
 
     const plan: Plan = await this.plansService.findOne(client.planId);
     if (!plan) {
-      throw new NotFoundException(`Plan with ID ${client.planId} not found`);
+      throw new NotFoundException(`Plan con ID ${client.planId} no encontrado`);
     }
 
     if (plan.days < routine.subRoutines.length) {
@@ -294,6 +294,41 @@ export class ClientsService {
     } catch (error: any) {
       throw new HttpException(
         `Error toggling disabled status for client: ${error.message}`,
+        error.status || 500,
+      );
+    }
+  }
+
+  async updatePoints(clientId: string, availablePoints: number) {
+    try {
+      const client = await this.findOne(clientId);
+      if (!client) {
+        throw new NotFoundException(`Client with ID ${clientId} not found`);
+      }
+
+      return await this.update(clientId, { availablePoints });
+    } catch (error: any) {
+      throw new HttpException(
+        `Error updating client points: ${error.message}`,
+        error.status || 500,
+      );
+    }
+  }
+
+  async addPoints(clientId: string, points: number) {
+    try {
+      const client = await this.findOne(clientId);
+      if (!client) {
+        throw new NotFoundException(`Client with ID ${clientId} not found`);
+      }
+
+      const currentPoints = client.availablePoints || 0;
+      const newPoints = currentPoints + points;
+
+      return await this.update(clientId, { availablePoints: newPoints });
+    } catch (error: any) {
+      throw new HttpException(
+        `Error adding points to client: ${error.message}`,
         error.status || 500,
       );
     }

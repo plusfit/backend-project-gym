@@ -23,6 +23,7 @@ import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
 import { UpdateConfigDto } from "../config/dto/update-config.dto";
 import { CreateScheduleDto } from "./dto/create-schedule.dto";
 import { UpdateScheduleDto } from "./dto/update-schedule.dto";
+import { ToggleDisabledDto } from "./dto/toggle-disabled.dto";
 import { SchedulesService } from "./schedules.service";
 
 @ApiTags("schedules")
@@ -47,6 +48,15 @@ export class SchedulesController {
 	@ApiResponse({ status: 200, description: "Lista de todos los horarios." })
 	findAll() {
 		return this.schedulesService.getAllSchedules();
+	}
+
+	@Get("enabled")
+	// @Roles(Role.Admin)
+	// @UseGuards(RolesGuard)
+	@ApiOperation({ summary: "Obtener todos los horarios habilitados" })
+	@ApiResponse({ status: 200, description: "Lista de horarios habilitados." })
+	findEnabledSchedules() {
+		return this.schedulesService.getEnabledSchedules();
 	}
 
 	@Get(":id")
@@ -165,5 +175,57 @@ export class SchedulesController {
 	@ApiParam({ name: "userId", type: String, description: "ID del usuario" })
 	getUserScheduleDays(@Param("userId") userId: string) {
 		return this.schedulesService.getUserScheduleDays(userId);
+	}
+
+	@Patch("toggle-day/:day")
+	// @Roles(Role.Admin)
+	// @UseGuards(RolesGuard)
+	@ApiOperation({
+		summary: "Habilitar/Deshabilitar un día completo (sin remover clientes)",
+	})
+	@ApiResponse({
+		status: 200,
+		description: "Día actualizado exitosamente.",
+	})
+	@ApiParam({ name: "day", type: String, description: "Día de la semana" })
+	@ApiBody({ type: ToggleDisabledDto })
+	toggleDayDisabled(
+		@Param("day") day: string,
+		@Body() toggleDto: ToggleDisabledDto,
+	) {
+		return this.schedulesService.toggleDayDisabled(day, toggleDto.disabled, toggleDto.disabledReason);
+	}
+
+	@Get("disabled-days")
+	// @Roles(Role.Admin)
+	// @UseGuards(RolesGuard)
+	@ApiOperation({
+		summary: "Obtener todos los días deshabilitados",
+	})
+	@ApiResponse({
+		status: 200,
+		description: "Lista de días deshabilitados.",
+	})
+	getDisabledDays() {
+		return this.schedulesService.getDisabledDays();
+	}
+
+	@Patch("toggle-schedule/:id")
+	// @Roles(Role.Admin)
+	// @UseGuards(RolesGuard)
+	@ApiOperation({
+		summary: "Habilitar/Deshabilitar un horario específico (sin remover clientes)",
+	})
+	@ApiResponse({
+		status: 200,
+		description: "Horario actualizado exitosamente.",
+	})
+	@ApiParam({ name: "id", type: String, description: "ID del horario" })
+	@ApiBody({ type: ToggleDisabledDto })
+	toggleScheduleDisabled(
+		@Param("id") id: string,
+		@Body() toggleDto: ToggleDisabledDto,
+	) {
+		return this.schedulesService.toggleScheduleDisabled(id, toggleDto.disabled, toggleDto.disabledReason);
 	}
 }

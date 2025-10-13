@@ -1,4 +1,5 @@
 import { Client } from "@/src/context/clients/schemas/client.schema";
+
 import { Plan } from "../../plans/schemas/plan.schema";
 
 export const CLIENT_REPOSITORY = "ClientsRepository";

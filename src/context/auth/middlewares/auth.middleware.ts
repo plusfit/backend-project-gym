@@ -20,12 +20,12 @@ export class AuthMiddleware implements NestMiddleware {
 
 			const authHeader = req.headers["authorization"];
 			if (!authHeader) {
-				throw new UnauthorizedException("Authorization header not found");
+				throw new UnauthorizedException("Encabezado de autorización no encontrado");
 			}
 
 			const token = authHeader.split(" ")[1];
 			if (!token) {
-				throw new UnauthorizedException("Token not found");
+				throw new UnauthorizedException("Token no encontrado");
 			}
 
 			const secret = this.configService.get<string>("JWT_ACCESS_SECRET") || "";
@@ -33,12 +33,12 @@ export class AuthMiddleware implements NestMiddleware {
 			const decoded = jwt.verify(token, secret);
 
 			if (!decoded) {
-				throw new UnauthorizedException("Invalid token");
+				throw new UnauthorizedException("Token inválido");
 			}
 
 			next();
 		} catch (e: any) {
-			throw new UnauthorizedException("Invalid or expired token" + e.message);
+			throw new UnauthorizedException("Token inválido o expirado: " + e.message);
 		}
 	}
 }

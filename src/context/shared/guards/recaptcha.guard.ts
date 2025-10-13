@@ -1,5 +1,6 @@
-import { Injectable, CanActivate, ExecutionContext, BadRequestException, SetMetadata } from '@nestjs/common';
+import { BadRequestException, CanActivate, ExecutionContext, Injectable, SetMetadata } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+
 import { RecaptchaService } from '../services/recaptcha.service';
 
 // Decorador para marcar qué acción de reCAPTCHA se espera
