@@ -32,17 +32,6 @@ enum AccessErrorMessages {
 	SCHEDULE_ACCESS_WINDOW_OK = "Acceso autorizado dentro del horario"
 }
 
-// Pagination result interface for reusability
-interface PaginationResult<T> {
-	data: T[];
-	pagination: {
-		currentPage: number;
-		totalPages: number;
-		totalCount: number;
-		limit: number;
-	};
-}
-
 // Client data interface for mapping
 interface ClientData {
 	name: string;
@@ -432,9 +421,11 @@ export class GymAccessService {
 
 	private async checkOperatingHours(clientId?: string): Promise<boolean> {
 		try {
+			console.log("=============== Checking operating hours ================");
 			let currentDay = this.getCurrentDayName();
 			if (currentDay == "Sabado") currentDay = "Sábado"
-			const schedules = await this.schedulesService.getAllSchedules();
+			console.log("Current day:", currentDay);
+			const schedules = await this.schedulesService.getAllSchedules();;
 
 			if (!schedules || !Array.isArray(schedules)) {
 				return true;
@@ -450,6 +441,11 @@ export class GymAccessService {
 			const localTime = this.getUruguayTime();
 			const currentHour = localTime.getHours();
 			const nextHour = currentHour + 1;
+
+			console.log('localTime:', localTime);
+			console.log("Current hour:", currentHour);
+			console.log("Next hour:", nextHour);
+			console.log("Today schedules:", todaySchedules);
 
 			const relevantSchedules = todaySchedules.filter((schedule: any) => {
 				const scheduleStartHour = parseInt(schedule.startTime);
@@ -586,12 +582,15 @@ export class GymAccessService {
 
 	/**
 	 * Get current date and time in Uruguay timezone (UTC-3)
-	 * Since the system is already running in Uruguay, we just use local time
-	 * @returns Date object representing the current local time
+	 * This ensures consistent timezone handling across the application
+	 * @returns Date object representing the current time in Uruguay timezone
 	 */
 	private getUruguayTime(): Date {
-		// If the system is already in Uruguay timezone, just return current time
-		return new Date();
+		const now = new Date();
+		const uruguayTime = new Date(now.toLocaleString('en-US', {
+			timeZone: 'America/Montevideo'
+		}));
+		return uruguayTime;
 	}
 
 	/**
@@ -650,11 +649,14 @@ export class GymAccessService {
 		try {
 			let currentDay = this.getCurrentDayName();
 			if (currentDay == "Sabado") currentDay = "Sábado"
+			if (currentDay == "Miercoles") currentDay = "Miércoles"
+			
 			const currentTime = this.getCurrentTimeString();
 
 			// Get schedules for current and next hour
 			const relevantSchedules = await this.getRelevantSchedules(currentDay, currentTime);
-
+			console.log("=============== Relevant schedules ================");
+			console.log("Relevant schedules:", relevantSchedules);
 			if (relevantSchedules.length === 0) {
 				return {
 					allowed: false,
@@ -770,7 +772,6 @@ export class GymAccessService {
 
 		const currentMinutes = currentHour * 60 + currentMinute;
 		const startMinutes = startHour * 60 + startMinute;
-		const endMinutes = endHour * 60 + endMinute;
 
 		// Allow access 10 minutes before start time
 		const earlyAccessMinutes = startMinutes - 10;

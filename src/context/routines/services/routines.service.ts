@@ -166,6 +166,7 @@ export class RoutinesService {
     type?: string,
     mode?: string,
     isGeneral?: boolean,
+    showOnScreen?: boolean,
   ): Promise<{
     data: Routine[];
     total: number;
@@ -178,6 +179,10 @@ export class RoutinesService {
 
     if (isGeneral !== undefined) {
       filters.isGeneral = isGeneral;
+    }
+
+    if (showOnScreen !== undefined) {
+      filters.showOnScreen = showOnScreen;
     }
 
     if (name) {
