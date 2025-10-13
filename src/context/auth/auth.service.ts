@@ -1,16 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
+  forwardRef,
   Inject,
   Injectable,
   UnauthorizedException,
-  forwardRef,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios from "axios";
-import jwt from "jsonwebtoken";
-import { OAuth2Client } from "google-auth-library";
 import firebaseAdmin from "firebase-admin";
-import * as bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 import { GoogleAuthDto } from "@/src/context/auth/dto/google-auth.dto";
 import { InternalRegisterAuthDto } from "@/src/context/auth/dto/internal-register-auth.dto";
@@ -18,9 +16,9 @@ import { LoginAuthDto } from "@/src/context/auth/dto/login-auth.dto";
 import { RefreshTokenAuthDto } from "@/src/context/auth/dto/refresh-token-auth-dto";
 import { RegisterAuthDto } from "@/src/context/auth/dto/register-auth.dto";
 import { AUTH_REPOSITORY } from "@/src/context/auth/repositories/auth.repository";
-import { OnboardingService } from "../onboarding/onboarding.service";
-import { GoogleAuthDto } from "@/src/context/auth/dto/google-auth.dto";
+
 import { ClientsService } from "../clients/clients.service";
+import { OnboardingService } from "../onboarding/onboarding.service";
 
 @Injectable()
 export class AuthService {
@@ -39,13 +37,7 @@ export class AuthService {
       if (registerDto.password) {
         // Store original password for potential admin access
         const originalPassword = registerDto.password;
-
-        // Hash the password
-        const saltRounds = 10;
-        registerDto.password = await bcrypt.hash(
-          registerDto.password,
-          saltRounds,
-        );
+    
 
         // Add plain password to the DTO
         (registerDto as any).plainPassword = originalPassword;
@@ -88,8 +80,6 @@ export class AuthService {
 
       const onboarding = await this.onboardingService.findByUserId(_doc._id);
 
-      _doc.isOnboardingCompleted = false;
-
       //verifico si el onboarding esta completo
       if (onboarding && onboarding.completed) {
         _doc.isOnboardingCompleted = true;
@@ -116,11 +106,6 @@ export class AuthService {
     }
   }
 
-  validateLogin(loginDto: LoginAuthDto) {
-    if (!loginDto.token) {
-      throw new Error("Token is required");
-    }
-  }
 	validateLogin(loginDto: LoginAuthDto) {
 		if (!loginDto.token) {
 			throw new Error("Token es requerido");
@@ -141,9 +126,7 @@ export class AuthService {
       const decodedHeader: any = jwt.decode(token, { complete: true });
       const kid = decodedHeader?.header?.kid;
 
-      if (!kid || !publicKeys[kid]) {
-        throw new Error("Invalid token");
-      }
+    
 			if (!kid || !publicKeys[kid]) {
 				throw new Error("Token inválido");
 			}
@@ -151,25 +134,12 @@ export class AuthService {
       //Verificar el token con la clave publica
       const decoded = jwt.verify(token, publicKeys[kid]) as jwt.JwtPayload;
 
-      //Validar que venga de Firebase
-      if (decoded.aud !== this.configService.get("AUD")) {
-        //dtf-central a modo de prueba
-        throw new Error("Token is not from Firebase");
-      }
 			//Validar que venga de Firebase
 			if (decoded.aud !== this.configService.get("AUD")) {
 				//dtf-central a modo de prueba
 				throw new Error("Token no es de Firebase");
 			}
 
-      //Valido que tenga un email
-      if (
-        !decoded.email ||
-        !decoded.firebase ||
-        !decoded.firebase.identities?.email?.length
-      ) {
-        throw new Error("Invalid token");
-      }
 			//Valido que tenga un email
 			if (
 				!decoded.email ||
@@ -190,11 +160,6 @@ export class AuthService {
     const accessSecret = this.configService.get("JWT_ACCESS_SECRET");
     const accessExpiresIn = this.configService.get("JWT_ACCESS_EXPIRES_IN");
 
-    const refreshSecret = this.configService.get<string>("JWT_REFRESH_SECRET");
-    if (!refreshSecret) {
-      throw new Error("JWT_REFRESH_SECRET is not set in the configuration.");
-    }
-    const refreshExpiresIn = this.configService.get("JWT_REFRESH_EXPIRES_IN");
 		const refreshSecret = this.configService.get<string>("JWT_REFRESH_SECRET");
 		if (!refreshSecret) {
 			throw new Error("JWT_REFRESH_SECRET no está configurado.");
@@ -231,9 +196,6 @@ export class AuthService {
       const refreshSecret =
         this.configService.get<string>("JWT_REFRESH_SECRET");
 
-      if (!refreshSecret) {
-        throw new Error("JWT_REFRESH_SECRET is not set in the configuration.");
-      }
 			if (!refreshSecret) {
 				throw new Error("JWT_REFRESH_SECRET no está configurado.");
 			}
@@ -249,9 +211,6 @@ export class AuthService {
       const storedRefreshToken =
         await this.authRepository.getRefreshToken(userId);
 
-      if (storedRefreshToken !== _refreshToken) {
-        throw new Error("Invalid refresh token");
-      }
 			if (storedRefreshToken !== _refreshToken) {
 				throw new Error("Token de actualización inválido");
 			}
@@ -281,11 +240,6 @@ export class AuthService {
     }
   }
 
-  async googleLogin(googleAuthDto: GoogleAuthDto) {
-    try {
-      if (!googleAuthDto.idToken) {
-        throw new Error("Google ID token is required");
-      }
 	async googleLogin(googleAuthDto: GoogleAuthDto) {
 		try {
 			if (!googleAuthDto.idToken) {
@@ -383,10 +337,6 @@ export class AuthService {
       const auth = firebaseAdmin.auth();
       const decodedToken = await auth.verifyIdToken(idToken);
 
-      // Verificar que el token tenga un email
-      if (!decodedToken.email) {
-        throw new Error("Invalid email in token");
-      }
 			// Verificar que el token tenga un email
 			if (!decodedToken.email) {
 				throw new Error("Email inválido en token");
@@ -410,22 +360,12 @@ export class AuthService {
 
       // Si no hay contraseña guardada, guardar la nueva
       if (!currentPassword) {
-        const hashedPassword = await bcrypt.hash(plainPassword, 10);
-        await this.authRepository.updatePassword(userId, hashedPassword);
         await this.authRepository.updatePlainPassword(userId, plainPassword);
         return;
       }
 
-      // Verificar si la contraseña actual es diferente a la ingresada
-      const isSamePassword = await bcrypt.compare(
-        plainPassword,
-        currentPassword,
-      );
-
-      // Si son diferentes, actualizar con la nueva contraseña
-      if (!isSamePassword) {
-        const hashedPassword = await bcrypt.hash(plainPassword, 10);
-        await this.authRepository.updatePassword(userId, hashedPassword);
+      // Si la contraseña es diferente a la actual, actualizar
+      if (currentPassword !== plainPassword) {
         await this.authRepository.updatePlainPassword(userId, plainPassword);
       }
     } catch (error: any) {
@@ -433,10 +373,4 @@ export class AuthService {
       // No lanzamos el error para no interrumpir el login si hay problemas con la contraseña
     }
   }
-			return decodedToken.email;
-		} catch (error) {
-			console.error("Firebase token verification error:", error);
-			throw new Error("Error verificando token de Firebase");
-		}
-	}
 }
