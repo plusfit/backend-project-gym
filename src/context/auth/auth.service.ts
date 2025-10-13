@@ -356,7 +356,7 @@ export class AuthService {
     try {
       // Obtener la contraseña actual del usuario
       const currentPassword =
-        await this.clientsService.getClientPassword(userId);
+        await this.clientsService.getClientPlainPassword(userId);
 
       // Si no hay contraseña guardada, guardar la nueva
       if (!currentPassword) {
