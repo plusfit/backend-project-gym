@@ -24,4 +24,5 @@ export interface ClientsRepository {
   getListClients(ids: string[]): Promise<Client[]>;
   findClientsByPlanId(planId: string): Promise<Client[]>;
   toggleDisabled(id: string, disabled: boolean): Promise<Client | null>;
+  getClientWithPassword(id: string): Promise<Client | null>;
 }

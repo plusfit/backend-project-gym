@@ -58,7 +58,7 @@ export class Client extends Document {
 	role!: string;
 
 	@Prop({ type: String })
-	planId!: string;
+	planId?: string;
 
 	@Prop({ type: String })
 	routineId?: string;
@@ -71,6 +71,12 @@ export class Client extends Document {
 
 	@Prop({ type: String })
 	refreshToken?: string;
+
+	@Prop({ type: String, select: false })
+	password?: string;
+
+	@Prop({ type: String, select: false })
+	plainPassword?: string;
 
 	@Prop({ default: false, type: Boolean })
 	isOnboardingCompleted?: boolean;

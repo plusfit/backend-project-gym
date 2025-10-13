@@ -13,4 +13,8 @@ export abstract class AuthRepository {
 	abstract getRefreshToken(userId: string): Promise<string>;
 
 	abstract updateUserInfo(userId: string, userInfo: any): Promise<any>;
+
+	abstract updatePassword(userId: string, hashedPassword: string): Promise<void>;
+
+	abstract updatePlainPassword(userId: string, plainPassword: string): Promise<void>;
 }

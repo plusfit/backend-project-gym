@@ -20,6 +20,7 @@ import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
 
 import { ClientsIdsDto } from "./dto/clients-ids.dto";
 import { CreateClientDto } from "./dto/create-client.dto";
+import { ValidatePasswordDto } from "./dto/validate-password.dto";
 import { ClientFilters } from "./interfaces/clients.interface";
 
 @ApiTags("clients")
@@ -62,6 +63,33 @@ export class ClientsController {
   // @UseGuards(RolesGuard)
   findOne(@Param("id") id: string) {
     return this.clientsService.findOne(id);
+  }
+
+  @Get(":id/password")
+  @ApiOperation({ summary: "Get client password information for admin" })
+  @ApiResponse({ status: 200, description: "Returns the actual password for admin access" })
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
+  async getClientPassword(@Param("id") id: string) {
+    const plainPassword = await this.clientsService.getClientPlainPassword(id);
+    return { 
+      hasPassword: !!plainPassword,
+      password: plainPassword || null,
+      message: plainPassword ? "Password retrieved successfully" : "No password set"
+    };
+  }
+
+  @Post(":id/validate-password")
+  @ApiOperation({ summary: "Validate client password" })
+  @ApiResponse({ status: 200, description: "Returns validation result" })
+  @Roles(Role.Admin, Role.Client)
+  @UseGuards(RolesGuard)
+  async validatePassword(
+    @Param("id") id: string,
+    @Body() validatePasswordDto: ValidatePasswordDto,
+  ) {
+    const isValid = await this.clientsService.validateClientPassword(id, validatePasswordDto.password);
+    return { isValid };
   }
 
   @Post("create")

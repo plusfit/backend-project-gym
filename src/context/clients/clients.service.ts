@@ -6,6 +6,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
+import * as bcrypt from 'bcrypt';
 
 import { UpdateClientDto } from "@/src/context/clients/dto/update-client.dto";
 import { CLIENT_REPOSITORY } from "@/src/context/clients/repositories/clients.repository";
@@ -103,12 +104,32 @@ export class ClientsService {
     return this.clientRepository.getClientById(id);
   }
 
-  create(createClientDto: CreateClientDto) {
-    return this.clientRepository.createClient(createClientDto);
+  async create(createClientDto: CreateClientDto) {
+    try {
+      // Handle password if provided
+      if (createClientDto.password) {
+        // Store plain password for admin access
+        createClientDto.plainPassword = createClientDto.password;
+
+        // Hash the password for security
+        const saltRounds = 10;
+        createClientDto.password = await bcrypt.hash(
+          createClientDto.password,
+          saltRounds,
+        );
+      }
+
+      return this.clientRepository.createClient(createClientDto);
+    } catch (error: any) {
+      throw new HttpException(
+        `Error creating client: ${error.message}`,
+        error.status || 500,
+      );
+    }
   }
 
   update(id: string, updateClientDto: UpdateClientDto) {
-     updateClientDto.isOnboardingCompleted = true;
+    updateClientDto.isOnboardingCompleted = true;
     return this.clientRepository.updateClient(id, updateClientDto);
   }
 
@@ -130,7 +151,9 @@ export class ClientsService {
           .map((schedule: any) => {
             const updatedSchedule = {
               ...schedule.toObject(), // If it's a Mongoose document
-              clients: schedule.clients.filter((clientId: string) => clientId !== id),
+              clients: schedule.clients.filter(
+                (clientId: string) => clientId !== id,
+              ),
             };
 
             return this.schedulesService.updateSchedule(
@@ -143,12 +166,15 @@ export class ClientsService {
         await Promise.all(updates);
       } catch (scheduleError) {
         // Log the error but don't fail the delete operation
-        console.error(`Error removing client ${id} from schedules:`, scheduleError);
+        console.error(
+          `Error removing client ${id} from schedules:`,
+          scheduleError,
+        );
       }
-      
+
       // Remove from MongoDB
       const result = await this.clientRepository.removeClient(id);
-      
+
       if (!result) {
         throw new HttpException(
           `Failed to delete client with ID ${id}`,
@@ -156,9 +182,15 @@ export class ClientsService {
         );
       }
 
-      return { message: `Client with ID ${id} deleted successfully`, deleted: true };
+      return {
+        message: `Client with ID ${id} deleted successfully`,
+        deleted: true,
+      };
     } catch (error: any) {
-      if (error instanceof NotFoundException || error instanceof HttpException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof HttpException
+      ) {
         throw error;
       }
       throw new HttpException(
@@ -245,22 +277,22 @@ export class ClientsService {
     try {
       if (disabled) {
         const schedules = await this.schedulesService.getAllSchedules();
-  
+
         // Filtrar y actualizar solo los horarios que tengan al cliente
         const updates = schedules
           .filter((schedule: any) => schedule.clients.includes(clientId))
           .map((schedule: any) => {
-              const updatedSchedule = {
-                ...schedule.toObject(), // Si es un documento de Mongoose
-                clients: schedule.clients.filter((id: string) => id !== clientId),
-              };
-  
+            const updatedSchedule = {
+              ...schedule.toObject(), // Si es un documento de Mongoose
+              clients: schedule.clients.filter((id: string) => id !== clientId),
+            };
+
             return this.schedulesService.updateSchedule(
               schedule._id,
               updatedSchedule,
             );
           });
-  
+
         await Promise.all(updates);
       }
 
@@ -328,6 +360,50 @@ export class ClientsService {
     }
   }
 
+  async getClientPassword(clientId: string): Promise<string | null> {
+    try {
+      const client =
+        await this.clientRepository.getClientWithPassword(clientId);
+      return client?.password || null;
+    } catch (error: any) {
+      throw new HttpException(
+        `Error getting client password: ${error.message}`,
+        error.status || 500,
+      );
+    }
+  }
+
+  async getClientPlainPassword(clientId: string): Promise<string | null> {
+    try {
+      const client =
+        await this.clientRepository.getClientWithPassword(clientId);
+      return client?.plainPassword || null;
+    } catch (error: any) {
+      throw new HttpException(
+        `Error getting client plain password: ${error.message}`,
+        error.status || 500,
+      );
+    }
+  }
+
+  async validateClientPassword(
+    clientId: string,
+    plainPassword: string,
+  ): Promise<boolean> {
+    try {
+      const hashedPassword = await this.getClientPassword(clientId);
+      if (!hashedPassword) {
+        return false;
+      }
+      return await bcrypt.compare(plainPassword, hashedPassword);
+    } catch (error: any) {
+      throw new HttpException(
+        `Error validating client password: ${error.message}`,
+        error.status || 500,
+      );
+    }
+  }
+
   /**
    * Find client by ID
    */
@@ -349,13 +425,11 @@ export class ClientsService {
     }
   }
 
-
-  
   async addAvailableDays(clientId: string, daysToAdd: number): Promise<Client> {
     try {
       if (daysToAdd <= 0) {
         throw new HttpException(
-          'Days to add must be greater than 0',
+          "Days to add must be greater than 0",
           HttpStatus.BAD_REQUEST,
         );
       }
@@ -385,7 +459,9 @@ export class ClientsService {
     }
   }
 
-  async getClientAvailableDays(clientId: string): Promise<{ clientId: string; availableDays: number }> {
+  async getClientAvailableDays(
+    clientId: string,
+  ): Promise<{ clientId: string; availableDays: number }> {
     try {
       const client = await this.clientRepository.getClientById(clientId);
       if (!client) {
@@ -407,11 +483,14 @@ export class ClientsService {
     }
   }
 
-  async updateAvailableDays(clientId: string, newDays: number): Promise<Client> {
+  async updateAvailableDays(
+    clientId: string,
+    newDays: number,
+  ): Promise<Client> {
     try {
       if (newDays < 0) {
         throw new HttpException(
-          'Available days cannot be negative',
+          "Available days cannot be negative",
           HttpStatus.BAD_REQUEST,
         );
       }

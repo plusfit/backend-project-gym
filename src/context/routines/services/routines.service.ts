@@ -99,6 +99,10 @@ export class RoutinesService {
         throw new NotFoundException(`Client with ID ${clientId} not found`);
       }
 
+      if (!client.planId) {
+        throw new NotFoundException(`Client does not have a plan assigned`);
+      }
+
       const plan = await this.planRepository.findOne(client.planId);
       if (!plan) {
         throw new NotFoundException(`Plan with ID ${client.planId} not found`);

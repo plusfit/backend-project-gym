@@ -122,6 +122,10 @@ export class MongoClientsRepository implements ClientsRepository {
       .exec();
   }
 
+  async getClientWithPassword(id: string): Promise<Client | null> {
+    return await this.clientModel.findById(id).select("+password +plainPassword").exec();
+  }
+
   async removeClientFirebase(id: string): Promise<void> {
     // For MongoDB implementation, we don't need Firebase specific removal
     // This method is kept for interface compatibility
