@@ -84,7 +84,7 @@ export class PaymentsService {
     async updateAmount(id: string, updatePaymentAmountDto: UpdatePaymentAmountDto): Promise<Payment> {
         try {
             const updatedPayment = await this.paymentRepository.updateAmount(id, updatePaymentAmountDto.amount);
-            
+
             if (!updatedPayment) {
                 throw new NotFoundException('Pago no encontrado');
             }
