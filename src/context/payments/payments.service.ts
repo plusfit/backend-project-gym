@@ -2,6 +2,7 @@ import { Injectable, Logger, NotFoundException, BadRequestException } from '@nes
 
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { GetPaymentsDto } from './dto/get-payments.dto';
+import { UpdatePaymentAmountDto } from './dto/update-payment-amount.dto';
 import { Payment, PaymentFilters, PaymentStats } from './entities/payment.entity';
 import { PaymentRepository } from './repositories/payment.repository';
 
@@ -80,6 +81,25 @@ export class PaymentsService {
         }
     }
 
+    async updateAmount(id: string, updatePaymentAmountDto: UpdatePaymentAmountDto): Promise<Payment> {
+        try {
+            const updatedPayment = await this.paymentRepository.updateAmount(id, updatePaymentAmountDto.amount);
+            
+            if (!updatedPayment) {
+                throw new NotFoundException('Pago no encontrado');
+            }
+
+            this.logger.log('Payment amount updated successfully', { id, newAmount: updatePaymentAmountDto.amount });
+            return updatedPayment;
+        } catch (error: any) {
+            if (error instanceof NotFoundException) {
+                throw error;
+            }
+            this.logger.error('Error updating payment amount', { error: error.message, id, updatePaymentAmountDto });
+            throw new BadRequestException('Error al actualizar el monto del pago: ' + error.message);
+        }
+    }
+
     async delete(id: string): Promise<{ success: boolean }> {
         try {
             const deleted = await this.paymentRepository.delete(id);
@@ -93,24 +113,6 @@ export class PaymentsService {
                 throw error;
             }
             throw new BadRequestException('Error al eliminar el pago: ' + error.message);
-        }
-    }
-
-    async getStats(filters?: GetPaymentsDto): Promise<PaymentStats> {
-        try {
-            const paymentFilters: PaymentFilters = filters ? {
-                clientId: filters.clientId,
-                clientName: filters.clientName,
-                startDate: filters.startDate,
-                endDate: filters.endDate,
-                minAmount: filters.minAmount,
-                maxAmount: filters.maxAmount,
-            } : {};
-
-            return await this.paymentRepository.getStats(paymentFilters);
-        } catch (error: any) {
-            this.logger.error('Error getting payment stats', { error: error.message, filters });
-            throw new BadRequestException('Error al obtener las estadísticas: ' + error.message);
         }
     }
 

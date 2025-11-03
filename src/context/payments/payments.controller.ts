@@ -2,6 +2,7 @@ import {
     Controller,
     Get,
     Post,
+    Patch,
     Delete,
     Body,
     Param,
@@ -16,6 +17,7 @@ import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
 import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { GetPaymentsDto } from './dto/get-payments.dto';
+import { UpdatePaymentAmountDto } from './dto/update-payment-amount.dto';
 import { PaymentsService } from './payments.service';
 
 @Controller('payments')
@@ -43,19 +45,6 @@ export class PaymentsController {
         return result;
     }
 
-    @Get('stats')
-    @Roles(Role.Admin)
-    @UseGuards(RolesGuard)
-    async getStats(@Query() filters: GetPaymentsDto) {
-        const stats = await this.paymentsService.getStats(filters);
-
-        return {
-            success: true,
-            message: 'Estadísticas obtenidas exitosamente',
-            data: stats,
-        };
-    }
-
     @Get(':id')
     @Roles(Role.Admin)
     @UseGuards(RolesGuard)
@@ -63,6 +52,20 @@ export class PaymentsController {
         const payment = await this.paymentsService.findById(id);
 
         return payment;
+    }
+
+    @Patch(':id')
+    @Roles(Role.Admin)
+    @UseGuards(RolesGuard)
+    @HttpCode(HttpStatus.OK)
+    async updateAmount(
+        @Param('id') id: string,
+        @Body() updatePaymentAmountDto: UpdatePaymentAmountDto
+    ) {
+        const updatedPayment = await this.paymentsService.updateAmount(id, updatePaymentAmountDto);
+
+        this.logger.log(`Payment amount updated successfully for ID: ${id}`);
+        return updatedPayment;
     }
 
     @Delete(':id')

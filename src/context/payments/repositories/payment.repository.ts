@@ -67,6 +67,27 @@ export class PaymentRepository {
         }
     }
 
+    async updateAmount(id: string, amount: number): Promise<Payment | null> {
+        try {
+            if (!Types.ObjectId.isValid(id)) {
+                return null;
+            }
+
+            const updatedPayment = await this.paymentModel
+                .findByIdAndUpdate(
+                    id,
+                    { amount, updatedAt: new Date() },
+                    { new: true, runValidators: true }
+                )
+                .exec();
+
+            return updatedPayment ? new Payment(updatedPayment.toObject()) : null;
+        } catch (error) {
+            this.logger.error('Error updating payment amount', { error, id, amount });
+            throw error;
+        }
+    }
+
     async delete(id: string): Promise<boolean> {
         try {
             if (!Types.ObjectId.isValid(id)) {
