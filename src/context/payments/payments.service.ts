@@ -3,6 +3,7 @@ import { Injectable, Logger, NotFoundException, BadRequestException } from '@nes
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { GetPaymentsDto } from './dto/get-payments.dto';
 import { UpdatePaymentAmountDto } from './dto/update-payment-amount.dto';
+import { GetPaymentsSummaryDto } from './dto/get-payments-summary.dto';
 import { Payment, PaymentFilters, PaymentStats } from './entities/payment.entity';
 import { PaymentRepository } from './repositories/payment.repository';
 
@@ -44,6 +45,16 @@ export class PaymentsService {
         try {
             const { page = 1, limit = 10, ...filterOptions } = queryDto;
 
+            // Validar que si se proporcionan ambas fechas, startDate no sea mayor que endDate
+            if (filterOptions.startDate && filterOptions.endDate) {
+                const startDate = new Date(filterOptions.startDate);
+                const endDate = new Date(filterOptions.endDate);
+
+                if (startDate > endDate) {
+                    throw new BadRequestException('La fecha de inicio no puede ser mayor que la fecha de fin');
+                }
+            }
+
             const filters: PaymentFilters = {
                 clientId: filterOptions.clientId,
                 clientName: filterOptions.clientName,
@@ -55,11 +66,21 @@ export class PaymentsService {
 
             const result = await this.paymentRepository.findAll(page, limit, filters);
 
+            this.logger.log('Payments found with filters', {
+                filters,
+                page,
+                limit,
+                totalFound: result.total
+            });
+
             return {
                 data: result.payments,
                 pagination: this.createPaginationInfo(page, limit, result.total),
             };
         } catch (error: any) {
+            if (error instanceof BadRequestException) {
+                throw error;
+            }
             throw new BadRequestException('Error al obtener los pagos: ' + error.message);
         }
     }
@@ -97,6 +118,55 @@ export class PaymentsService {
             }
             this.logger.error('Error updating payment amount', { error: error.message, id, updatePaymentAmountDto });
             throw new BadRequestException('Error al actualizar el monto del pago: ' + error.message);
+        }
+    }
+
+    async getSummaryByDateRange(summaryDto: GetPaymentsSummaryDto): Promise<{
+        totalAmount: number;
+        count: number;
+        dateRange: {
+            startDate: string;
+            endDate: string;
+        };
+    }> {
+        try {
+            // Validar que la fecha de inicio no sea mayor que la fecha de fin
+            const startDate = new Date(summaryDto.startDate);
+            const endDate = new Date(summaryDto.endDate);
+
+            if (startDate > endDate) {
+                throw new BadRequestException('La fecha de inicio no puede ser mayor que la fecha de fin');
+            }
+
+            const summary = await this.paymentRepository.getSummaryByDateRange(
+                summaryDto.startDate,
+                summaryDto.endDate
+            );
+
+            this.logger.log('Payments summary calculated', {
+                startDate: summaryDto.startDate,
+                endDate: summaryDto.endDate,
+                totalAmount: summary.totalAmount,
+                count: summary.count
+            });
+
+            return {
+                totalAmount: summary.totalAmount,
+                count: summary.count,
+                dateRange: {
+                    startDate: summaryDto.startDate,
+                    endDate: summaryDto.endDate
+                }
+            };
+        } catch (error: any) {
+            if (error instanceof BadRequestException) {
+                throw error;
+            }
+            this.logger.error('Error getting payments summary by date range', { 
+                error: error.message, 
+                summaryDto 
+            });
+            throw new BadRequestException('Error al obtener el resumen de pagos: ' + error.message);
         }
     }
 

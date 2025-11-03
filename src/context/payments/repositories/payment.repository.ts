@@ -88,6 +88,49 @@ export class PaymentRepository {
         }
     }
 
+    async getSummaryByDateRange(startDate: string, endDate: string): Promise<{ totalAmount: number; count: number }> {
+        try {
+            const startOfDay = this.parseToStartOfDay(startDate);
+            const endOfDay = this.parseToEndOfDay(endDate);
+
+            this.logger.log('Getting payments summary by date range', {
+                startDate,
+                endDate,
+                parsedStart: startOfDay.toISOString(),
+                parsedEnd: endOfDay.toISOString()
+            });
+
+            const result = await this.paymentModel.aggregate([
+                {
+                    $match: {
+                        createdAt: {
+                            $gte: startOfDay,
+                            $lte: endOfDay
+                        }
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        totalAmount: { $sum: '$amount' },
+                        count: { $sum: 1 }
+                    }
+                }
+            ]).exec();
+
+            // Si no hay resultados, devolver valores por defecto
+            const summary = result[0] || { totalAmount: 0, count: 0 };
+
+            return {
+                totalAmount: summary.totalAmount || 0,
+                count: summary.count || 0
+            };
+        } catch (error) {
+            this.logger.error('Error getting payments summary by date range', { error, startDate, endDate });
+            throw error;
+        }
+    }
+
     async delete(id: string): Promise<boolean> {
         try {
             if (!Types.ObjectId.isValid(id)) {

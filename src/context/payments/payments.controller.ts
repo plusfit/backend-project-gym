@@ -18,6 +18,7 @@ import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { GetPaymentsDto } from './dto/get-payments.dto';
 import { UpdatePaymentAmountDto } from './dto/update-payment-amount.dto';
+import { GetPaymentsSummaryDto } from './dto/get-payments-summary.dto';
 import { PaymentsService } from './payments.service';
 
 @Controller('payments')
@@ -43,6 +44,16 @@ export class PaymentsController {
         const result = await this.paymentsService.findAll(queryDto);
 
         return result;
+    }
+
+    @Get('summary')
+    @Roles(Role.Admin)
+    @UseGuards(RolesGuard)
+    async getSummaryByDateRange(@Query() summaryDto: GetPaymentsSummaryDto) {
+        const summary = await this.paymentsService.getSummaryByDateRange(summaryDto);
+        
+        this.logger.log(`Payment summary calculated: ${summary.count} payments with total amount ${summary.totalAmount}`);
+        return summary;
     }
 
     @Get(':id')
