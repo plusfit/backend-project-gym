@@ -126,4 +126,13 @@ export class CreatePlanDto {
   @Min(1)
   @Max(7)
   days!: number;
+
+  @ApiProperty({
+    description: "The price of the plan",
+    example: 1000,
+  })
+  @IsNumber()
+  @Min(0)
+  @IsNotEmpty()
+  price!: number;
 }

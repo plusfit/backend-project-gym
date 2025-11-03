@@ -4,4 +4,5 @@ export class PlanEntity {
 	type!: string;
 	sexType!: string;
 	defaultRoutine!: string;
+	price!: number;
 }
