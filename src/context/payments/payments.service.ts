@@ -162,9 +162,9 @@ export class PaymentsService {
             if (error instanceof BadRequestException) {
                 throw error;
             }
-            this.logger.error('Error getting payments summary by date range', { 
-                error: error.message, 
-                summaryDto 
+            this.logger.error('Error getting payments summary by date range', {
+                error: error.message,
+                summaryDto
             });
             throw new BadRequestException('Error al obtener el resumen de pagos: ' + error.message);
         }

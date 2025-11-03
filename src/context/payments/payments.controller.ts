@@ -51,7 +51,7 @@ export class PaymentsController {
     @UseGuards(RolesGuard)
     async getSummaryByDateRange(@Query() summaryDto: GetPaymentsSummaryDto) {
         const summary = await this.paymentsService.getSummaryByDateRange(summaryDto);
-        
+
         this.logger.log(`Payment summary calculated: ${summary.count} payments with total amount ${summary.totalAmount}`);
         return summary;
     }
