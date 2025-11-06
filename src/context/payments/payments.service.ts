@@ -66,13 +66,6 @@ export class PaymentsService {
 
             const result = await this.paymentRepository.findAll(page, limit, filters);
 
-            this.logger.log('Payments found with filters', {
-                filters,
-                page,
-                limit,
-                totalFound: result.total
-            });
-
             return {
                 data: result.payments,
                 pagination: this.createPaginationInfo(page, limit, result.total),

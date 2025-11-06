@@ -56,6 +56,20 @@ export class PaymentsController {
         return summary;
     }
 
+    @Get('search-by-name/:name')
+    @Roles(Role.Admin)
+    @UseGuards(RolesGuard)
+    async searchByClientName(@Param('name') name: string, @Query() queryDto: Omit<GetPaymentsDto, 'clientName'>) {
+
+        const searchQuery = {
+            ...queryDto,
+            clientName: name
+        };
+
+        const result = await this.paymentsService.findAll(searchQuery);
+        return result;
+    }
+
     @Get(':id')
     @Roles(Role.Admin)
     @UseGuards(RolesGuard)
