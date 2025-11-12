@@ -424,6 +424,7 @@ export class GymAccessService {
 			console.log("=============== Checking operating hours ================");
 			let currentDay = this.getCurrentDayName();
 			if (currentDay == "Sabado") currentDay = "Sábado"
+			if (currentDay == "Miercoles") currentDay = "Miércoles";
 			console.log("Current day:", currentDay);
 			const schedules = await this.schedulesService.getAllSchedules();;
 
