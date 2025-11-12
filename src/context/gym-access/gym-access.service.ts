@@ -336,18 +336,18 @@ export class GymAccessService {
 
 		// Create a UTC date that represents the same time as Uruguay local time
 		// If it's 15:22 in Uruguay, we want to store 15:22 UTC
-		const uruguayHour = today.getHours();
-		const uruguayMinute = today.getMinutes();
-		const uruguaySecond = today.getSeconds();
-		const uruguayMillisecond = today.getMilliseconds();
+		// const uruguayHour = today.getHours();
+		// const uruguayMinute = today.getMinutes();
+		// const uruguaySecond = today.getSeconds();
+		// const uruguayMillisecond = today.getMilliseconds();
 
-		const utcDate = new Date();
-		utcDate.setUTCHours(uruguayHour, uruguayMinute, uruguaySecond, uruguayMillisecond);
+		// const utcDate = new Date();
+		// utcDate.setUTCHours(uruguayHour, uruguayMinute, uruguaySecond, uruguayMillisecond);
 
 		await this.gymAccessRepository.create({
 			clientId: (client._id as Types.ObjectId).toString(),
 			cedula,
-			accessDate: utcDate,
+			accessDate: today,
 			accessDay,
 			successful: true,
 			clientName: client.userInfo?.name || "Cliente",
@@ -426,7 +426,7 @@ export class GymAccessService {
 			if (currentDay == "Sabado") currentDay = "Sábado"
 			if (currentDay == "Miercoles") currentDay = "Miércoles";
 			console.log("Current day:", currentDay);
-			const schedules = await this.schedulesService.getAllSchedules();;
+			const schedules = await this.schedulesService.getAllSchedules();
 
 			if (!schedules || !Array.isArray(schedules)) {
 				return true;
@@ -446,7 +446,6 @@ export class GymAccessService {
 			console.log('localTime:', localTime);
 			console.log("Current hour:", currentHour);
 			console.log("Next hour:", nextHour);
-			console.log("Today schedules:", todaySchedules);
 
 			const relevantSchedules = todaySchedules.filter((schedule: any) => {
 				const scheduleStartHour = parseInt(schedule.startTime);
