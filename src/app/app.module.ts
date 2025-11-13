@@ -21,6 +21,7 @@ import { ProductsModule } from "@/src/context/products/products.module";
 import { RewardsModule } from "@/src/context/rewards/rewards.module";
 import { RoutinesModule } from "@/src/context/routines/routines.module";
 import { SchedulesModule } from "@/src/context/schedules/schedules.module";
+import { PaymentsModule } from "@/src/context/payments/payments.module";
 
 import { CorrelationIdMiddleware } from "../app/config/correlation-id/correlation-id.middleware" //"@/app/config/correlation-id/correlation-id.middleware";
 import { HealthModule } from "../app/health/health.module" //@/app/health/health.module";
@@ -73,7 +74,8 @@ import { AppConfigModule } from "../context/config/config.module";
     CategoriesModule,
     GymAccessModule,
     RewardsModule,
-        MongooseModule.forRootAsync({
+    PaymentsModule,
+    MongooseModule.forRootAsync({
       imports: [ConfigModule],
       // eslint-disable-next-line @typescript-eslint/require-await
       useFactory: async (configService: ConfigService) => {

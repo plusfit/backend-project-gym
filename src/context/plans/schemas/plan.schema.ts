@@ -43,6 +43,9 @@ export class Plan extends Document {
   @Prop({ required: true, type: Number })
   days!: number;
 
+  @Prop({ required: true, type: Number })
+  price!: number;
+
   @Prop({ default: Date.now, type: Date })
   updatedAt!: Date;
 
