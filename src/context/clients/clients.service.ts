@@ -28,7 +28,7 @@ export class ClientsService {
     private readonly plansService: any,
     @Inject(forwardRef(() => SchedulesService))
     private readonly schedulesService: SchedulesService,
-  ) {}
+  ) { }
 
   addFilter = (field: string, value: any, target: any) => {
     if (typeof value === "string" && value.trim() !== "") {
@@ -377,7 +377,7 @@ export class ClientsService {
     try {
       const client =
         await this.clientRepository.getClientWithPassword(clientId);
-      return client?.plainPassword || null;
+      return client.plainPassword ?? client.userInfo?.password ?? null;
     } catch (error: any) {
       throw new HttpException(
         `Error getting client plain password: ${error.message}`,
