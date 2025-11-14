@@ -11,7 +11,7 @@ export class MongoClientsRepository implements ClientsRepository {
   constructor(
     @InjectModel(Client.name) private readonly clientModel: Model<Client>,
     @InjectModel(Routine.name) private readonly routineModel: Model<Routine>,
-  ) {}
+  ) { }
   async getClientById(id: string): Promise<Client | null> {
     return await this.clientModel.findById(id).exec();
   }
@@ -140,5 +140,9 @@ export class MongoClientsRepository implements ClientsRepository {
         path: "exercises",
       },
     }).exec();
+  }
+
+  async findClientByCI(ci: string): Promise<Client | null> {
+    return await this.clientModel.findOne({ "userInfo.CI": ci }).exec();
   }
 }

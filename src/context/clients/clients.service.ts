@@ -516,4 +516,16 @@ export class ClientsService {
       );
     }
   }
+
+  async validateClientByCI(ci: string): Promise<boolean> {
+    try {
+      const client = await this.clientRepository.findClientByCI(ci);
+      return !!client;
+    } catch (error: any) {
+      throw new HttpException(
+        `Error validating client by CI: ${error.message}`,
+        error.status || 500,
+      );
+    }
+  }
 }
