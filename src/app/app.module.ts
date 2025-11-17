@@ -101,6 +101,7 @@ export class AppModule implements NestModule {
         { path: "auth/refreshToken", method: RequestMethod.POST },
         //  { path: "auth/refreshToken", method: RequestMethod.OPTIONS },
         { path: "gym-access/validate", method: RequestMethod.POST },
+        { path: "clients/validate/ci/(.*)", method: RequestMethod.GET },
         { path: "api", method: RequestMethod.GET },
         { path: "api/(.*)", method: RequestMethod.GET },
       )
