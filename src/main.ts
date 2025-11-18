@@ -24,9 +24,15 @@ async function bootstrap() {
 
   // Inicializar Firebase Admin
   try {
+    const serviceAccount = JSON.parse(
+      configService.get<string>("FIREBASE_SERVICE_ACCOUNT") || "{}"
+    );
+
     firebaseAdmin.initializeApp({
+      credential: firebaseAdmin.credential.cert(serviceAccount),
       projectId: configService.get<string>("FIREBASE_PROJECT_ID"),
     });
+
     firebaseAdmin.auth();
     console.log(
       "Firebase Admin inicializado correctamente con servicio de auth",

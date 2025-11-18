@@ -7,6 +7,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import * as bcrypt from 'bcrypt';
+import firebaseAdmin from "firebase-admin";
 
 import { UpdateClientDto } from "@/src/context/clients/dto/update-client.dto";
 import { CLIENT_REPOSITORY } from "@/src/context/clients/repositories/clients.repository";
@@ -18,6 +19,7 @@ import { Routine } from "@/src/context/routines/schemas/routine.schema";
 import { SchedulesService } from "../schedules/schedules.service";
 import { CreateClientDto } from "./dto/create-client.dto";
 import { ClientFilters } from "./interfaces/clients.interface";
+import { log } from "console";
 
 @Injectable()
 export class ClientsService {
@@ -140,6 +142,28 @@ export class ClientsService {
       if (!client) {
         throw new NotFoundException(`Client with ID ${id} not found`);
       }
+      // Delete user from Firebase Auth using email
+      if (client.email) {
+        try {
+          const auth = firebaseAdmin.auth();
+          if (!auth)
+            throw new Error("Firebase Auth no está inicializado");
+          const firebaseUser = await auth.getUserByEmail(client.email);
+          if (!firebaseUser)
+            throw new NotFoundException(`Firebase user with email ${client.email} not found`);
+
+          await auth.deleteUser(firebaseUser.uid);
+        } catch (firebaseError: any) {
+          // If user doesn't exist in Firebase (auth/user-not-found), continue with MongoDB deletion
+          if (firebaseError.code !== 'auth/user-not-found') {
+            console.error(
+              `Error deleting user from Firebase Auth:`,
+              firebaseError,
+            );
+            // Continue with MongoDB deletion even if Firebase fails
+          }
+        }
+      }
 
       // Remove client from all schedules (similar to what's done in toggleDisabled)
       try {
@@ -183,7 +207,7 @@ export class ClientsService {
       }
 
       return {
-        message: `Client with ID ${id} deleted successfully`,
+        message: `Client with ID ${id} deleted successfully from Firebase and MongoDB`,
         deleted: true,
       };
     } catch (error: any) {
