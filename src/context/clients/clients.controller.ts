@@ -1,15 +1,15 @@
 import {
-	Body,
-	Controller,
-	Delete,
-	Get,
-	Param,
-	Patch,
-	Post,
-	Query,
-	UseGuards,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
 } from "@nestjs/common";
-import { ApiOperation, ApiResponse,ApiTags } from "@nestjs/swagger";
+import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 
 import { ClientsService } from "@/src/context/clients/clients.service";
 import { GetClientsDto } from "@/src/context/clients/dto/get-clients.dto";
@@ -26,7 +26,7 @@ import { ClientFilters } from "./interfaces/clients.interface";
 @ApiTags("clients")
 @Controller("clients")
 export class ClientsController {
-  constructor(private readonly clientsService: ClientsService) {}
+  constructor(private readonly clientsService: ClientsService) { }
   @Post("list")
   getListClients(@Body() clientsIdsDto: ClientsIdsDto) {
     return this.clientsService.getListClients(clientsIdsDto.clientsIds);
@@ -58,6 +58,13 @@ export class ClientsController {
     );
   }
 
+  @Get("validate/ci/:ci")
+  @ApiOperation({ summary: "Validate if a client exists by CI (Cédula)" })
+  @ApiResponse({ status: 200, description: "Returns validation result with client data if exists" })
+  async validateClientByCI(@Param("ci") ci: string) {
+    return this.clientsService.validateClientByCI(ci);
+  }
+
   @Get(":id")
   // @Roles(Role.Admin, Role.Client)
   // @UseGuards(RolesGuard)
@@ -72,7 +79,7 @@ export class ClientsController {
   @UseGuards(RolesGuard)
   async getClientPassword(@Param("id") id: string) {
     const plainPassword = await this.clientsService.getClientPlainPassword(id);
-    return { 
+    return {
       hasPassword: !!plainPassword,
       password: plainPassword || null,
       message: plainPassword ? "Password retrieved successfully" : "No password set"
