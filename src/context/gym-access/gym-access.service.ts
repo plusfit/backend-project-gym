@@ -6,6 +6,7 @@ import { ClientsService } from "@/src/context/clients/clients.service";
 import { ClientDocument } from "@/src/context/clients/schemas/client.schema";
 import { RewardsService } from "@/src/context/rewards/rewards.service";
 import { SchedulesService } from "@/src/context/schedules/schedules.service";
+import { formatDateAsAccessDay, getCurrentDayName, getCurrentTimeString, getUruguayTime, normalizeTimeFormat } from "@/src/context/shared/utils/date.utils";
 
 import { GetGymAccessHistoryDto } from "./dto/get-gym-access-history.dto";
 import { ValidateAccessDto } from "./dto/validate-access.dto";
@@ -57,8 +58,8 @@ export class GymAccessService {
 	async validateAccess(validateAccessDto: ValidateAccessDto): Promise<AccessValidationResponse> {
 		const { cedula } = validateAccessDto;
 		// Use Uruguay timezone for all date calculations
-		const today = this.getUruguayTime();
-		const accessDay = this.formatDateAsAccessDay(today, true);
+		const today = getUruguayTime();
+		const accessDay = formatDateAsAccessDay(today);
 
 		try {
 			// 1. Validate client existence and status
@@ -239,9 +240,7 @@ export class GymAccessService {
 
 			// Check if the existing access was in current or next hour schedule
 			if (existingAccess.scheduleStartTime) {
-				const accessStartTime = this.normalizeTimeFormat(existingAccess.scheduleStartTime).split(':')[0];
-
-				// Check if the previous access was in current or next hour
+				const accessStartTime = normalizeTimeFormat(existingAccess.scheduleStartTime).split(':')[0];				// Check if the previous access was in current or next hour
 				if (accessStartTime === currentHour || accessStartTime === nextHour) {
 					return true;
 				}
@@ -261,8 +260,8 @@ export class GymAccessService {
 	 */
 	private async getCurrentScheduleInfo(clientId: string): Promise<{ startTime: string; endTime: string; scheduleId: string } | null> {
 		try {
-			const currentDay = this.getCurrentDayName();
-			const currentTime = this.getCurrentTimeString();
+			const currentDay = getCurrentDayName();
+			const currentTime = getCurrentTimeString();
 
 			// Get schedules for current and next hour
 			const relevantSchedules = await this.getRelevantSchedules(currentDay, currentTime);
@@ -422,9 +421,7 @@ export class GymAccessService {
 	private async checkOperatingHours(clientId?: string): Promise<boolean> {
 		try {
 			console.log("=============== Checking operating hours ================");
-			let currentDay = this.getCurrentDayName();
-			if (currentDay == "Sabado") currentDay = "Sábado"
-			if (currentDay == "Miercoles") currentDay = "Miércoles";
+			const currentDay = getCurrentDayName();
 			console.log("Current day:", currentDay);
 			const schedules = await this.schedulesService.getAllSchedules();
 
@@ -439,7 +436,7 @@ export class GymAccessService {
 			}
 
 			// Use local timezone for hour calculation
-			const localTime = this.getUruguayTime();
+			const localTime = getUruguayTime();
 			const currentHour = localTime.getHours();
 			const nextHour = currentHour + 1;
 
@@ -478,7 +475,7 @@ export class GymAccessService {
 
 		// Calculate yesterday in Uruguay timezone
 		const yesterday = new Date(accessDate.getTime() - (24 * 60 * 60 * 1000));
-		const yesterdayAccessDay = this.formatDateAsAccessDay(yesterday, true);
+		const yesterdayAccessDay = formatDateAsAccessDay(yesterday);
 
 		// Check if client accessed yesterday to calculate consecutive days
 		const yesterdayAccess = await this.gymAccessRepository.findByCedulaAndDay(
@@ -581,77 +578,14 @@ export class GymAccessService {
 	// ========== TIME AND DATE UTILITY METHODS ==========
 
 	/**
-	 * Get current date and time in Uruguay timezone (UTC-3)
-	 * This ensures consistent timezone handling across the application
-	 * @returns Date object representing the current time in Uruguay timezone
-	 */
-	private getUruguayTime(): Date {
-		const now = new Date();
-		const uruguayTime = new Date(now.toLocaleString('en-US', {
-			timeZone: 'America/Montevideo'
-		}));
-		return uruguayTime;
-	}
-
-	/**
-	 * Format date as access day in local timezone
-	 * @param date - Date to format
-	 * @param isAlreadyAdjusted - Not used anymore since we use local time
-	 * @returns String in YYYY-MM-DD format for local date
-	 */
-	private formatDateAsAccessDay(date: Date, isAlreadyAdjusted: boolean = false): string {
-		// Use local timezone formatting
-		const year = date.getFullYear();
-		const month = (date.getMonth() + 1).toString().padStart(2, '0');
-		const day = date.getDate().toString().padStart(2, '0');
-		return `${year}-${month}-${day}`;
-	}
-
-	private getCurrentDayName(): string {
-		const days = ["Domingo", "Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado"];
-		const localTime = this.getUruguayTime();
-		return days[localTime.getDay()];
-	}
-
-	private getCurrentTimeString(): string {
-		const localTime = this.getUruguayTime();
-		return `${localTime.getHours().toString().padStart(2, '0')}:${localTime.getMinutes().toString().padStart(2, '0')}`;
-	}
-
-	/**
-	 * Normalize time format to HH:MM
-	 * Converts "6" to "06:00", "19" to "19:00", keeps "19:30" as "19:30"
-	 */
-	private normalizeTimeFormat(time: string): string {
-		if (!time) return time;
-
-		// If already in HH:MM format, return as is
-		if (time.includes(':')) {
-			return time;
-		}
-
-		// If it's just a number (hour), add :00 for minutes
-		const hour = parseInt(time, 10);
-		if (!isNaN(hour) && hour >= 0 && hour <= 23) {
-			return `${hour.toString().padStart(2, '0')}:00`;
-		}
-
-		// Return original if can't normalize
-		return time;
-	}
-
-	/**
 	 * Check if client has access to current or next hour schedule
 	 * @param clientId - Client's ObjectId as string
 	 * @returns Object with allowed status and message
 	 */
 	private async checkScheduleAccess(clientId: string): Promise<{ allowed: boolean; message: string }> {
 		try {
-			let currentDay = this.getCurrentDayName();
-			if (currentDay == "Sabado") currentDay = "Sábado"
-			if (currentDay == "Miercoles") currentDay = "Miércoles"
-			
-			const currentTime = this.getCurrentTimeString();
+			const currentDay = getCurrentDayName();
+			const currentTime = getCurrentTimeString();
 
 			// Get schedules for current and next hour
 			const relevantSchedules = await this.getRelevantSchedules(currentDay, currentTime);
@@ -753,9 +687,9 @@ export class GymAccessService {
 		}
 
 		// Normalize time formats - handle both "HH:MM" and "H" formats
-		const normalizedStartTime = this.normalizeTimeFormat(startTime);
-		const normalizedEndTime = this.normalizeTimeFormat(endTime);
-		const normalizedCurrentTime = this.normalizeTimeFormat(currentTime);
+		const normalizedStartTime = normalizeTimeFormat(startTime);
+		const normalizedEndTime = normalizeTimeFormat(endTime);
+		const normalizedCurrentTime = normalizeTimeFormat(currentTime);
 
 		const [currentHour, currentMinute] = normalizedCurrentTime.split(':').map(Number);
 		const [startHour, startMinute] = normalizedStartTime.split(':').map(Number);

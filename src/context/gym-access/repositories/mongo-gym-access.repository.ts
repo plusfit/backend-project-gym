@@ -3,9 +3,10 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
 
 import { GetGymAccessHistoryDto } from "../dto/get-gym-access-history.dto";
-import { AccessStats,GymAccess } from "../entities/gym-access.entity";
+import { AccessStats, GymAccess } from "../entities/gym-access.entity";
 import { GymAccessDocument } from "../schemas/gym-access.schema";
-import { GymAccessFilters,GymAccessRepository } from "./gym-access.repository";
+import { GymAccessFilters, GymAccessRepository } from "./gym-access.repository";
+import { getUruguayTime } from "@/src/context/shared/utils/date.utils";
 
 @Injectable()
 export class MongoGymAccessRepository extends GymAccessRepository {
@@ -27,7 +28,7 @@ export class MongoGymAccessRepository extends GymAccessRepository {
 		total: number;
 	}> {
 		const query = this.buildFilterQuery(filters);
-		
+
 		const [gymAccesses, total] = await Promise.all([
 			this.gymAccessModel
 				.find(query)
@@ -50,17 +51,17 @@ export class MongoGymAccessRepository extends GymAccessRepository {
 			.find({ cedula, accessDay })
 			.sort({ createdAt: -1 })
 			.exec();
-		
+
 		// Find the first successful access
 		const successfulAccess = allRecords.find(record => record.successful === true);
-		
+
 		if (successfulAccess) {
 			return this.mapToEntity(successfulAccess);
 		}
-		
+
 		// If no successful access, return the most recent one
 		const gymAccess = allRecords[0] || null;
-		
+
 		return gymAccess ? this.mapToEntity(gymAccess) : null;
 	}
 
@@ -85,9 +86,7 @@ export class MongoGymAccessRepository extends GymAccessRepository {
 	}
 
 	async getStats(filters?: GetGymAccessHistoryDto): Promise<AccessStats> {
-		const today = new Date();
-		const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-		const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+		const today = getUruguayTime();
 
 		// Build base query from filters
 		const baseQuery = this.buildStatsFilterQuery(filters);
@@ -99,7 +98,7 @@ export class MongoGymAccessRepository extends GymAccessRepository {
 		const todayAccessDay = this.formatDateAsAccessDay(today);
 		const currentMonth = today.getMonth() + 1; // getMonth() returns 0-11
 		const currentYear = today.getFullYear();
-		
+
 		// Create regex pattern for this month's accessDay (YYYY-MM-*)
 		const monthPattern = `^${currentYear}-${currentMonth.toString().padStart(2, '0')}`;
 
@@ -173,17 +172,17 @@ export class MongoGymAccessRepository extends GymAccessRepository {
 		// Date filtering - prioritize date range over specific accessDay
 		if (filters?.startDate || filters?.endDate) {
 			const dateQuery: any = {};
-			
+
 			if (filters.startDate) {
 				// accessDay >= startDate (string comparison works for YYYY-MM-DD format)
 				dateQuery.$gte = filters.startDate;
 			}
-			
+
 			if (filters.endDate) {
 				// accessDay <= endDate (string comparison works for YYYY-MM-DD format)
 				dateQuery.$lte = filters.endDate;
 			}
-			
+
 			query.accessDay = dateQuery;
 		} else if (filters?.accessDay) {
 			// Only apply specific accessDay if no date range is specified
@@ -211,17 +210,17 @@ export class MongoGymAccessRepository extends GymAccessRepository {
 		// Date range filtering for stats using accessDay field (YYYY-MM-DD format)
 		if (filters?.startDate || filters?.endDate) {
 			const dateQuery: any = {};
-			
+
 			if (filters.startDate) {
 				// accessDay >= startDate (string comparison works for YYYY-MM-DD format)
 				dateQuery.$gte = filters.startDate;
 			}
-			
+
 			if (filters.endDate) {
 				// accessDay <= endDate (string comparison works for YYYY-MM-DD format)
 				dateQuery.$lte = filters.endDate;
 			}
-			
+
 			query.accessDay = dateQuery;
 		}
 
