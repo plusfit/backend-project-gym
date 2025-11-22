@@ -431,4 +431,11 @@ export class SchedulesService {
 			throw new BadRequestException(`Error toggling schedule status: ${errorMessage}`);
 		}
 	}
+
+	async getSchedulesByUserId(userId: string): Promise<Schedule[]> {
+		if (!userId) {
+			return [];
+		}
+		return await this.scheduleRepository.getSchedulesByUserId(userId);
+	}
 }

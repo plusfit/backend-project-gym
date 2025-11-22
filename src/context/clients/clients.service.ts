@@ -102,8 +102,39 @@ export class ClientsService {
     }
   }
 
-  findOne(id: string) {
-    return this.clientRepository.getClientById(id);
+  async findOne(id: string) {
+    const client = await this.clientRepository.getClientById(id);
+
+    if (!client) {
+      return null;
+    }
+
+    // Get client's schedules
+    const schedules = await this.schedulesService.getSchedulesByUserId(id);
+
+    // Format schedules as { "Lunes": "9-10", "Viernes": "15-16" }
+    const schedulesFormatted: Record<string, string[]> = {};
+
+    for (const schedule of schedules) {
+      const timeRange = `${schedule.startTime}-${schedule.endTime}`;
+
+      if (!schedulesFormatted[schedule.day]) {
+        schedulesFormatted[schedule.day] = [];
+      }
+
+      schedulesFormatted[schedule.day].push(timeRange);
+    }
+
+    // Convert arrays to strings (join multiple time ranges with comma)
+    const schedulesResult: Record<string, string> = {};
+    for (const [day, timeRanges] of Object.entries(schedulesFormatted)) {
+      schedulesResult[day] = timeRanges.join(", ");
+    }
+
+    return {
+      ...client.toObject(),
+      schedules: schedulesResult
+    };
   }
 
   async create(createClientDto: CreateClientDto) {
