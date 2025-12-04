@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Post, UseGuards, Get, Param } from "@nestjs/common";
 import { ApiResponse,ApiTags } from "@nestjs/swagger";
 
 import { AuthService } from "@/src/context/auth/auth.service";
@@ -7,6 +7,9 @@ import { LoginAuthDto } from "@/src/context/auth/dto/login-auth.dto";
 import { RefreshTokenAuthDto } from "@/src/context/auth/dto/refresh-token-auth-dto";
 import { RegisterAuthDto } from "@/src/context/auth/dto/register-auth.dto";
 import { RecaptchaAction,RecaptchaGuard } from "@/src/context/shared/guards/recaptcha.guard";
+import { Role } from "@/src/context/shared/constants/roles.constant";
+import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
+import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
 
 @ApiTags("auth")
 @Controller("auth")
@@ -48,5 +51,26 @@ export class AuthController {
 	@ApiResponse({ status: 401, description: 'Unauthorized.' })
 	googleLogin(@Body() googleAuthDto: GoogleAuthDto) {
 		return this.authService.googleLogin(googleAuthDto);
+	}
+	@Post("invitation-code/generate")
+	@Roles(Role.Admin)
+	@UseGuards(RolesGuard)
+	@ApiResponse({ status: 201, description: 'Invitation code generated.' })
+	generateInvitationCode() {
+		return this.authService.generateInvitationCode();
+	}
+
+	@Get("invitation-code/validate/:code")
+	@ApiResponse({ status: 200, description: 'Validation result.' })
+	validateInvitationCode(@Param("code") code: string) {
+		return this.authService.validateInvitationCode(code);
+	}
+
+	@Get("invitation-code/current")
+	@Roles(Role.Admin)
+	@UseGuards(RolesGuard)
+	@ApiResponse({ status: 200, description: 'Current active invitation code.' })
+	getCurrentInvitationCode() {
+		return this.authService.getCurrentInvitationCode();
 	}
 }

@@ -23,4 +23,12 @@ export class RegisterAuthDto {
 	@IsString()
 	@MinLength(6, { message: 'Password must be at least 6 characters long' })
 	password?: string;
+
+	@ApiProperty({ 
+		example: "ABC123XY", 
+		description: "Invitation code for registration" 
+	})
+	@IsString()
+	@IsNotEmpty()
+	invitationCode!: string;
 }
