@@ -9,6 +9,9 @@ import { ConfigService } from "@nestjs/config";
 import axios from "axios";
 import firebaseAdmin from "firebase-admin";
 import jwt from "jsonwebtoken";
+import { Model } from "mongoose";
+import { InjectModel } from "@nestjs/mongoose";
+import { InvitationCode } from "./schemas/invitation-code.schema";
 
 import { GoogleAuthDto } from "@/src/context/auth/dto/google-auth.dto";
 import { InternalRegisterAuthDto } from "@/src/context/auth/dto/internal-register-auth.dto";
@@ -19,6 +22,12 @@ import { AUTH_REPOSITORY } from "@/src/context/auth/repositories/auth.repository
 
 import { ClientsService } from "../clients/clients.service";
 import { OnboardingService } from "../onboarding/onboarding.service";
+import { 
+  InvitationCodeResponse, 
+  TokenResponse, 
+  ValidateInvitationCodeResponse,
+  AuthErrorResponse
+} from "./interfaces/auth.interfaces";
 
 @Injectable()
 export class AuthService {
@@ -29,6 +38,7 @@ export class AuthService {
     private readonly configService: ConfigService,
     @Inject(forwardRef(() => ClientsService))
     private readonly clientsService: ClientsService,
+    @InjectModel(InvitationCode.name) private readonly invitationCodeModel: Model<InvitationCode>,
   ) {}
 
   async register(registerDto: RegisterAuthDto) {
@@ -43,10 +53,60 @@ export class AuthService {
         (registerDto as any).plainPassword = originalPassword;
       }
       const result = await this.authRepository.register(registerDto);
+      
+      // Mark invitation code as used
+      await this.consumeInvitationCode(registerDto.invitationCode, result._id.toString());
+      
       return result;
     } catch (error: any) {
+      if (error instanceof UnauthorizedException || error.message.includes("invitation code")) {
+        throw error;
+      }
       throw new UnauthorizedException("Error al registrar, verifique datos");
     }
+  }
+
+  async generateInvitationCode(): Promise<InvitationCodeResponse> {
+    const code = Math.random().toString(36).substring(2, 10).toUpperCase();
+    const appUrl = this.configService.get("APP_URL") || "https://plusfit.uy";
+  
+    await this.invitationCodeModel.create({
+      code,
+      isUsed: false,
+    });
+
+    return {
+      code,
+      link: `${appUrl}/registro?code=${code}`,
+    };
+  }
+
+  async validateInvitationCode(code: string): Promise<ValidateInvitationCodeResponse> {
+    const invitation = await this.invitationCodeModel.findOne({ code, isUsed: false });
+    return { valid: !!invitation };
+  }
+
+  async getCurrentInvitationCode(): Promise<InvitationCodeResponse | null> {
+    const invitation = await this.invitationCodeModel.findOne({ isUsed: false }).sort({ createdAt: -1 });
+    if (!invitation) return null;
+    
+    const appUrl = this.configService.get("APP_URL") || "https://plusfit.uy";
+    return {
+      code: invitation.code,
+      link: `${appUrl}/registro?code=${invitation.code}`,
+    };
+  }
+
+  async consumeInvitationCode(code: string, userId: string): Promise<void> {
+    const invitation = await this.invitationCodeModel.findOne({ code, isUsed: false });
+    if (!invitation) {
+      throw new UnauthorizedException("Invalid or used invitation code");
+    }
+    
+    invitation.isUsed = true;
+    invitation.usedBy = userId;
+    invitation.usedAt = new Date();
+    await invitation.save();
   }
 
   async login(loginDto: LoginAuthDto) {
@@ -155,7 +215,7 @@ export class AuthService {
     }
   }
 
-  createToken(payload: any) {
+  createToken(payload: any): TokenResponse {
     //género el accessToken y el refreshToken con los secrets del .env
     const accessSecret = this.configService.get("JWT_ACCESS_SECRET");
     const accessExpiresIn = this.configService.get("JWT_ACCESS_EXPIRES_IN");
@@ -190,7 +250,7 @@ export class AuthService {
     };
   }
 
-  async refreshToken(refreshToken: RefreshTokenAuthDto) {
+  async refreshToken(refreshToken: RefreshTokenAuthDto): Promise<TokenResponse | AuthErrorResponse> {
     try {
       const _refreshToken = refreshToken.refreshToken;
       const refreshSecret =
