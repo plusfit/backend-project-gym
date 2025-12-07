@@ -14,6 +14,7 @@ import { AuthMiddleware } from "@/src/context/auth/middlewares/auth.middleware";
 import { ClientsModule } from "@/src/context/clients/clients.module";
 import { ExercisesModule } from "@/src/context/exercises/exercises.module";
 import { GymAccessModule } from "@/src/context/gym-access/gym-access.module";
+import { NotificationsModule } from "@/src/context/notifications/notifications.module";
 import { OnboardingModule } from "@/src/context/onboarding/onboarding.module";
 import { OrganizationsModule } from "@/src/context/organizations/organizations.module";
 import { PlansModule } from "@/src/context/plans/plans.module";
@@ -75,6 +76,7 @@ import { AppConfigModule } from "../context/config/config.module";
     GymAccessModule,
     RewardsModule,
     PaymentsModule,
+    NotificationsModule,
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       // eslint-disable-next-line @typescript-eslint/require-await
