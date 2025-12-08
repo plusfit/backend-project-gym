@@ -19,7 +19,6 @@ import { Routine } from "@/src/context/routines/schemas/routine.schema";
 import { SchedulesService } from "../schedules/schedules.service";
 import { CreateClientDto } from "./dto/create-client.dto";
 import { ClientFilters } from "./interfaces/clients.interface";
-import { log } from "console";
 
 @Injectable()
 export class ClientsService {

@@ -1,8 +1,9 @@
-import { Controller, Post, Get, Param, Body, HttpStatus, Put, Patch } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiBody } from '@nestjs/swagger';
-import { DailyDecrementService } from './services/daily-decrement.service';
+import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+
 import { ClientsService } from './clients.service';
 import { AddAvailableDaysDto, UpdateAvailableDaysDto } from './dto/available-days.dto';
+import { DailyDecrementService } from './services/daily-decrement.service';
 
 @ApiTags('Available Days Management')
 @ApiBearerAuth()

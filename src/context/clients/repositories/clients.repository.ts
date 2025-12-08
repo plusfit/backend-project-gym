@@ -26,4 +26,5 @@ export interface ClientsRepository {
   toggleDisabled(id: string, disabled: boolean): Promise<Client | null>;
   getClientWithPassword(id: string): Promise<Client | null>;
   findClientByCI(ci: string): Promise<Client | null>;
+  getClientAvailableDays(id: string): Promise<{ availableDays: number }>;
 }
