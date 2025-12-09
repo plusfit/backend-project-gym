@@ -321,6 +321,11 @@ export class AuthService {
         };
         client = await this.authRepository.register(registerDto);
 
+        // Si hay código de invitación, lo consumimos
+        if (googleAuthDto.invitationCode) {
+           await this.consumeInvitationCode(googleAuthDto.invitationCode, client._id.toString());
+        }
+
         // Crear el registro de onboarding para el nuevo usuario
         await this.onboardingService.create({
           userId: client._id.toString(),
