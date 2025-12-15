@@ -22,9 +22,9 @@ import { AUTH_REPOSITORY } from "@/src/context/auth/repositories/auth.repository
 
 import { ClientsService } from "../clients/clients.service";
 import { OnboardingService } from "../onboarding/onboarding.service";
-import { 
-  InvitationCodeResponse, 
-  TokenResponse, 
+import {
+  InvitationCodeResponse,
+  TokenResponse,
   ValidateInvitationCodeResponse,
   AuthErrorResponse
 } from "./interfaces/auth.interfaces";
@@ -39,7 +39,7 @@ export class AuthService {
     @Inject(forwardRef(() => ClientsService))
     private readonly clientsService: ClientsService,
     @InjectModel(InvitationCode.name) private readonly invitationCodeModel: Model<InvitationCode>,
-  ) {}
+  ) { }
 
   async register(registerDto: RegisterAuthDto) {
     try {
@@ -47,16 +47,16 @@ export class AuthService {
       if (registerDto.password) {
         // Store original password for potential admin access
         const originalPassword = registerDto.password;
-    
+
 
         // Add plain password to the DTO
         (registerDto as any).plainPassword = originalPassword;
       }
       const result = await this.authRepository.register(registerDto);
-      
+
       // Mark invitation code as used
       await this.consumeInvitationCode(registerDto.invitationCode, result._id.toString());
-      
+
       return result;
     } catch (error: any) {
       if (error instanceof UnauthorizedException || error.message.includes("invitation code")) {
@@ -69,7 +69,7 @@ export class AuthService {
   async generateInvitationCode(): Promise<InvitationCodeResponse> {
     const code = Math.random().toString(36).substring(2, 10).toUpperCase();
     const appUrl = this.configService.get("APP_URL") || "https://plusfit.uy";
-  
+
     await this.invitationCodeModel.create({
       code,
       isUsed: false,
@@ -89,7 +89,7 @@ export class AuthService {
   async getCurrentInvitationCode(): Promise<InvitationCodeResponse | null> {
     const invitation = await this.invitationCodeModel.findOne({ isUsed: false }).sort({ createdAt: -1 });
     if (!invitation) return null;
-    
+
     const appUrl = this.configService.get("APP_URL") || "https://plusfit.uy";
     return {
       code: invitation.code,
@@ -102,7 +102,7 @@ export class AuthService {
     if (!invitation) {
       throw new UnauthorizedException("Invalid or used invitation code");
     }
-    
+
     invitation.isUsed = true;
     invitation.usedBy = userId;
     invitation.usedAt = new Date();
@@ -166,11 +166,11 @@ export class AuthService {
     }
   }
 
-	validateLogin(loginDto: LoginAuthDto) {
-		if (!loginDto.token) {
-			throw new Error("Token es requerido");
-		}
-	}
+  validateLogin(loginDto: LoginAuthDto) {
+    if (!loginDto.token) {
+      throw new Error("Token es requerido");
+    }
+  }
 
   async getEmailFromJWTFirebase(token: string) {
     try {
@@ -186,28 +186,28 @@ export class AuthService {
       const decodedHeader: any = jwt.decode(token, { complete: true });
       const kid = decodedHeader?.header?.kid;
 
-    
-			if (!kid || !publicKeys[kid]) {
-				throw new Error("Token inválido");
-			}
+
+      if (!kid || !publicKeys[kid]) {
+        throw new Error("Token inválido");
+      }
 
       //Verificar el token con la clave publica
       const decoded = jwt.verify(token, publicKeys[kid]) as jwt.JwtPayload;
 
-			//Validar que venga de Firebase
-			if (decoded.aud !== this.configService.get("AUD")) {
-				//dtf-central a modo de prueba
-				throw new Error("Token no es de Firebase");
-			}
+      //Validar que venga de Firebase
+      if (decoded.aud !== this.configService.get("AUD")) {
+        //dtf-central a modo de prueba
+        throw new Error("Token no es de Firebase");
+      }
 
-			//Valido que tenga un email
-			if (
-				!decoded.email ||
-				!decoded.firebase ||
-				!decoded.firebase.identities?.email?.length
-			) {
-				throw new Error("Token inválido");
-			}
+      //Valido que tenga un email
+      if (
+        !decoded.email ||
+        !decoded.firebase ||
+        !decoded.firebase.identities?.email?.length
+      ) {
+        throw new Error("Token inválido");
+      }
 
       return decoded.email;
     } catch (error: any) {
@@ -220,11 +220,11 @@ export class AuthService {
     const accessSecret = this.configService.get("JWT_ACCESS_SECRET");
     const accessExpiresIn = this.configService.get("JWT_ACCESS_EXPIRES_IN");
 
-		const refreshSecret = this.configService.get<string>("JWT_REFRESH_SECRET");
-		if (!refreshSecret) {
-			throw new Error("JWT_REFRESH_SECRET no está configurado.");
-		}
-		const refreshExpiresIn = this.configService.get("JWT_REFRESH_EXPIRES_IN");
+    const refreshSecret = this.configService.get<string>("JWT_REFRESH_SECRET");
+    if (!refreshSecret) {
+      throw new Error("JWT_REFRESH_SECRET no está configurado.");
+    }
+    const refreshExpiresIn = this.configService.get("JWT_REFRESH_EXPIRES_IN");
 
     const tokenPayload = {
       ...payload,
@@ -256,9 +256,9 @@ export class AuthService {
       const refreshSecret =
         this.configService.get<string>("JWT_REFRESH_SECRET");
 
-			if (!refreshSecret) {
-				throw new Error("JWT_REFRESH_SECRET no está configurado.");
-			}
+      if (!refreshSecret) {
+        throw new Error("JWT_REFRESH_SECRET no está configurado.");
+      }
 
       //verifico y decodifico el refresh token
       const decoded = jwt.verify(
@@ -271,9 +271,9 @@ export class AuthService {
       const storedRefreshToken =
         await this.authRepository.getRefreshToken(userId);
 
-			if (storedRefreshToken !== _refreshToken) {
-				throw new Error("Token de actualización inválido");
-			}
+      if (storedRefreshToken !== _refreshToken) {
+        throw new Error("Token de actualización inválido");
+      }
 
       // elimino los campos exp e iat para que se generen de nuevo a lo que no uso las variables tengo que comentarlas con eslint
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -300,11 +300,12 @@ export class AuthService {
     }
   }
 
-	async googleLogin(googleAuthDto: GoogleAuthDto) {
-		try {
-			if (!googleAuthDto.idToken) {
-				throw new Error("Token de Google ID es requerido");
-			}
+  async googleLogin(googleAuthDto: GoogleAuthDto) {
+    try {
+      debugger
+      if (!googleAuthDto.idToken) {
+        throw new Error("Token de Google ID es requerido");
+      }
 
       // Verificar el token de Google y obtener el email
       const email = await this.verifyGoogleToken(googleAuthDto.idToken);
@@ -397,10 +398,10 @@ export class AuthService {
       const auth = firebaseAdmin.auth();
       const decodedToken = await auth.verifyIdToken(idToken);
 
-			// Verificar que el token tenga un email
-			if (!decodedToken.email) {
-				throw new Error("Email inválido en token");
-			}
+      // Verificar que el token tenga un email
+      if (!decodedToken.email) {
+        throw new Error("Email inválido en token");
+      }
 
       return decodedToken.email;
     } catch (error) {
