@@ -29,6 +29,14 @@ export class CreateNotificationDto {
     reason?: string;
 
     @ApiProperty({
+        description: "Client phone number",
+        example: "+598 99 123 456",
+        required: false,
+    })
+    @IsString()
+    phone?: string;
+
+    @ApiProperty({
         description: "Notification status",
         enum: NotificationStatus,
         default: NotificationStatus.PENDING,

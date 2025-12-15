@@ -32,6 +32,15 @@ export class UpdateNotificationDto {
     reason?: string;
 
     @ApiProperty({
+        description: "Client phone number",
+        example: "+598 99 123 456",
+        required: false,
+    })
+    @IsOptional()
+    @IsString()
+    phone?: string;
+
+    @ApiProperty({
         description: "Notification status",
         enum: NotificationStatus,
         required: false,

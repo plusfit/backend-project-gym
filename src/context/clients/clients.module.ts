@@ -12,6 +12,7 @@ import {
 import { PlansModule } from "@/src/context/plans/plans.module";
 
 import { SchedulesModule } from "../schedules/schedules.module";
+import { NotificationsModule } from "../notifications/notifications.module";
 import { Routine, RoutineSchema } from "../routines/schemas/routine.schema";
 import { DailyDecrementService } from "./services/daily-decrement.service";
 import { AvailableDaysController } from "./available-days.controller";
@@ -20,6 +21,7 @@ import { AvailableDaysController } from "./available-days.controller";
   imports: [
     forwardRef(() => PlansModule),
 	SchedulesModule,
+    NotificationsModule,
     MongooseModule.forFeature([
       { name: Client.name, schema: ClientSchema },
       { name: Routine.name, schema: RoutineSchema },

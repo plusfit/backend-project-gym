@@ -17,6 +17,9 @@ export class Notification extends Document {
     @Prop({ type: String, required: true })
     reason?: string;
 
+    @Prop({ type: String, required: false })
+    phone?: string;
+
     @Prop({
         type: String,
         enum: NotificationStatus,

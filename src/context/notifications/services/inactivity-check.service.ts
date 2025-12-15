@@ -81,8 +81,9 @@ export class InactivityCheckService {
                     // Create notification for inactive client
                     await this.notificationsService.create({
                         clientId,
-                        name: "Alerta de Inactividad",
+                        name: client.userInfo?.name || client.email || "Cliente sin nombre",
                         reason: "Inactividad",
+                        phone: client.userInfo?.phone || "",
                         status: NotificationStatus.PENDING,
                     });
 
@@ -169,8 +170,9 @@ export class InactivityCheckService {
 
                     await this.notificationsService.create({
                         clientId,
-                        name: "Alerta de Inactividad",
+                        name: client.userInfo?.name || client.email || "Cliente sin nombre",
                         reason: "Inactividad",
+                        phone: client.userInfo?.phone || "",
                         status: NotificationStatus.PENDING,
                     });
 
