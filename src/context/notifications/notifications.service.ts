@@ -32,9 +32,9 @@ export class NotificationsService {
         }
     }
 
-    async findAll(): Promise<Notification[]> {
+    async findAll(status?: string): Promise<Notification[]> {
         try {
-            return await this.notificationRepository.findAll();
+            return await this.notificationRepository.findAll(status);
         } catch (error: any) {
             throw new HttpException(
                 error.message || "Error fetching notifications",

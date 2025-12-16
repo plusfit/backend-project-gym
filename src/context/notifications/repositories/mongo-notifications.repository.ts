@@ -17,9 +17,15 @@ export class MongoNotificationsRepository implements NotificationsRepository {
         return await newNotification.save();
     }
 
-    async findAll(): Promise<Notification[]> {
+    async findAll(status?: string): Promise<Notification[]> {
+        const filter: any = {};
+        
+        if (status && status !== "ALL") {
+            filter.status = status;
+        }
+        
         return await this.notificationModel
-            .find()
+            .find(filter)
             .populate("clientId", "name email")
             .sort({ createdAt: -1 })
             .exec();

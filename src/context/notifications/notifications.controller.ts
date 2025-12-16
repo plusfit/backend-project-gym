@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Query } from "@nestjs/common";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 
 import { CreateNotificationDto } from "./dto/create-notification.dto";
@@ -31,8 +31,8 @@ export class NotificationsController {
         status: 200,
         description: "Returns all notifications",
     })
-    async findAll() {
-        return await this.notificationsService.findAll();
+    async findAll(@Query("status") status?: string) {
+        return await this.notificationsService.findAll(status);
     }
 
     @Patch(":id")
