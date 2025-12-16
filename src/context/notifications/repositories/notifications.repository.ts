@@ -9,4 +9,5 @@ export interface NotificationsRepository {
     findAllWithoutPagination(status?: string): Promise<Notification[]>;
     findById(id: string): Promise<Notification | null>;
     update(id: string, notification: Partial<Notification>): Promise<Notification | null>;
+    delete(id: string): Promise<Notification | null>;
 }

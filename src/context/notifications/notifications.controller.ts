@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from "@nestjs/common";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 
 import { CreateNotificationDto } from "./dto/create-notification.dto";
@@ -51,6 +51,17 @@ export class NotificationsController {
         @Body() updateNotificationDto: UpdateNotificationDto,
     ) {
         return await this.notificationsService.update(id, updateNotificationDto);
+    }
+
+    @Delete(":id")
+    @ApiOperation({ summary: "Delete a notification" })
+    @ApiResponse({
+        status: 200,
+        description: "Notification deleted successfully",
+    })
+    @ApiResponse({ status: 404, description: "Notification not found" })
+    async remove(@Param("id") id: string) {
+        return await this.notificationsService.remove(id);
     }
 
     @Post("check-inactivity")

@@ -84,4 +84,24 @@ export class NotificationsService {
             );
         }
     }
+
+    async remove(id: string): Promise<{ message: string }> {
+        try {
+            const notification = await this.notificationRepository.delete(id);
+
+            if (!notification) {
+                throw new NotFoundException(`Notification with ID ${id} not found`);
+            }
+
+            return { message: "Notification deleted successfully" };
+        } catch (error: any) {
+            if (error instanceof NotFoundException) {
+                throw error;
+            }
+            throw new HttpException(
+                error.message || "Error deleting notification",
+                error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+        }
+    }
 }

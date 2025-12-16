@@ -73,4 +73,13 @@ export class MongoNotificationsRepository implements NotificationsRepository {
             .sort({ createdAt: -1 })
             .exec();
     }
+
+    async delete(id: string): Promise<Notification | null> {
+        const notification = await this.notificationModel.findById(id).exec();
+        if (!notification) {
+            return null;
+        }
+        await this.notificationModel.findByIdAndDelete(id).exec();
+        return notification;
+    }
 }
