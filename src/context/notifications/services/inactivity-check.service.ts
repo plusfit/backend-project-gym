@@ -63,8 +63,10 @@ export class InactivityCheckService {
                     const hasRecentNotification = existingNotifications.some(
                         (notification: any) => {
                             const notificationDate = new Date(notification.createdAt);
+                            // Handle both populated and non-populated clientId
+                            const notificationClientId = notification.clientId?._id?.toString() || notification.clientId?.toString();
                             return (
-                                notification.clientId?.toString() === clientId &&
+                                notificationClientId === clientId &&
                                 notification.reason === "Inactividad" &&
                                 notificationDate >= twoWeeksAgo
                             );
@@ -156,8 +158,10 @@ export class InactivityCheckService {
                     const hasRecentNotification = existingNotifications.some(
                         (notification: any) => {
                             const notificationDate = new Date(notification.createdAt);
+                            // Handle both populated and non-populated clientId
+                            const notificationClientId = notification.clientId?._id?.toString() || notification.clientId?.toString();
                             return (
-                                notification.clientId?.toString() === clientId &&
+                                notificationClientId === clientId &&
                                 notification.reason === "Inactividad" &&
                                 notificationDate >= twoWeeksAgo
                             );
