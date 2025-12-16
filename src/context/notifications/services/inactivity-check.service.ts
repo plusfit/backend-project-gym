@@ -59,7 +59,7 @@ export class InactivityCheckService {
                     const twoWeeksAgo = new Date();
                     twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
-                    const existingNotifications = await this.notificationsService.findAll();
+                    const existingNotifications = await this.notificationsService.findAllWithoutPagination();
                     const hasRecentNotification = existingNotifications.some(
                         (notification: any) => {
                             const notificationDate = new Date(notification.createdAt);
@@ -154,7 +154,7 @@ export class InactivityCheckService {
                     const twoWeeksAgo = new Date();
                     twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
-                    const existingNotifications = await this.notificationsService.findAll();
+                    const existingNotifications = await this.notificationsService.findAllWithoutPagination();
                     const hasRecentNotification = existingNotifications.some(
                         (notification: any) => {
                             const notificationDate = new Date(notification.createdAt);

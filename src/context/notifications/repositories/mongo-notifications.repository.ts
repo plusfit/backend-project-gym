@@ -17,18 +17,30 @@ export class MongoNotificationsRepository implements NotificationsRepository {
         return await newNotification.save();
     }
 
-    async findAll(status?: string): Promise<Notification[]> {
+    async findAll(offset: number, limit: number, status?: string): Promise<Notification[]> {
         const filter: any = {};
-        
+
         if (status && status !== "ALL") {
             filter.status = status;
         }
-        
+
         return await this.notificationModel
             .find(filter)
             .populate("clientId", "name email")
             .sort({ createdAt: -1 })
+            .skip(offset)
+            .limit(limit)
             .exec();
+    }
+
+    async countNotifications(status?: string): Promise<number> {
+        const filter: any = {};
+
+        if (status && status !== "ALL") {
+            filter.status = status;
+        }
+
+        return await this.notificationModel.countDocuments(filter).exec();
     }
 
     async findById(id: string): Promise<Notification | null> {
@@ -45,6 +57,20 @@ export class MongoNotificationsRepository implements NotificationsRepository {
         return await this.notificationModel
             .findByIdAndUpdate(id, notification, { new: true })
             .populate("clientId", "name email")
+            .exec();
+    }
+
+    async findAllWithoutPagination(status?: string): Promise<Notification[]> {
+        const filter: any = {};
+
+        if (status && status !== "ALL") {
+            filter.status = status;
+        }
+
+        return await this.notificationModel
+            .find(filter)
+            .populate("clientId", "name email")
+            .sort({ createdAt: -1 })
             .exec();
     }
 }

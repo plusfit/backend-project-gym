@@ -29,10 +29,14 @@ export class NotificationsController {
     @ApiOperation({ summary: "Get all notifications" })
     @ApiResponse({
         status: 200,
-        description: "Returns all notifications",
+        description: "Returns paginated notifications",
     })
-    async findAll(@Query("status") status?: string) {
-        return await this.notificationsService.findAll(status);
+    async findAll(
+        @Query("page") page: number = 1,
+        @Query("limit") limit: number = 10,
+        @Query("status") status?: string,
+    ) {
+        return await this.notificationsService.findAll(Number(page), Number(limit), status);
     }
 
     @Patch(":id")

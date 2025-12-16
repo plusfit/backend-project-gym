@@ -32,9 +32,25 @@ export class NotificationsService {
         }
     }
 
-    async findAll(status?: string): Promise<Notification[]> {
+    async findAll(page: number, limit: number, status?: string): Promise<{ data: Notification[]; total: number; page: number; limit: number }> {
         try {
-            return await this.notificationRepository.findAll(status);
+            const offset = (page - 1) * limit;
+            const [data, total] = await Promise.all([
+                this.notificationRepository.findAll(offset, limit, status),
+                this.notificationRepository.countNotifications(status),
+            ]);
+            return { data, total, page, limit };
+        } catch (error: any) {
+            throw new HttpException(
+                error.message || "Error fetching notifications",
+                error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+        }
+    }
+
+    async findAllWithoutPagination(status?: string): Promise<Notification[]> {
+        try {
+            return await this.notificationRepository.findAllWithoutPagination(status);
         } catch (error: any) {
             throw new HttpException(
                 error.message || "Error fetching notifications",
