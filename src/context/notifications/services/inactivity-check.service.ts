@@ -21,7 +21,7 @@ export class InactivityCheckService {
      * Creates notifications for clients with lastAccess > 1 week
      * Timezone: America/Montevideo (UTC-3)
      */
-    @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
+    @Cron(CronExpression.EVERY_DAY_AT_1AM, {
         timeZone: "America/Montevideo",
     })
     async checkInactiveClients(): Promise<void> {
@@ -37,25 +37,21 @@ export class InactivityCheckService {
                 `Starting inactivity check at ${montevideoTime}...`,
             );
 
-            // Calculate date 1 week ago
             const oneWeekAgo = new Date();
             oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
-            // Find all active clients with lastAccess older than 1 week
             const inactiveClients = await this.clientModel.find({
                 lastAccess: { $lt: oneWeekAgo },
-                disabled: { $ne: true }, // Only process active clients
+                disabled: { $ne: true },
             });
 
             let notificationsCreated = 0;
             let errors = 0;
 
-            // Process each inactive client
             for (const client of inactiveClients) {
                 try {
                     const clientId = (client._id as any).toString();
 
-                    // Check if a notification for inactivity already exists within the last 2 weeks
                     const twoWeeksAgo = new Date();
                     twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
@@ -63,7 +59,6 @@ export class InactivityCheckService {
                     const hasRecentNotification = existingNotifications.some(
                         (notification: any) => {
                             const notificationDate = new Date(notification.createdAt);
-                            // Handle both populated and non-populated clientId
                             const notificationClientId = notification.clientId?._id?.toString() || notification.clientId?.toString();
                             return (
                                 notificationClientId === clientId &&
@@ -80,7 +75,6 @@ export class InactivityCheckService {
                         continue;
                     }
 
-                    // Create notification for inactive client
                     await this.notificationsService.create({
                         clientId,
                         name: client.userInfo?.name || client.email || "Cliente sin nombre",
@@ -150,7 +144,6 @@ export class InactivityCheckService {
                 try {
                     const clientId = (client._id as any).toString();
 
-                    // Check if a notification for inactivity already exists within the last 2 weeks
                     const twoWeeksAgo = new Date();
                     twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
@@ -158,7 +151,6 @@ export class InactivityCheckService {
                     const hasRecentNotification = existingNotifications.some(
                         (notification: any) => {
                             const notificationDate = new Date(notification.createdAt);
-                            // Handle both populated and non-populated clientId
                             const notificationClientId = notification.clientId?._id?.toString() || notification.clientId?.toString();
                             return (
                                 notificationClientId === clientId &&
@@ -202,6 +194,118 @@ export class InactivityCheckService {
             };
         } catch (error) {
             this.logger.error("Error during manual inactivity check", error);
+            throw error;
+        }
+    }
+
+    /**
+     * Cron job that runs daily at 02:00 AM Montevideo time to delete old notifications
+     * Deletes notifications older than 2 weeks
+     * Timezone: America/Montevideo (UTC-3)
+     */
+    @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
+        timeZone: "America/Montevideo",
+    })
+    async deleteOldNotifications(): Promise<void> {
+        try {
+            const now = new Date();
+            const montevideoTime = now.toLocaleString("es-UY", {
+                timeZone: "America/Montevideo",
+                dateStyle: "full",
+                timeStyle: "long",
+            });
+
+            this.logger.log(
+                `Starting old notifications cleanup at ${montevideoTime}...`,
+            );
+
+            const twoWeeksAgo = new Date();
+            twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+
+            // Get all notifications older than 2 weeks
+            const oldNotifications = await this.notificationsService.findAllWithoutPagination();
+            const notificationsToDelete = oldNotifications.filter(
+                (notification: any) => new Date(notification.createdAt) < twoWeeksAgo
+            );
+
+            let deletedCount = 0;
+            let errors = 0;
+
+            for (const notification of notificationsToDelete) {
+                try {
+                    const notificationId = (notification._id as any).toString();
+                    await this.notificationsService.remove(notificationId);
+                    deletedCount++;
+                } catch (error) {
+                    errors++;
+                    this.logger.error(
+                        `Error deleting notification ${notification._id}`,
+                        {
+                            error: error instanceof Error ? error.message : String(error),
+                            stack: error instanceof Error ? error.stack : undefined,
+                        },
+                    );
+                }
+            }
+
+            this.logger.log(
+                `Old notifications cleanup completed: ${notificationsToDelete.length} notifications found, ${deletedCount} deleted, ${errors} errors`,
+            );
+        } catch (error) {
+            this.logger.error("Error during old notifications cleanup", {
+                error: error instanceof Error ? error.message : String(error),
+                stack: error instanceof Error ? error.stack : undefined,
+            });
+        }
+    }
+
+    /**
+     * Manual method to delete old notifications - useful for testing or manual operations
+     */
+    async manualDeleteOldNotifications(): Promise<{
+        oldNotificationsFound: number;
+        deletedCount: number;
+        errors: number;
+    }> {
+        try {
+            this.logger.log("Manual old notifications cleanup triggered");
+
+            const twoWeeksAgo = new Date();
+            twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+
+            const oldNotifications = await this.notificationsService.findAllWithoutPagination();
+            const notificationsToDelete = oldNotifications.filter(
+                (notification: any) => new Date(notification.createdAt) < twoWeeksAgo
+            );
+
+            let deletedCount = 0;
+            let errors = 0;
+
+            for (const notification of notificationsToDelete) {
+                try {
+                    const notificationId = (notification._id as any).toString();
+                    await this.notificationsService.remove(notificationId);
+                    deletedCount++;
+                } catch (error) {
+                    errors++;
+                    this.logger.error(
+                        `Error deleting notification ${(notification._id as any).toString()}`,
+                        error,
+                    );
+                }
+            }
+
+            this.logger.log(
+                `Manual cleanup completed: ${notificationsToDelete.length} old notifications, ${deletedCount} deleted`,
+            );
+
+            return {
+                oldNotificationsFound: notificationsToDelete.length,
+                deletedCount,
+                errors,
+            };
+        } catch (error) {
+            this.logger.error("Error during manual old notifications cleanup", error);
             throw error;
         }
     }

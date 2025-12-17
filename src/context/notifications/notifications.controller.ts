@@ -73,4 +73,14 @@ export class NotificationsController {
     async checkInactivity() {
         return await this.inactivityCheckService.manualCheck();
     }
+
+    @Post("delete-old")
+    @ApiOperation({ summary: "Manually trigger old notifications cleanup" })
+    @ApiResponse({
+        status: 200,
+        description: "Old notifications cleanup completed",
+    })
+    async deleteOldNotifications() {
+        return await this.inactivityCheckService.manualDeleteOldNotifications();
+    }
 }
