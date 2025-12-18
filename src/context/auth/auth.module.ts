@@ -22,4 +22,4 @@ import { AuthService } from "./auth.service";
 	],
 	imports: [ClientsModule, OnboardingModule],
 })
-export class AuthModule {}
+export class AuthModule { }

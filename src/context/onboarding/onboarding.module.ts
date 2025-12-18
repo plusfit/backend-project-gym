@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
 
 import { ClientsModule } from "../clients/clients.module";
+import { NotificationsModule } from "../notifications/notifications.module";
 import { MongoPlansRepository } from "../plans/repositories/mongo-plans.repository";
 import { PLAN_REPOSITORY } from "../plans/repositories/plans.repository";
 import { Plan, PlanSchema } from "../plans/schemas/plan.schema";
@@ -18,6 +19,7 @@ import { PlanRecommendationService } from "./services/plan-recommendation.servic
 			{ name: Plan.name, schema: PlanSchema },
 		]),
 		ClientsModule,
+		NotificationsModule,
 	],
 	controllers: [OnboardingController],
 	providers: [
@@ -31,4 +33,4 @@ import { PlanRecommendationService } from "./services/plan-recommendation.servic
 	],
 	exports: [OnboardingService],
 })
-export class OnboardingModule {}
+export class OnboardingModule { }
