@@ -115,7 +115,7 @@ export class SchedulesService {
 			throw new NotFoundException(`Horario con ID ${scheduleId} no encontrado`);
 		}
 
-		if (schedule.maxCount >= schedule.clients.length + clienstIds.length) {
+		if (schedule.clients.length + clienstIds.length > schedule.maxCount) {
 			throw new BadRequestException(`El horario ha alcanzado su capacidad máxima`);
 		}
 
