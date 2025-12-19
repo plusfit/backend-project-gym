@@ -104,7 +104,7 @@ export class SchedulesService {
 		return { message: `Client with ID ${clientId} removed from all schedules` };
 	}
 
-	async assignClientToSchedule(scheduleId: string, clienstIds: string[]) {
+	async assignClientToSchedule(scheduleId: string, clienstIds: {clients: string[]}) {
 		if (!scheduleId || !clienstIds) {
 			throw new BadRequestException("ID de horario e ID de cliente son requeridos");
 		}
@@ -115,7 +115,7 @@ export class SchedulesService {
 			throw new NotFoundException(`Horario con ID ${scheduleId} no encontrado`);
 		}
 
-		if (schedule.maxCount >= schedule.clients.length + clienstIds.length) {
+		if (schedule.clients.length + clienstIds.clients.length > schedule.maxCount) {
 			throw new BadRequestException(`El horario ha alcanzado su capacidad máxima`);
 		}
 

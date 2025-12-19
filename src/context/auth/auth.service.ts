@@ -9,6 +9,9 @@ import { ConfigService } from "@nestjs/config";
 import axios from "axios";
 import firebaseAdmin from "firebase-admin";
 import jwt from "jsonwebtoken";
+import { Model } from "mongoose";
+import { InjectModel } from "@nestjs/mongoose";
+import { InvitationCode } from "./schemas/invitation-code.schema";
 
 import { GoogleAuthDto } from "@/src/context/auth/dto/google-auth.dto";
 import { InternalRegisterAuthDto } from "@/src/context/auth/dto/internal-register-auth.dto";
@@ -19,6 +22,12 @@ import { AUTH_REPOSITORY } from "@/src/context/auth/repositories/auth.repository
 
 import { ClientsService } from "../clients/clients.service";
 import { OnboardingService } from "../onboarding/onboarding.service";
+import {
+  InvitationCodeResponse,
+  TokenResponse,
+  ValidateInvitationCodeResponse,
+  AuthErrorResponse
+} from "./interfaces/auth.interfaces";
 
 @Injectable()
 export class AuthService {
@@ -29,7 +38,8 @@ export class AuthService {
     private readonly configService: ConfigService,
     @Inject(forwardRef(() => ClientsService))
     private readonly clientsService: ClientsService,
-  ) {}
+    @InjectModel(InvitationCode.name) private readonly invitationCodeModel: Model<InvitationCode>,
+  ) { }
 
   async register(registerDto: RegisterAuthDto) {
     try {
@@ -37,16 +47,66 @@ export class AuthService {
       if (registerDto.password) {
         // Store original password for potential admin access
         const originalPassword = registerDto.password;
-    
+
 
         // Add plain password to the DTO
         (registerDto as any).plainPassword = originalPassword;
       }
       const result = await this.authRepository.register(registerDto);
+
+      // Mark invitation code as used
+      await this.consumeInvitationCode(registerDto.invitationCode, result._id.toString());
+
       return result;
     } catch (error: any) {
+      if (error instanceof UnauthorizedException || error.message.includes("invitation code")) {
+        throw error;
+      }
       throw new UnauthorizedException("Error al registrar, verifique datos");
     }
+  }
+
+  async generateInvitationCode(): Promise<InvitationCodeResponse> {
+    const code = Math.random().toString(36).substring(2, 10).toUpperCase();
+    const appUrl = this.configService.get("APP_URL") || "https://plusfit.uy";
+
+    await this.invitationCodeModel.create({
+      code,
+      isUsed: false,
+    });
+
+    return {
+      code,
+      link: `${appUrl}/registro?code=${code}`,
+    };
+  }
+
+  async validateInvitationCode(code: string): Promise<ValidateInvitationCodeResponse> {
+    const invitation = await this.invitationCodeModel.findOne({ code, isUsed: false });
+    return { valid: !!invitation };
+  }
+
+  async getCurrentInvitationCode(): Promise<InvitationCodeResponse | null> {
+    const invitation = await this.invitationCodeModel.findOne({ isUsed: false }).sort({ createdAt: -1 });
+    if (!invitation) return null;
+
+    const appUrl = this.configService.get("APP_URL") || "https://plusfit.uy";
+    return {
+      code: invitation.code,
+      link: `${appUrl}/registro?code=${invitation.code}`,
+    };
+  }
+
+  async consumeInvitationCode(code: string, userId: string): Promise<void> {
+    const invitation = await this.invitationCodeModel.findOne({ code, isUsed: false });
+    if (!invitation) {
+      throw new UnauthorizedException("Invalid or used invitation code");
+    }
+
+    invitation.isUsed = true;
+    invitation.usedBy = userId;
+    invitation.usedAt = new Date();
+    await invitation.save();
   }
 
   async login(loginDto: LoginAuthDto) {
@@ -106,11 +166,11 @@ export class AuthService {
     }
   }
 
-	validateLogin(loginDto: LoginAuthDto) {
-		if (!loginDto.token) {
-			throw new Error("Token es requerido");
-		}
-	}
+  validateLogin(loginDto: LoginAuthDto) {
+    if (!loginDto.token) {
+      throw new Error("Token es requerido");
+    }
+  }
 
   async getEmailFromJWTFirebase(token: string) {
     try {
@@ -126,28 +186,28 @@ export class AuthService {
       const decodedHeader: any = jwt.decode(token, { complete: true });
       const kid = decodedHeader?.header?.kid;
 
-    
-			if (!kid || !publicKeys[kid]) {
-				throw new Error("Token inválido");
-			}
+
+      if (!kid || !publicKeys[kid]) {
+        throw new Error("Token inválido");
+      }
 
       //Verificar el token con la clave publica
       const decoded = jwt.verify(token, publicKeys[kid]) as jwt.JwtPayload;
 
-			//Validar que venga de Firebase
-			if (decoded.aud !== this.configService.get("AUD")) {
-				//dtf-central a modo de prueba
-				throw new Error("Token no es de Firebase");
-			}
+      //Validar que venga de Firebase
+      if (decoded.aud !== this.configService.get("AUD")) {
+        //dtf-central a modo de prueba
+        throw new Error("Token no es de Firebase");
+      }
 
-			//Valido que tenga un email
-			if (
-				!decoded.email ||
-				!decoded.firebase ||
-				!decoded.firebase.identities?.email?.length
-			) {
-				throw new Error("Token inválido");
-			}
+      //Valido que tenga un email
+      if (
+        !decoded.email ||
+        !decoded.firebase ||
+        !decoded.firebase.identities?.email?.length
+      ) {
+        throw new Error("Token inválido");
+      }
 
       return decoded.email;
     } catch (error: any) {
@@ -155,16 +215,16 @@ export class AuthService {
     }
   }
 
-  createToken(payload: any) {
+  createToken(payload: any): TokenResponse {
     //género el accessToken y el refreshToken con los secrets del .env
     const accessSecret = this.configService.get("JWT_ACCESS_SECRET");
     const accessExpiresIn = this.configService.get("JWT_ACCESS_EXPIRES_IN");
 
-		const refreshSecret = this.configService.get<string>("JWT_REFRESH_SECRET");
-		if (!refreshSecret) {
-			throw new Error("JWT_REFRESH_SECRET no está configurado.");
-		}
-		const refreshExpiresIn = this.configService.get("JWT_REFRESH_EXPIRES_IN");
+    const refreshSecret = this.configService.get<string>("JWT_REFRESH_SECRET");
+    if (!refreshSecret) {
+      throw new Error("JWT_REFRESH_SECRET no está configurado.");
+    }
+    const refreshExpiresIn = this.configService.get("JWT_REFRESH_EXPIRES_IN");
 
     const tokenPayload = {
       ...payload,
@@ -190,15 +250,15 @@ export class AuthService {
     };
   }
 
-  async refreshToken(refreshToken: RefreshTokenAuthDto) {
+  async refreshToken(refreshToken: RefreshTokenAuthDto): Promise<TokenResponse | AuthErrorResponse> {
     try {
       const _refreshToken = refreshToken.refreshToken;
       const refreshSecret =
         this.configService.get<string>("JWT_REFRESH_SECRET");
 
-			if (!refreshSecret) {
-				throw new Error("JWT_REFRESH_SECRET no está configurado.");
-			}
+      if (!refreshSecret) {
+        throw new Error("JWT_REFRESH_SECRET no está configurado.");
+      }
 
       //verifico y decodifico el refresh token
       const decoded = jwt.verify(
@@ -211,9 +271,9 @@ export class AuthService {
       const storedRefreshToken =
         await this.authRepository.getRefreshToken(userId);
 
-			if (storedRefreshToken !== _refreshToken) {
-				throw new Error("Token de actualización inválido");
-			}
+      if (storedRefreshToken !== _refreshToken) {
+        throw new Error("Token de actualización inválido");
+      }
 
       // elimino los campos exp e iat para que se generen de nuevo a lo que no uso las variables tengo que comentarlas con eslint
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -240,11 +300,12 @@ export class AuthService {
     }
   }
 
-	async googleLogin(googleAuthDto: GoogleAuthDto) {
-		try {
-			if (!googleAuthDto.idToken) {
-				throw new Error("Token de Google ID es requerido");
-			}
+  async googleLogin(googleAuthDto: GoogleAuthDto) {
+    try {
+      debugger
+      if (!googleAuthDto.idToken) {
+        throw new Error("Token de Google ID es requerido");
+      }
 
       // Verificar el token de Google y obtener el email
       const email = await this.verifyGoogleToken(googleAuthDto.idToken);
@@ -260,6 +321,11 @@ export class AuthService {
           email,
         };
         client = await this.authRepository.register(registerDto);
+
+        // Si hay código de invitación, lo consumimos
+        if (googleAuthDto.invitationCode) {
+           await this.consumeInvitationCode(googleAuthDto.invitationCode, client._id.toString());
+        }
 
         // Crear el registro de onboarding para el nuevo usuario
         await this.onboardingService.create({
@@ -337,10 +403,10 @@ export class AuthService {
       const auth = firebaseAdmin.auth();
       const decodedToken = await auth.verifyIdToken(idToken);
 
-			// Verificar que el token tenga un email
-			if (!decodedToken.email) {
-				throw new Error("Email inválido en token");
-			}
+      // Verificar que el token tenga un email
+      if (!decodedToken.email) {
+        throw new Error("Email inválido en token");
+      }
 
       return decodedToken.email;
     } catch (error) {
