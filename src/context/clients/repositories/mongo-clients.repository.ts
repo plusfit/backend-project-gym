@@ -145,4 +145,12 @@ export class MongoClientsRepository implements ClientsRepository {
   async findClientByCI(ci: string): Promise<Client | null> {
     return await this.clientModel.findOne({ "userInfo.CI": ci }).exec();
   }
+
+  async getClientAvailableDays(id: string): Promise<{ availableDays: number }> {
+    const client = await this.clientModel.findById(id).select("availableDays").exec();
+    if (!client) {
+      throw new Error(`Client with id ${id} not found`);
+    }
+    return { availableDays: client.availableDays || 0 };
+  }
 }

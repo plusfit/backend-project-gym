@@ -8,6 +8,7 @@ import {
 import { SCHEDULE_REPOSITORY } from "@/src/context/schedules/repositories/mongo-schedule.repository";
 import { Schedule } from "@/src/context/schedules/schemas/schedule.schema";
 
+import { CLIENT_REPOSITORY } from "../clients/repositories/clients.repository";
 import { ConfigService } from "../config/config.service";
 import { UpdateConfigDto } from "../config/dto/update-config.dto";
 import { CreateScheduleDto } from "./dto/create-schedule.dto";
@@ -20,7 +21,8 @@ export class SchedulesService {
 		private readonly scheduleRepository: any,
 		@Inject(ConfigService)
 		private readonly configService: ConfigService,
-		//Client Repository
+		@Inject(CLIENT_REPOSITORY)
+		private readonly clientRepository: any,
 	) { }
 
 	async createSchedule(createScheduleDto: CreateScheduleDto) {
@@ -113,6 +115,13 @@ export class SchedulesService {
 
 		if (!schedule) {
 			throw new NotFoundException(`Horario con ID ${scheduleId} no encontrado`);
+		}
+
+		for (const clientId of clienstIds.clients) {
+			const availableDays = await this.clientRepository.getClientAvailableDays(clientId);
+			if (availableDays.availableDays <= 0) {
+				throw new BadRequestException(`El cliente ${clientId} no tiene días disponibles suficientes`);
+			}
 		}
 
 		if (schedule.clients.length + clienstIds.clients.length > schedule.maxCount) {
