@@ -104,6 +104,7 @@ export class AppModule implements NestModule {
         { path: "clients/validate/ci/(.*)", method: RequestMethod.GET },
         { path: "api", method: RequestMethod.GET },
         { path: "api/(.*)", method: RequestMethod.GET },
+        { path: "auth/invitation-code/(.*)", method: RequestMethod.GET },
       )
       .forRoutes("*");
 
