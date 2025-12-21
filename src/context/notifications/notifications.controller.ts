@@ -35,8 +35,9 @@ export class NotificationsController {
         @Query("page") page: number = 1,
         @Query("limit") limit: number = 10,
         @Query("status") status?: string,
+        @Query("searchQ") searchQ?: string,
     ) {
-        return await this.notificationsService.findAll(Number(page), Number(limit), status);
+        return await this.notificationsService.findAll(Number(page), Number(limit), status, searchQ);
     }
 
     @Patch(":id")

@@ -32,12 +32,12 @@ export class NotificationsService {
         }
     }
 
-    async findAll(page: number, limit: number, status?: string): Promise<{ data: Notification[]; total: number; page: number; limit: number }> {
+    async findAll(page: number, limit: number, status?: string, searchQ?: string): Promise<{ data: Notification[]; total: number; page: number; limit: number }> {
         try {
             const offset = (page - 1) * limit;
             const [data, total] = await Promise.all([
-                this.notificationRepository.findAll(offset, limit, status),
-                this.notificationRepository.countNotifications(status),
+                this.notificationRepository.findAll(offset, limit, status, searchQ),
+                this.notificationRepository.countNotifications(status, searchQ),
             ]);
             return { data, total, page, limit };
         } catch (error: any) {

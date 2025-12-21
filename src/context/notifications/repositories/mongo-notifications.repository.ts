@@ -17,11 +17,15 @@ export class MongoNotificationsRepository implements NotificationsRepository {
         return await newNotification.save();
     }
 
-    async findAll(offset: number, limit: number, status?: string): Promise<Notification[]> {
+    async findAll(offset: number, limit: number, status?: string, searchQ?: string): Promise<Notification[]> {
         const filter: any = {};
 
         if (status && status !== "ALL") {
             filter.status = status;
+        }
+
+        if (searchQ) {
+            filter.name = { $regex: searchQ, $options: "i" };
         }
 
         return await this.notificationModel
@@ -33,11 +37,15 @@ export class MongoNotificationsRepository implements NotificationsRepository {
             .exec();
     }
 
-    async countNotifications(status?: string): Promise<number> {
+    async countNotifications(status?: string, searchQ?: string): Promise<number> {
         const filter: any = {};
 
         if (status && status !== "ALL") {
             filter.status = status;
+        }
+
+        if (searchQ) {
+            filter.name = { $regex: searchQ, $options: "i" };
         }
 
         return await this.notificationModel.countDocuments(filter).exec();

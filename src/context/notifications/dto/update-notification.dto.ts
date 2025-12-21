@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsEnum, IsMongoId, IsOptional, IsString } from "class-validator";
 
-import { NotificationStatus } from "../schemas/notification.schema";
+import { NotificationReason, NotificationStatus } from "../schemas/notification.schema";
 
 export class UpdateNotificationDto {
     @ApiProperty({
@@ -24,12 +24,12 @@ export class UpdateNotificationDto {
 
     @ApiProperty({
         description: "Reason for the notification",
-        example: "Monthly payment due",
+        enum: NotificationReason,
         required: false,
     })
     @IsOptional()
-    @IsString()
-    reason?: string;
+    @IsEnum(NotificationReason)
+    reason?: NotificationReason;
 
     @ApiProperty({
         description: "Client phone number",
