@@ -30,4 +30,4 @@ import { InvitationCode, InvitationCodeSchema } from "./schemas/invitation-code.
 		]),
 	],
 })
-export class AuthModule {}
+export class AuthModule { }

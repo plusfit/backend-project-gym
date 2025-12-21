@@ -7,6 +7,8 @@ import {
 } from "@nestjs/common";
 
 import { ClientsService } from "../clients/clients.service";
+import { NotificationsService } from "../notifications/notifications.service";
+import { NotificationStatus } from "../notifications/schemas/notification.schema";
 import { Plan } from "../plans/schemas/plan.schema";
 import { CreateOnboardingDto } from "./dto/create-onboarding.dto";
 import { UpdateOnboardingDto } from "./dto/update-onboarding.dto";
@@ -21,7 +23,8 @@ export class OnboardingService {
 		private readonly planRecommendationService: PlanRecommendationService,
 		@Inject(forwardRef(() => ClientsService))
 		private readonly clientsService: ClientsService,
-	) {}
+		private readonly notificationsService: NotificationsService,
+	) { }
 
 	async create(createOnboardingDto: CreateOnboardingDto): Promise<Onboarding> {
 		const existing = await this.onboardingRepository.findByUserId(
@@ -119,6 +122,20 @@ export class OnboardingService {
 
 		// Set isOnboardingCompleted to true
 		await this.clientsService.update(userId, { isOnboardingCompleted: true });
+
+		// Create notification for first-time registration
+		try {
+			await this.notificationsService.create({
+				clientId: userId,
+				name: userInfoFromOnboarding.name || client.email || "Cliente sin nombre",
+				reason: "Primera vez",
+				phone: userInfoFromOnboarding.phone || "",
+				status: NotificationStatus.PENDING,
+			});
+		} catch (notificationError) {
+			// Log the error but don't fail the onboarding completion
+			console.error("Error creating notification for new user:", notificationError);
+		}
 
 		const recommendedPlan = await this.planRecommendationService.recommendPlan(
 			onboarding?.data || {},

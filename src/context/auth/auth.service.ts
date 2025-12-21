@@ -302,7 +302,6 @@ export class AuthService {
 
   async googleLogin(googleAuthDto: GoogleAuthDto) {
     try {
-      debugger
       if (!googleAuthDto.idToken) {
         throw new Error("Token de Google ID es requerido");
       }

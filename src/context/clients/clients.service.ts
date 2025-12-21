@@ -17,6 +17,8 @@ import { Plan } from "@/src/context/plans/schemas/plan.schema";
 import { Routine } from "@/src/context/routines/schemas/routine.schema";
 
 import { SchedulesService } from "../schedules/schedules.service";
+import { NotificationsService } from "../notifications/notifications.service";
+import { NotificationStatus } from "../notifications/schemas/notification.schema";
 import { CreateClientDto } from "./dto/create-client.dto";
 import { ClientFilters } from "./interfaces/clients.interface";
 
@@ -29,6 +31,7 @@ export class ClientsService {
     private readonly plansService: any,
     @Inject(forwardRef(() => SchedulesService))
     private readonly schedulesService: SchedulesService,
+    private readonly notificationsService: NotificationsService,
   ) { }
 
   addFilter = (field: string, value: any, target: any) => {
@@ -151,7 +154,23 @@ export class ClientsService {
         );
       }
 
-      return this.clientRepository.createClient(createClientDto);
+      const newClient = await this.clientRepository.createClient(createClientDto);
+
+      // Create notification for first-time registration
+      try {
+        await this.notificationsService.create({
+          clientId: newClient._id.toString(),
+          name: newClient.userInfo?.name || newClient.email || "Cliente sin nombre",
+          reason: "Primera vez",
+          phone: newClient.userInfo?.phone || "",
+          status: NotificationStatus.PENDING,
+        });
+      } catch (notificationError) {
+        // Log the error but don't fail the client creation
+        console.error("Error creating notification for new client:", notificationError);
+      }
+
+      return newClient;
     } catch (error: any) {
       throw new HttpException(
         `Error creating client: ${error.message}`,

@@ -1,0 +1,87 @@
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from "@nestjs/common";
+import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+
+import { CreateNotificationDto } from "./dto/create-notification.dto";
+import { UpdateNotificationDto } from "./dto/update-notification.dto";
+import { NotificationsService } from "./notifications.service";
+import { InactivityCheckService } from "./services/inactivity-check.service";
+
+@ApiTags("notifications")
+@Controller("notifications")
+export class NotificationsController {
+    constructor(
+        private readonly notificationsService: NotificationsService,
+        private readonly inactivityCheckService: InactivityCheckService,
+    ) { }
+
+    @Post()
+    @ApiOperation({ summary: "Create a new notification" })
+    @ApiResponse({
+        status: 201,
+        description: "Notification created successfully",
+    })
+    @ApiResponse({ status: 400, description: "Bad request" })
+    async create(@Body() createNotificationDto: CreateNotificationDto) {
+        return await this.notificationsService.create(createNotificationDto);
+    }
+
+    @Get()
+    @ApiOperation({ summary: "Get all notifications" })
+    @ApiResponse({
+        status: 200,
+        description: "Returns paginated notifications",
+    })
+    async findAll(
+        @Query("page") page: number = 1,
+        @Query("limit") limit: number = 10,
+        @Query("status") status?: string,
+        @Query("searchQ") searchQ?: string,
+    ) {
+        return await this.notificationsService.findAll(Number(page), Number(limit), status, searchQ);
+    }
+
+    @Patch(":id")
+    @ApiOperation({ summary: "Update a notification" })
+    @ApiResponse({
+        status: 200,
+        description: "Notification updated successfully",
+    })
+    @ApiResponse({ status: 404, description: "Notification not found" })
+    async update(
+        @Param("id") id: string,
+        @Body() updateNotificationDto: UpdateNotificationDto,
+    ) {
+        return await this.notificationsService.update(id, updateNotificationDto);
+    }
+
+    @Delete(":id")
+    @ApiOperation({ summary: "Delete a notification" })
+    @ApiResponse({
+        status: 200,
+        description: "Notification deleted successfully",
+    })
+    @ApiResponse({ status: 404, description: "Notification not found" })
+    async remove(@Param("id") id: string) {
+        return await this.notificationsService.remove(id);
+    }
+
+    @Post("check-inactivity")
+    @ApiOperation({ summary: "Manually trigger inactivity check" })
+    @ApiResponse({
+        status: 200,
+        description: "Inactivity check completed",
+    })
+    async checkInactivity() {
+        return await this.inactivityCheckService.manualCheck();
+    }
+
+    @Post("delete-old")
+    @ApiOperation({ summary: "Manually trigger old notifications cleanup" })
+    @ApiResponse({
+        status: 200,
+        description: "Old notifications cleanup completed",
+    })
+    async deleteOldNotifications() {
+        return await this.inactivityCheckService.manualDeleteOldNotifications();
+    }
+}
