@@ -21,7 +21,6 @@ import { NotificationsService } from "../notifications/notifications.service";
 import { NotificationStatus } from "../notifications/schemas/notification.schema";
 import { CreateClientDto } from "./dto/create-client.dto";
 import { ClientFilters } from "./interfaces/clients.interface";
-import { log } from "console";
 
 @Injectable()
 export class ClientsService {

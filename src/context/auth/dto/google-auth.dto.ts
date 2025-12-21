@@ -25,4 +25,9 @@ export class GoogleAuthDto {
   @IsString()
   @IsOptional()
   recaptchaToken?: string;
+
+  @ApiProperty({ example: "ABC12345", required: false })
+  @IsString()
+  @IsOptional()
+  invitationCode?: string;
 }

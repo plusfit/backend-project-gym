@@ -122,7 +122,7 @@ export class SchedulesController {
 	@ApiParam({ name: "clientId", type: String, description: "ID del Cliente" })
 	assignClientToSchedule(
 		@Param("scheduleId") scheduleId: string,
-		@Body() clientsIds: string[],
+		@Body() clientsIds: {clients: string[]},
 	) {
 		return this.schedulesService.assignClientToSchedule(scheduleId, clientsIds);
 	}

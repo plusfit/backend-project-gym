@@ -20,7 +20,7 @@ import { AvailableDaysController } from "./available-days.controller";
 @Module({
   imports: [
     forwardRef(() => PlansModule),
-    SchedulesModule,
+    forwardRef(() => SchedulesModule),
     NotificationsModule,
     MongooseModule.forFeature([
       { name: Client.name, schema: ClientSchema },
