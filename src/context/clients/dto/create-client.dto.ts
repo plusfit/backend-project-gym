@@ -11,21 +11,25 @@ import {
 import { EClientRole } from "@/src/context/shared/enums/clients-role.enum";
 
 export class CreateClientDto {
+	@IsOptional()
 	@IsEnum(EClientRole)
-	role!: EClientRole;
+	role?: EClientRole;
 
+	@IsOptional()
 	@IsMongoId()
 	planId?: string;
 
+	@IsOptional()
 	@IsMongoId()
 	routineId?: string;
 
 	@IsEmail()
 	email!: string;
 
-	@IsNotEmpty()
-	userInfo?: []; //TODO: Create userInfoDTO
+	@IsOptional()
+	userInfo?: any; // Made optional to support admin registration without userInfo
 
+	@IsOptional()
 	@IsString()
 	refreshToken?: string;
 
@@ -39,3 +43,4 @@ export class CreateClientDto {
 	@MinLength(6, { message: 'Plain password must be at least 6 characters long' })
 	plainPassword?: string;
 }
+
