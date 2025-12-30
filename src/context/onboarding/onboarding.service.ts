@@ -8,7 +8,7 @@ import {
 
 import { ClientsService } from "../clients/clients.service";
 import { NotificationsService } from "../notifications/notifications.service";
-import { NotificationStatus } from "../notifications/schemas/notification.schema";
+import { NotificationReason, NotificationStatus } from "../notifications/schemas/notification.schema";
 import { Plan } from "../plans/schemas/plan.schema";
 import { CreateOnboardingDto } from "./dto/create-onboarding.dto";
 import { UpdateOnboardingDto } from "./dto/update-onboarding.dto";
@@ -128,7 +128,7 @@ export class OnboardingService {
 			await this.notificationsService.create({
 				clientId: userId,
 				name: userInfoFromOnboarding.name || client.email || "Cliente sin nombre",
-				reason: "Primera vez",
+				reason: NotificationReason.FIRST_TIME,
 				phone: userInfoFromOnboarding.phone || "",
 				status: NotificationStatus.PENDING,
 			});

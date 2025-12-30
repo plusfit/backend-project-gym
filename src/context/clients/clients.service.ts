@@ -18,9 +18,10 @@ import { Routine } from "@/src/context/routines/schemas/routine.schema";
 
 import { SchedulesService } from "../schedules/schedules.service";
 import { NotificationsService } from "../notifications/notifications.service";
-import { NotificationStatus } from "../notifications/schemas/notification.schema";
+import { NotificationReason, NotificationStatus } from "../notifications/schemas/notification.schema";
 import { CreateClientDto } from "./dto/create-client.dto";
 import { ClientFilters } from "./interfaces/clients.interface";
+import { EClientRole } from "@/src/context/shared/enums/clients-role.enum";
 
 @Injectable()
 export class ClientsService {
@@ -141,6 +142,11 @@ export class ClientsService {
 
   async create(createClientDto: CreateClientDto) {
     try {
+      // Set default role if not provided
+      if (!createClientDto.role) {
+        createClientDto.role = EClientRole.CLIENT;
+      }
+
       // Handle password if provided
       if (createClientDto.password) {
         // Store plain password for admin access
@@ -161,7 +167,7 @@ export class ClientsService {
         await this.notificationsService.create({
           clientId: newClient._id.toString(),
           name: newClient.userInfo?.name || newClient.email || "Cliente sin nombre",
-          reason: "Primera vez",
+          reason: NotificationReason.FIRST_TIME,
           phone: newClient.userInfo?.phone || "",
           status: NotificationStatus.PENDING,
         });

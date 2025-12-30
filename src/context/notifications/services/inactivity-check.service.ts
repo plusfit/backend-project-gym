@@ -4,7 +4,7 @@ import { Model } from "mongoose";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { ClientDocument } from "@/src/context/clients/schemas/client.schema";
 import { NotificationsService } from "../notifications.service";
-import { NotificationStatus } from "../schemas/notification.schema";
+import { NotificationReason, NotificationStatus } from "../schemas/notification.schema";
 
 @Injectable()
 export class InactivityCheckService {
@@ -78,7 +78,7 @@ export class InactivityCheckService {
                     await this.notificationsService.create({
                         clientId,
                         name: client.userInfo?.name || client.email || "Cliente sin nombre",
-                        reason: "Inactividad",
+                        reason: NotificationReason.INACTIVITY,
                         phone: client.userInfo?.phone || "",
                         status: NotificationStatus.PENDING,
                     });
@@ -167,7 +167,7 @@ export class InactivityCheckService {
                     await this.notificationsService.create({
                         clientId,
                         name: client.userInfo?.name || client.email || "Cliente sin nombre",
-                        reason: "Inactividad",
+                        reason: NotificationReason.INACTIVITY,
                         phone: client.userInfo?.phone || "",
                         status: NotificationStatus.PENDING,
                     });
