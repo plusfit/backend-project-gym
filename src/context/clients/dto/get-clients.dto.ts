@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsNumber, IsOptional, IsString, Min } from "class-validator";
+import { IsNumber, IsOptional, IsString, Min, IsEnum } from "class-validator";
+import { EClientRole } from "@/src/context/shared/enums/clients-role.enum";
 
 export class GetClientsDto {
 	@ApiProperty({ description: "Número de página", example: 1 })
@@ -33,8 +34,8 @@ export class GetClientsDto {
 	CI?: string;
 
 	@IsOptional()
-	@IsString()
-	role?: string;
+	@IsEnum(EClientRole)
+	role?: EClientRole;
 
 	@IsOptional()
 	@IsString()
