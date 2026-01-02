@@ -15,6 +15,7 @@ import { SchedulesModule } from "../schedules/schedules.module";
 import { NotificationsModule } from "../notifications/notifications.module";
 import { Routine, RoutineSchema } from "../routines/schemas/routine.schema";
 import { DailyDecrementService } from "./services/daily-decrement.service";
+import { YearlyPointsResetService } from "./services/yearly-points-reset.service";
 import { AvailableDaysController } from "./available-days.controller";
 
 @Module({
@@ -31,11 +32,12 @@ import { AvailableDaysController } from "./available-days.controller";
   providers: [
     ClientsService,
     DailyDecrementService,
+    YearlyPointsResetService,
     {
       provide: CLIENT_REPOSITORY,
       useClass: MongoClientsRepository,
     },
   ],
-  exports: [MongooseModule, CLIENT_REPOSITORY, ClientsService, DailyDecrementService],
+  exports: [MongooseModule, CLIENT_REPOSITORY, ClientsService, DailyDecrementService, YearlyPointsResetService],
 })
 export class ClientsModule { }
