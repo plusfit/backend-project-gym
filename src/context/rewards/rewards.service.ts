@@ -172,7 +172,7 @@ export class RewardsService {
         rewardImageUrl: reward.imageUrl,
         rewardImagePath: reward.imagePath,
         rewardMediaType: reward.mediaType,
-        clientId: client.id,
+        clientId: (client._id as any).toString(),
         clientName: client.userInfo?.name || client.email || 'Cliente',
         clientEmail: client.email,
         adminId: createExchangeDto.adminId,
