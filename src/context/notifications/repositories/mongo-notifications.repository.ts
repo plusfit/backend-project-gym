@@ -90,4 +90,11 @@ export class MongoNotificationsRepository implements NotificationsRepository {
         await this.notificationModel.findByIdAndDelete(id).exec();
         return notification;
     }
+
+    async deletePendingByClientId(clientId: string): Promise<void> {
+        await this.notificationModel.deleteMany({
+            clientId,
+            status: "PENDING"
+        }).exec();
+    }
 }

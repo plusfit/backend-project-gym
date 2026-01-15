@@ -3,6 +3,7 @@ import { MongooseModule } from "@nestjs/mongoose";
 
 import { ClientsModule } from "@/src/context/clients/clients.module";
 import { ClientSchema } from "@/src/context/clients/schemas/client.schema";
+import { NotificationsModule } from "@/src/context/notifications/notifications.module";
 import { RewardsModule } from "@/src/context/rewards/rewards.module";
 import { SchedulesModule } from "@/src/context/schedules/schedules.module";
 
@@ -21,6 +22,7 @@ import { GymAccessSchema } from "./schemas/gym-access.schema";
 		ClientsModule,
 		SchedulesModule,
 		RewardsModule,
+		NotificationsModule,
 	],
 	controllers: [GymAccessController],
 	providers: [
@@ -32,4 +34,4 @@ import { GymAccessSchema } from "./schemas/gym-access.schema";
 	],
 	exports: [GymAccessService, GymAccessRepository],
 })
-export class GymAccessModule {}
+export class GymAccessModule { }

@@ -1,9 +1,10 @@
-import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { Injectable, Logger, NotFoundException, Inject } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
 
 import { ClientsService } from "@/src/context/clients/clients.service";
 import { ClientDocument } from "@/src/context/clients/schemas/client.schema";
+import { NOTIFICATION_REPOSITORY, type NotificationsRepository } from "@/src/context/notifications/repositories/notifications.repository";
 import { RewardsService } from "@/src/context/rewards/rewards.service";
 import { SchedulesService } from "@/src/context/schedules/schedules.service";
 import { formatDateAsAccessDay, getCurrentDayName, getCurrentTimeString, getUruguayTime, normalizeTimeFormat } from "@/src/context/shared/utils/date.utils";
@@ -51,6 +52,8 @@ export class GymAccessService {
 		private readonly clientsService: ClientsService,
 		private readonly schedulesService: SchedulesService,
 		private readonly rewardsService: RewardsService,
+		@Inject(NOTIFICATION_REPOSITORY)
+		private readonly notificationsRepository: NotificationsRepository,
 		@InjectModel("Client")
 		private readonly clientModel: Model<ClientDocument>,
 	) { }
@@ -361,6 +364,15 @@ export class GymAccessService {
 
 		// Check for rewards
 		const earnedReward = await this.checkForRewards(updatedClient.consecutiveDays || 0);
+
+		// Delete pending notifications for this client
+		const clientId = (client._id as Types.ObjectId).toString();
+		try {
+			await this.notificationsRepository.deletePendingByClientId(clientId);
+			this.logger.log(`Deleted pending notifications for client ${clientId} after successful access`);
+		} catch (error) {
+			this.logger.error('Error deleting pending notifications', { error, clientId });
+		}
 
 		return {
 			message: AccessErrorMessages.SUCCESSFUL_ACCESS,
