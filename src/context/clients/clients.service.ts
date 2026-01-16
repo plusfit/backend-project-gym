@@ -45,7 +45,7 @@ export class ClientsService {
 
   async findAll(page: number, limit: number, clientFilters: ClientFilters) {
     const offset = (page - 1) * limit;
-    const { name, email, CI, role, withoutPlan, disabled } = clientFilters;
+    const { name, email, CI, role, withoutPlan, disabled, overdue } = clientFilters;
     const filters: any = { $or: [] };
 
     if (role) {
@@ -66,6 +66,10 @@ export class ClientsService {
 
     if (disabled !== undefined) {
       filters.disabled = disabled;
+    }
+
+    if (overdue) {
+      filters.availableDays = 0;
     }
 
     if (filters.$or && filters.$or.length === 0) {
