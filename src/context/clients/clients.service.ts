@@ -70,6 +70,7 @@ export class ClientsService {
 
     if (overdue) {
       filters.availableDays = 0;
+      filters.disabled = false; // Solo clientes habilitados cuando se busca por atrasados
     }
 
     if (filters.$or && filters.$or.length === 0) {
