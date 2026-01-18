@@ -1,4 +1,4 @@
-import { forwardRef,Inject, Injectable } from "@nestjs/common";
+import { forwardRef, Inject, Injectable } from "@nestjs/common";
 
 import { ClientsService } from "@/src/context/clients/clients.service";
 import { PlanEntity } from "@/src/context/plans/entities/plan.entity";
@@ -18,7 +18,7 @@ export class PlansService {
 		private readonly plansRepository: any,
 		@Inject(SCHEDULE_REPOSITORY)
 		private readonly scheduleRepository: any,
-	) {}
+	) { }
 
 	async create(createPlanDto: CreatePlanDto): Promise<PlanEntity> {
 		return await this.plansRepository.createPlan(createPlanDto);
@@ -134,8 +134,11 @@ export class PlansService {
 				client.assignedSchedules?.map((s: any) => s.day) || [];
 			const hourClients = hour._doc.clients || [];
 
+			// Permitir 6 horarios para planes de 5 días, y plan.days para el resto
+			const maxAllowedSchedules = planDays === 5 ? 6 : planDays;
+
 			return (
-				assignedDays.length < planDays &&
+				assignedDays.length < maxAllowedSchedules &&
 				client._doc.role === "User" &&
 				client._doc.disabled === false &&
 				!hourClients.includes(client._doc._id)

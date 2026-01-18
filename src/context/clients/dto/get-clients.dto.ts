@@ -44,4 +44,12 @@ export class GetClientsDto {
 	@IsOptional()
 	@IsString()
 	disabled?: boolean;
+
+	@ApiPropertyOptional({
+		description: "Filtro por clientes atrasados (availableDays = 0)",
+		example: true,
+	})
+	@IsOptional()
+	@IsString()
+	overdue?: boolean;
 }
