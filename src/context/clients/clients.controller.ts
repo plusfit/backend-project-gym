@@ -50,6 +50,7 @@ export class ClientsController {
       role: getClientsDto.role,
       withoutPlan: getClientsDto.withoutPlan,
       disabled: getClientsDto.disabled,
+      overdue: getClientsDto.overdue,
     };
     return this.clientsService.findAll(
       getClientsDto.page,

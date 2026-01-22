@@ -7,4 +7,5 @@ export interface ClientFilters {
 	role?: EClientRole;
 	withoutPlan?: boolean;
 	disabled?: boolean;
+	overdue?: boolean;
 }
