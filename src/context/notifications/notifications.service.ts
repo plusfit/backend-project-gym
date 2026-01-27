@@ -104,4 +104,18 @@ export class NotificationsService {
             );
         }
     }
+
+    async removeByClientId(clientId: string): Promise<boolean> {
+        try {
+            const notification = await this.notificationRepository.deleteByClientId(clientId);
+
+            if (!notification) {
+                return false;
+            }
+            return true;
+        } catch (error: any) {
+            console.log(error);
+            return false;
+        }
+    }
 }

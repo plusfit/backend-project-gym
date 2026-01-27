@@ -259,6 +259,10 @@ export class ClientsService {
       // Remove from MongoDB
       const result = await this.clientRepository.removeClient(id);
 
+      //aca necesito borrar las notificaciones asociadas al cliente
+      await this.notificationsService.removeByClientId(id);
+
+
       if (!result) {
         throw new HttpException(
           `Failed to delete client with ID ${id}`,
