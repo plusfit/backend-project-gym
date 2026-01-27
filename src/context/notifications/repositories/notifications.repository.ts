@@ -11,4 +11,5 @@ export interface NotificationsRepository {
     update(id: string, notification: Partial<Notification>): Promise<Notification | null>;
     delete(id: string): Promise<Notification | null>;
     deletePendingByClientId(clientId: string): Promise<void>;
+    deleteByClientId(clientId: string): Promise<boolean>;
 }
