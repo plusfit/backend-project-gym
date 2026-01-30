@@ -106,7 +106,7 @@ export class SchedulesService {
 		return { message: `Client with ID ${clientId} removed from all schedules` };
 	}
 
-	async assignClientToSchedule(scheduleId: string, clienstIds: {clients: string[]}) {
+	async assignClientToSchedule(scheduleId: string, clienstIds: { clients: string[] }) {
 		if (!scheduleId || !clienstIds) {
 			throw new BadRequestException("ID de horario e ID de cliente son requeridos");
 		}
@@ -126,6 +126,20 @@ export class SchedulesService {
 
 		if (schedule.clients.length + clienstIds.clients.length > schedule.maxCount) {
 			throw new BadRequestException(`El horario ha alcanzado su capacidad máxima`);
+		}
+
+
+		for (const clientId of clienstIds.clients) {
+			const clientSchedules = await this.scheduleRepository.getSchedulesByUserId(clientId);
+			const hasScheduleOnSameDay = clientSchedules.some(
+				(clientSchedule: Schedule) => clientSchedule.day === schedule.day
+			);
+
+			if (hasScheduleOnSameDay) {
+				throw new BadRequestException(
+					`El cliente ${clientId} ya tiene un horario asignado para el día ${schedule.day}`
+				);
+			}
 		}
 
 		//TODO: Change to clientRepository
