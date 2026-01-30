@@ -97,4 +97,9 @@ export class MongoNotificationsRepository implements NotificationsRepository {
             status: "PENDING"
         }).exec();
     }
+
+    async deleteByClientId(clientId: string): Promise<boolean> {
+        const result = await this.notificationModel.deleteMany({ clientId }).exec();
+        return result.deletedCount > 0;
+    }
 }
