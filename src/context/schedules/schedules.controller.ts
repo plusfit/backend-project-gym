@@ -17,6 +17,7 @@ import {
 } from "@nestjs/swagger";
 
 import { Role } from "@/src/context/shared/constants/roles.constant";
+import { CurrentUser } from "@/src/context/shared/guards/roles/current-user.decorator";
 import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
 import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
 
@@ -29,7 +30,7 @@ import { SchedulesService } from "./schedules.service";
 @ApiTags("schedules")
 @Controller("schedules")
 export class SchedulesController {
-	constructor(private readonly schedulesService: SchedulesService) {}
+	constructor(private readonly schedulesService: SchedulesService) { }
 
 	@Post()
 	// @Roles(Role.Admin)
@@ -119,11 +120,11 @@ export class SchedulesController {
 	})
 	@ApiResponse({ status: 404, description: "Cliente no encontrado." })
 	@ApiParam({ name: "scheduleId", type: String, description: "ID del Horario" })
-	@ApiParam({ name: "clientId", type: String, description: "ID del Cliente" })
 	assignClientToSchedule(
 		@Param("scheduleId") scheduleId: string,
-		@Body() clientsIds: {clients: string[]},
+		@Body() clientsIds: { clients: string[] }
 	) {
+
 		return this.schedulesService.assignClientToSchedule(scheduleId, clientsIds);
 	}
 
@@ -139,8 +140,10 @@ export class SchedulesController {
 	deleteClientFromSchedule(
 		@Param("scheduleId") scheduleId: string,
 		@Param("clientId") clientId: string,
+		@CurrentUser('role') userRole: string,
 	) {
-		return this.schedulesService.deleteClientFromSchedule(scheduleId, clientId);
+		const isClient = userRole === Role.User;
+		return this.schedulesService.deleteClientFromSchedule(scheduleId, clientId, isClient);
 	}
 
 	@Post("populateSchedules")
