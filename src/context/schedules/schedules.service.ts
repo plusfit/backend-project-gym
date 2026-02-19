@@ -8,11 +8,13 @@ import {
 import { SCHEDULE_REPOSITORY } from "@/src/context/schedules/repositories/mongo-schedule.repository";
 import { Schedule } from "@/src/context/schedules/schemas/schedule.schema";
 
+import { EDay } from "@/src/context/shared/enums/days.enum";
 import { CLIENT_REPOSITORY } from "../clients/repositories/clients.repository";
 import { ConfigService } from "../config/config.service";
 import { UpdateConfigDto } from "../config/dto/update-config.dto";
 import { CreateScheduleDto } from "./dto/create-schedule.dto";
 import { UpdateScheduleDto } from "./dto/update-schedule.dto";
+import { s } from "vitest/dist/reporters-MmQN-57K.js";
 
 @Injectable()
 export class SchedulesService {
@@ -154,15 +156,33 @@ export class SchedulesService {
 		);
 	}
 
-	async deleteClientFromSchedule(scheduleId: string, clientId: string) {
+	async deleteClientFromSchedule(scheduleId: string, clientId: string, isClient: boolean) {
+
 		if (!scheduleId || !clientId) {
 			throw new BadRequestException("ID de horario e ID de cliente son requeridos");
 		}
 
-		const schedule = this.scheduleRepository.findById(scheduleId);
+		const schedule = await this.scheduleRepository.findById(scheduleId);
 		if (!schedule) {
 			throw new NotFoundException(`Horario con ID ${scheduleId} no encontrado`);
 		}
+
+		let scheduleDay = schedule.day;
+
+
+		if (scheduleDay === 'Miércoles')
+			scheduleDay = 'Miercoles';
+		else if (scheduleDay === 'Sábado')
+			scheduleDay = 'Sabado';
+
+
+		if (isClient) {
+			let canCancel = this.canCancelAppointment(scheduleDay, schedule.startTime);
+			if (!canCancel)
+				throw new BadRequestException(`El límite para cancelar el turno ha pasado. Intente nuevamente a partir del próximo domingo.`);
+		}
+
+
 
 		return await this.scheduleRepository.deleteClientFromSchedule(
 			scheduleId,
@@ -460,5 +480,46 @@ export class SchedulesService {
 			return [];
 		}
 		return await this.scheduleRepository.getSchedulesByUserId(userId);
+	}
+
+
+
+	canCancelAppointment(appointmentDay: EDay, appointmentHour: number): boolean {
+		const daysOfWeek: EDay[] = [
+			EDay.SUNDAY,
+			EDay.MONDAY,
+			EDay.TUESDAY,
+			EDay.WEDNESDAY,
+			EDay.THURSDAY,
+			EDay.FRIDAY,
+			EDay.SATURDAY,
+		];
+
+		const now: Date = new Date();
+		const currentDayIndex: number = now.getDay();
+		const currentHour: number = now.getHours();
+
+		const appointmentDayIndex: number = daysOfWeek.indexOf(appointmentDay);
+
+		if (appointmentDayIndex === -1) {
+			throw new Error('Día de la semana inválido');
+		}
+
+		// Si el día del turno ya pasó
+		if (appointmentDayIndex < currentDayIndex) {
+			return false;
+		}
+
+		// Si es el mismo día
+		if (appointmentDayIndex === currentDayIndex) {
+			const limitHour: number = appointmentHour - 1;
+
+			// Si ya llegamos a la hora límite o la pasamos
+			if (currentHour >= limitHour) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 }
