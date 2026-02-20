@@ -513,6 +513,8 @@ export class SchedulesService {
 
 		// Si el día del turno ya pasó
 		if (appointmentDayIndex < currentDayIndex) {
+			console.log("POR OPCION 1");
+			console.log(`appointmentDayIndex: ${appointmentDayIndex}, currentDayIndex: ${currentDayIndex}`);
 			return false;
 		}
 
@@ -522,6 +524,8 @@ export class SchedulesService {
 
 			// Si ya llegamos a la hora límite o la pasamos
 			if (currentHour >= limitHour) {
+				console.log("POR OPCION 2");
+				console.log(`currentHour: ${currentHour}, limitHour: ${limitHour}`);
 				return false;
 			}
 		}
