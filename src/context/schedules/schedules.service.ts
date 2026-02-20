@@ -503,7 +503,7 @@ export class SchedulesService {
 
 		const appointmentDayIndex: number = daysOfWeek.indexOf(appointmentDay);
 
-		console.log(`Son las ${currentHour} del dia ${appointmentDayIndex}, el turno es a las ${appointmentHour}.`);
+		console.log(`Son las ${currentHour} del dia ${currentDayIndex}, el turno es a las ${appointmentHour} del dia ${appointmentDayIndex} y tiene tiempo hasta las ${appointmentHour - 1}.`);
 
 
 
