@@ -9,6 +9,7 @@ export enum NotificationStatus {
 export enum NotificationReason {
     FIRST_TIME = "Primera vez",
     INACTIVITY = "Inactividad",
+    BIRTHDAY = "Cumpleaños",
 }
 
 @Schema({ timestamps: true })
