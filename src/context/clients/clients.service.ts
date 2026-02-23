@@ -164,22 +164,7 @@ export class ClientsService {
           saltRounds,
         );
       }
-
       const newClient = await this.clientRepository.createClient(createClientDto);
-
-      // Create notification for first-time registration
-      try {
-        await this.notificationsService.create({
-          clientId: newClient._id.toString(),
-          name: newClient.userInfo?.name || newClient.email || "Cliente sin nombre",
-          reason: NotificationReason.FIRST_TIME,
-          phone: newClient.userInfo?.phone || "",
-          status: NotificationStatus.PENDING,
-        });
-      } catch (notificationError) {
-        // Log the error but don't fail the client creation
-        console.error("Error creating notification for new client:", notificationError);
-      }
 
       return newClient;
     } catch (error: any) {
