@@ -21,8 +21,8 @@ export class InactivityCheckService {
      * Creates notifications for clients with lastAccess > 1 week
      * Timezone: America/Montevideo (UTC-3)
      */
-    //CronExpression.EVERY_DAY_AT_1AM
-    @Cron(CronExpression.EVERY_30_SECONDS, {
+
+    @Cron(CronExpression.EVERY_DAY_AT_1AM, {
         timeZone: "America/Montevideo",
     })
     async checkInactiveClients(): Promise<void> {
