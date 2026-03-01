@@ -42,6 +42,7 @@ interface ClientData {
 	consecutiveDays: number;
 	totalAccesses: number;
 	availableDays: number;
+	isBirthday: boolean;
 }
 
 @Injectable()
@@ -409,6 +410,7 @@ export class GymAccessService {
 	// ========== UTILITY METHODS ==========
 
 	private mapClientData(client: ClientDocument): ClientData {
+		const isBirthday = this.checkIfBirthday(client);
 		return {
 			name: client.userInfo?.name || "Cliente",
 			photo: client.userInfo?.avatarUrl,
@@ -416,7 +418,20 @@ export class GymAccessService {
 			consecutiveDays: client.consecutiveDays || 0,
 			totalAccesses: client.totalAccesses || 0,
 			availableDays: client.availableDays || 0,
+			isBirthday,
 		};
+	}
+
+	private checkIfBirthday(client: ClientDocument): boolean {
+		if (!client.userInfo?.dateBirthday) {
+			return false;
+		}
+		const today = new Date();
+		const birthday = new Date(client.userInfo.dateBirthday);
+		return (
+			today.getMonth() === birthday.getMonth() &&
+			today.getDate() === birthday.getDate()
+		);
 	}
 
 	private createPaginationInfo(page: number, limit: number, total: number) {
