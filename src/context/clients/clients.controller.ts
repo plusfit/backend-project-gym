@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Param,
   Patch,
@@ -17,10 +18,12 @@ import { UpdateClientDto } from "@/src/context/clients/dto/update-client.dto";
 import { Role } from "@/src/context/shared/constants/roles.constant";
 import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
 import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
+import { CurrentUser } from "@/src/context/shared/guards/roles/current-user.decorator";
 
 import { ClientsIdsDto } from "./dto/clients-ids.dto";
 import { CreateClientDto } from "./dto/create-client.dto";
 import { ValidatePasswordDto } from "./dto/validate-password.dto";
+import { UpdateAvatarDto } from "./dto/update-avatar.dto";
 import { ClientFilters } from "./interfaces/clients.interface";
 
 @ApiTags("clients")
@@ -98,6 +101,26 @@ export class ClientsController {
   ) {
     const isValid = await this.clientsService.validateClientPassword(id, validatePasswordDto.password);
     return { isValid };
+  }
+
+  @Patch(":id/avatar")
+  @ApiOperation({ summary: "Update user avatar - Only authenticated user can update their own avatar" })
+  @ApiResponse({ status: 200, description: "Avatar updated successfully" })
+  @ApiResponse({ status: 403, description: "Forbidden - User can only update their own avatar" })
+  @ApiResponse({ status: 404, description: "Client not found" })
+  @Roles(Role.User, Role.Admin)
+  @UseGuards(RolesGuard)
+  async updateAvatar(
+    @Param("id") id: string,
+    @Body() updateAvatarDto: UpdateAvatarDto,
+    @CurrentUser("_id") userId: string,
+  ) {
+    // Verify that the authenticated user is updating their own profile
+    if (userId !== id) {
+      throw new ForbiddenException("Solo puedes actualizar tu propia imagen de perfil");
+    }
+
+    return this.clientsService.updateAvatar(id, updateAvatarDto.avatarUrl);
   }
 
   @Post("create")

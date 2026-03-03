@@ -180,6 +180,34 @@ export class ClientsService {
     return this.clientRepository.updateClient(id, updateClientDto);
   }
 
+  async updateAvatar(id: string, avatarUrl: string) {
+    try {
+      // Verify client exists
+      const client = await this.clientRepository.getClientById(id);
+      if (!client) {
+        throw new NotFoundException(`Cliente con ID ${id} no encontrado`);
+      }
+
+
+      const userInfo = {
+        ...(client.userInfo || {}),
+        avatarUrl: avatarUrl
+      }
+
+      client.userInfo = userInfo;
+
+      return await this.clientRepository.updateClient(id, client);
+    } catch (error: any) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new HttpException(
+        `Error al actualizar avatar: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   async remove(id: string) {
     try {
       // First, check if the client exists
