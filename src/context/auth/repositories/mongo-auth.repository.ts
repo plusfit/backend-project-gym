@@ -62,11 +62,9 @@ export class MongoAuthRepository implements AuthRepository {
 		}
 	}
 
-	async login(email: string): Promise<Client> {
-		const client = await this.clientModel.findOne({ email });
-		if (!client) {
-			throw new Error("Client not found");
-		}
+	async login(email: string): Promise<Client | null> {
+		let client;
+		client = await this.clientModel.findOne({ email });
 		return client;
 	}
 

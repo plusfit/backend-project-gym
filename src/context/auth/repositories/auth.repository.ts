@@ -6,7 +6,7 @@ export const AUTH_REPOSITORY = "AuthRepository";
 export abstract class AuthRepository {
 	abstract register(registerDto: RegisterAuthDto | InternalRegisterAuthDto): Promise<Client>;
 
-	abstract login(email: string): Promise<Client>;
+	abstract login(email: string): Promise<Client | null>;
 
 	abstract saveRefreshToken(userId: string, refreshToken: string): Promise<void>;
 
