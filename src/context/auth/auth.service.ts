@@ -116,6 +116,9 @@ export class AuthService {
       const email = await this.getEmailFromJWTFirebase(loginDto.token);
       const response = await this.authRepository.login(email);
 
+      if (!response)
+        throw new Error("Cliente no encontrado");
+
       //me quedo con lo importante
       const { _doc } = response;
 
@@ -312,29 +315,33 @@ export class AuthService {
       // Buscar usuario por email
       // biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
       let client: any;
-      try {
-        client = await this.authRepository.login(email);
-      } catch (error) {
-        // Si el usuario no existe, lo registramos automáticamente
-        const registerDto: InternalRegisterAuthDto = {
-          email,
-        };
-        client = await this.authRepository.register(registerDto);
 
-        // Si hay código de invitación, lo consumimos
+      client = await this.authRepository.login(email);
+
+      if (!client) {
+
         if (googleAuthDto.invitationCode) {
-           await this.consumeInvitationCode(googleAuthDto.invitationCode, client._id.toString());
+
+          const registerDto: InternalRegisterAuthDto = {
+            email,
+          };
+
+          client = await this.authRepository.register(registerDto);
+
+          await this.consumeInvitationCode(googleAuthDto.invitationCode, client._id.toString());
+
+          await this.onboardingService.create({
+            userId: client._id.toString(),
+            step: 1,
+            completed: false,
+          });
+
+        } else {
+          throw new Error("Usuario no encontrado y no se proporcionó código de invitación");
         }
 
-        // Crear el registro de onboarding para el nuevo usuario
-        await this.onboardingService.create({
-          userId: client._id.toString(),
-          step: 1,
-          completed: false,
-        });
       }
 
-      // Extraemos la información que necesitamos
       const { _doc } = client as any;
 
       if (_doc.disabled) {
@@ -391,7 +398,7 @@ export class AuthService {
     } catch (error) {
       console.error("Google login error:", error);
       throw new UnauthorizedException(
-        "Error al iniciar sesión con Google, verifique su cuenta",
+        `Error al iniciar sesión con Google, verifique su cuenta`,
       );
     }
   }
