@@ -5,6 +5,8 @@ import { Model, Types } from "mongoose";
 import { ClientsService } from "@/src/context/clients/clients.service";
 import { ClientDocument } from "@/src/context/clients/schemas/client.schema";
 import { NOTIFICATION_REPOSITORY, type NotificationsRepository } from "@/src/context/notifications/repositories/notifications.repository";
+import { NotificationReason, NotificationStatus } from "@/src/context/notifications/schemas/notification.schema";
+import { PlansService } from "@/src/context/plans/plans.service";
 import { RewardsService } from "@/src/context/rewards/rewards.service";
 import { SchedulesService } from "@/src/context/schedules/schedules.service";
 import { formatDateAsAccessDay, getCurrentDayName, getCurrentTimeString, getUruguayTime, normalizeTimeFormat } from "@/src/context/shared/utils/date.utils";
@@ -53,6 +55,7 @@ export class GymAccessService {
 		private readonly clientsService: ClientsService,
 		private readonly schedulesService: SchedulesService,
 		private readonly rewardsService: RewardsService,
+		private readonly plansService: PlansService,
 		@Inject(NOTIFICATION_REPOSITORY)
 		private readonly notificationsRepository: NotificationsRepository,
 		@InjectModel("Client")
@@ -233,29 +236,6 @@ export class GymAccessService {
 	 * @param nextHour - Next hour as string
 	 * @returns boolean indicating if client already accessed in this schedule
 	 */
-	private async checkScheduleSpecificAccess(cedula: string, accessDay: string, currentHour: string, nextHour: string): Promise<boolean> {
-		try {
-			// First get all accesses for today
-			const existingAccess = await this.gymAccessRepository.findByCedulaAndDay(cedula, accessDay);
-
-			if (!existingAccess || !existingAccess.successful) {
-				return false;
-			}
-
-			// Check if the existing access was in current or next hour schedule
-			if (existingAccess.scheduleStartTime) {
-				const accessStartTime = normalizeTimeFormat(existingAccess.scheduleStartTime).split(':')[0];				// Check if the previous access was in current or next hour
-				if (accessStartTime === currentHour || accessStartTime === nextHour) {
-					return true;
-				}
-			}
-
-			return false;
-		} catch (error) {
-			this.logger.error('Error checking schedule specific access', { error, cedula, accessDay });
-			return false;
-		}
-	}
 
 	/**
 	 * Get current schedule information for the client
@@ -337,16 +317,6 @@ export class GymAccessService {
 		// Get current schedule information
 		const currentScheduleInfo = await this.getCurrentScheduleInfo((client._id as Types.ObjectId).toString());
 
-		// Create a UTC date that represents the same time as Uruguay local time
-		// If it's 15:22 in Uruguay, we want to store 15:22 UTC
-		// const uruguayHour = today.getHours();
-		// const uruguayMinute = today.getMinutes();
-		// const uruguaySecond = today.getSeconds();
-		// const uruguayMillisecond = today.getMilliseconds();
-
-		// const utcDate = new Date();
-		// utcDate.setUTCHours(uruguayHour, uruguayMinute, uruguaySecond, uruguayMillisecond);
-
 		await this.gymAccessRepository.create({
 			clientId: (client._id as Types.ObjectId).toString(),
 			cedula,
@@ -366,6 +336,23 @@ export class GymAccessService {
 		// Check for rewards
 		const earnedReward = await this.checkForRewards(updatedClient.consecutiveDays || 0);
 
+		const daysPlan = await this.getDaysPlan(client.planId);
+
+		if (daysPlan > 0 && updatedClient.weeklyAttendance === daysPlan) {
+			try {
+				await this.notificationsRepository.create({
+					clientId: (client._id as Types.ObjectId),
+					name: client.userInfo?.name || "Cliente",
+					reason: NotificationReason.WEEKLY_GOAL_COMPLETED,
+					phone: client.userInfo?.phone || "",
+					status: NotificationStatus.PENDING,
+				} as any);
+				this.logger.log(`Weekly goal notification created for client ${(client._id as Types.ObjectId).toString()}`);
+			} catch (error) {
+				this.logger.error('Error creating weekly goal notification', { error, clientId: (client._id as Types.ObjectId).toString() });
+			}
+		}
+
 		// Delete pending notifications for this client
 		const clientId = (client._id as Types.ObjectId).toString();
 		try {
@@ -381,6 +368,19 @@ export class GymAccessService {
 			client: this.mapClientData(updatedClient),
 			reward: earnedReward,
 		};
+	}
+
+	private async getDaysPlan(planId?: string): Promise<number> {
+		if (!planId) {
+			return 0;
+		}
+
+		const plan = await this.plansService.findOne(planId);
+		if (!plan) {
+			return 0;
+		}
+
+		return plan.days;
 	}
 
 	private async handleValidationError(error: any, cedula: string, today: Date, accessDay: string): Promise<AccessValidationResponse> {
@@ -527,11 +527,11 @@ export class GymAccessService {
 		client.lastAccess = utcLastAccess;
 		client.totalAccesses = (client.totalAccesses || 0) + 1;
 		client.consecutiveDays = consecutiveDays;
+		client.weeklyAttendance = (client.weeklyAttendance || 0) + 1;
 
 		// Add points for gym access (1 point per access)
 		const POINTS_PER_ACCESS = 1;
 		client.availablePoints = (client.availablePoints || 0) + POINTS_PER_ACCESS;
-
 
 		return client.save();
 	}
