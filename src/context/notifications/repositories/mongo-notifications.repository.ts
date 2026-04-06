@@ -94,7 +94,8 @@ export class MongoNotificationsRepository implements NotificationsRepository {
     async deletePendingByClientId(clientId: string): Promise<void> {
         await this.notificationModel.deleteMany({
             clientId,
-            status: "PENDING"
+            status: "PENDING",
+            reason: "Inactividad",
         }).exec();
     }
 

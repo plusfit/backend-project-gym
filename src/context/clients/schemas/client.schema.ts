@@ -94,6 +94,9 @@ export class Client extends Document {
 	consecutiveDays?: number; // Current consecutive days streak
 
 	@Prop({ type: Number, default: 0 })
+	weeklyAttendance?: number; // Total days attended per week (reset weekly)
+
+	@Prop({ type: Number, default: 0 })
 	availablePoints?: number; // Points available for prize redemption
 
 	@Prop({ type: Number, default: 0 })

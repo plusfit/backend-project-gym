@@ -10,6 +10,7 @@ export enum NotificationReason {
     FIRST_TIME = "Primera vez",
     INACTIVITY = "Inactividad",
     BIRTHDAY = "Cumpleaños",
+    WEEKLY_GOAL_COMPLETED = "Meta semanal completada",
 }
 
 @Schema({ timestamps: true })
