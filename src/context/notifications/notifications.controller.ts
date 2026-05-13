@@ -1,5 +1,20 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from "@nestjs/common";
-import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import {
+    BadRequestException,
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Param,
+    Patch,
+    Post,
+    Query,
+    Req,
+    Request,
+} from "@nestjs/common";
+import { ApiConsumes, ApiTags } from "@nestjs/swagger";
+import { ApiOperation, ApiResponse } from "@nestjs/swagger";
+import busboy from "busboy";
+import type { FastifyRequest } from "fastify";
 
 import { CreateNotificationDto } from "./dto/create-notification.dto";
 import { UpdateNotificationDto } from "./dto/update-notification.dto";
@@ -12,7 +27,7 @@ export class NotificationsController {
     constructor(
         private readonly notificationsService: NotificationsService,
         private readonly inactivityCheckService: InactivityCheckService,
-    ) { }
+    ) {}
 
     @Post()
     @ApiOperation({ summary: "Create a new notification" })
@@ -37,7 +52,67 @@ export class NotificationsController {
         @Query("status") status?: string,
         @Query("searchQ") searchQ?: string,
     ) {
-        return await this.notificationsService.findAll(Number(page), Number(limit), status, searchQ);
+        return await this.notificationsService.findAll(
+            Number(page),
+            Number(limit),
+            status,
+            searchQ,
+        );
+    }
+
+    @Post("bulk-upload")
+    @ApiConsumes("multipart/form-data")
+    @ApiOperation({ summary: "Upload CSV for bulk WhatsApp notifications" })
+    @ApiResponse({ status: 202, description: "Bulk processing started" })
+    @ApiResponse({ status: 400, description: "Bad request" })
+    async bulkUpload(@Req() req: FastifyRequest) {
+        const file = await new Promise<{
+            originalname: string;
+            mimetype: string;
+            buffer: Buffer;
+        }>((resolve, reject) => {
+            const bb = busboy({ headers: req.headers });
+            const chunks: Buffer[] = [];
+            let filename = "";
+            let mimetype = "";
+            let fileReceived = false;
+
+            bb.on("file", (_field: string, stream: NodeJS.ReadableStream, info: { filename: string; mimeType: string }) => {
+                fileReceived = true;
+                filename = info.filename;
+                mimetype = info.mimeType;
+                stream.on("data", (chunk: Buffer) => chunks.push(chunk));
+                stream.on("error", reject);
+            });
+
+            bb.on("close", () => {
+                if (!fileReceived) {
+                    reject(new BadRequestException("No file uploaded"));
+                    return;
+                }
+                resolve({
+                    originalname: filename,
+                    mimetype,
+                    buffer: Buffer.concat(chunks),
+                });
+            });
+
+            bb.on("error", reject);
+            req.raw.pipe(bb);
+        });
+
+        return await this.notificationsService.bulkUpload(file);
+    }
+
+    @Get("bulk-status/:batchId")
+    @ApiOperation({ summary: "Get bulk notification batch status" })
+    @ApiResponse({
+        status: 200,
+        description: "Returns batch status",
+    })
+    @ApiResponse({ status: 404, description: "Batch not found" })
+    async getBulkStatus(@Param("batchId") batchId: string) {
+        return await this.notificationsService.getBulkStatus(batchId);
     }
 
     @Patch(":id")

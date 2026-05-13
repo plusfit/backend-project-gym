@@ -16,9 +16,16 @@ import { ResponseInterceptor } from "@/src/context/shared/interceptors/response-
 import { AppModule } from "./app/app.module";
 
 async function bootstrap() {
+  const adapter = new FastifyAdapter();
+  adapter.getInstance().addContentTypeParser(
+    "multipart/form-data",
+    { bodyLimit: 50 * 1024 * 1024 },
+    (_req, _payload, done) => done(null, undefined),
+  );
+
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter(),
+    adapter,
   );
   const configService = app.get(ConfigService);
 

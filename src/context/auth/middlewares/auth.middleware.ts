@@ -19,11 +19,15 @@ export class AuthMiddleware implements NestMiddleware {
 			}
 
 			const authHeader = req.headers["authorization"];
-			if (!authHeader) {
-				throw new UnauthorizedException("Encabezado de autorización no encontrado");
+			const queryToken = (req.query as Record<string, string> | undefined)?.["token"];
+			let token: string | undefined;
+
+			if (authHeader) {
+				token = authHeader.split(" ")[1];
+			} else if (queryToken) {
+				token = queryToken;
 			}
 
-			const token = authHeader.split(" ")[1];
 			if (!token) {
 				throw new UnauthorizedException("Token no encontrado");
 			}

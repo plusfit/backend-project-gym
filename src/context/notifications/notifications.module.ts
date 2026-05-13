@@ -3,6 +3,7 @@ import { MongooseModule } from "@nestjs/mongoose";
 
 import { Client, ClientSchema } from "@/src/context/clients/schemas/client.schema";
 import { NotificationsController } from "./notifications.controller";
+import { WhatsAppController } from "./whatsapp.controller";
 import { NotificationsService } from "./notifications.service";
 import { NOTIFICATION_REPOSITORY } from "./repositories/notifications.repository";
 import { MongoNotificationsRepository } from "./repositories/mongo-notifications.repository";
@@ -19,7 +20,7 @@ import { InactivityCheckService } from "./services/inactivity-check.service";
             { name: Client.name, schema: ClientSchema },
         ]),
     ],
-    controllers: [NotificationsController],
+    controllers: [NotificationsController, WhatsAppController],
     providers: [
         NotificationsService,
         InactivityCheckService,
