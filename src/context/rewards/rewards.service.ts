@@ -23,7 +23,7 @@ export class RewardsService {
     private readonly rewardRepository: RewardRepository,
     private readonly exchangeRepository: ExchangeRepository,
     private readonly clientsService: ClientsService,
-  ) {}
+  ) { }
 
   // ========== REWARD MANAGEMENT ==========
 
@@ -165,7 +165,7 @@ export class RewardsService {
         // adminName = await this.getAdminName(createExchangeDto.adminId);
         adminName = 'Administrator'; // Placeholder
       }
-      
+
       const exchange = await this.exchangeRepository.create({
         rewardId: reward.id,
         rewardName: reward.name,
@@ -182,12 +182,15 @@ export class RewardsService {
         status: ExchangeStatus.PENDING,
       });
 
-      const newAvailablePoints = availablePoints;
+      const newAvailablePoints = availablePoints - reward.pointsRequired;
+      await this.clientsService.updateAvailablePoints((client._id as any).toString(), newAvailablePoints);
+
 
       // Increment exchange counter for the reward
       await this.rewardRepository.incrementExchanges(reward.id);
 
       this.logger.log(`Exchange completed successfully: ${exchange.id}`);
+
 
       return {
         success: true,
@@ -224,21 +227,21 @@ export class RewardsService {
 
   async findByRequiredDays(consecutiveDays: number): Promise<Reward | null> {
     this.logger.log(`Finding reward by required days: ${consecutiveDays}`);
-    
+
     // Since the current reward schema uses pointsRequired instead of requiredDays,
     // we'll need to find a reward that matches this criteria
     // For now, we'll assume that consecutive days can be mapped to points
     // This might need to be adjusted based on business logic
-    const rewards = await this.rewardRepository.findAll({ 
-      page: 1, 
-      limit: 100, 
-      disabled: false 
+    const rewards = await this.rewardRepository.findAll({
+      page: 1,
+      limit: 100,
+      disabled: false
     });
-    
+
     // Find a reward where the pointsRequired matches or is close to the consecutive days
     // This is a placeholder logic that might need adjustment
     const matchingReward = rewards.data.find(reward => reward.pointsRequired === consecutiveDays);
-    
+
     return matchingReward || null;
   }
 

@@ -449,6 +449,22 @@ export class ClientsService {
     }
   }
 
+  async updateAvailablePoints(clientId: string, points: number) {
+    try {
+      const client = await this.findOne(clientId);
+      if (!client) {
+        throw new NotFoundException(`Client with ID ${clientId} not found`);
+      }
+
+      return await this.update(clientId, { availablePoints: points });
+    } catch (error: any) {
+      throw new HttpException(
+        `Error updating available points for client: ${error.message}`,
+        error.status || 500,
+      );
+    }
+  }
+
   async getActiveClientsCount(): Promise<number> {
     try {
       const filters = { disabled: false };
