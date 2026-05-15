@@ -54,6 +54,7 @@ export class RoutinesService {
   ) {}
 
   async createRoutine(createRoutineDto: CreateRoutineDto): Promise<Routine> {
+    // Validar que las subrutinas existan
     for (const id of createRoutineDto.subRoutines) {
       if (!id) {
         throw new HttpException(
@@ -66,6 +67,11 @@ export class RoutinesService {
         throw new NotFoundException(`Subroutine with ID ${id} not found`);
       }
     }
+
+    if (createRoutineDto.showOnScreen === true) {
+      await this.validateShowOnScreenLimit();
+    }
+
     return this.routineRepository.createRoutine(createRoutineDto);
   }
 
@@ -93,6 +99,10 @@ export class RoutinesService {
         ...updateData,
         isCustom: true,
       };
+
+      if (updatedRoutineData.showOnScreen === true) {
+        await this.validateShowOnScreenLimit();
+      }
 
       const client = await this.clientRepository.getClientById(clientId);
       if (!client) {
@@ -128,6 +138,10 @@ export class RoutinesService {
         clientId,
         newRoutine._id as string,
       );
+    }
+
+    if (updateData.showOnScreen === true && routine.showOnScreen !== true) {
+      await this.validateShowOnScreenLimit();
     }
 
     return this.routineRepository.updateRoutine(
@@ -203,5 +217,18 @@ export class RoutinesService {
     ]);
 
     return { data, total, page, limit };
+  }
+
+  private async validateShowOnScreenLimit(): Promise<void> {
+    const currentScreenRoutines = await this.routineRepository.countRoutines({
+      showOnScreen: true,
+    });
+
+    if (currentScreenRoutines >= 3) {
+      throw new HttpException(
+        "No se pueden tener más de 3 rutinas visibles en pantalla",
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 }
