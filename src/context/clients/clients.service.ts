@@ -85,6 +85,62 @@ export class ClientsService {
     return { data, total, page, limit };
   }
 
+  async exportClientsCsv(clientFilters: ClientFilters, message: string) {
+    const { name, email, CI, role, withoutPlan, disabled, overdue } = clientFilters;
+    const filters: any = { $or: [] };
+
+    if (role) {
+      filters.role = role;
+    }
+
+    if (name || email || CI) {
+      filters.$or = [];
+      this.addFilter("userInfo.name", name, filters);
+      this.addFilter("email", email, filters);
+      this.addFilter("userInfo.CI", CI, filters);
+    }
+
+    if (withoutPlan) {
+      filters.planId = { $in: [undefined, undefined, ""] };
+    }
+
+    if (disabled !== undefined) {
+      filters.disabled = disabled;
+    }
+
+    if (overdue) {
+      filters.availableDays = 0;
+      filters.disabled = false;
+    }
+
+    if (filters.$or && filters.$or.length === 0) {
+      delete filters.$or;
+    }
+
+    // Obtener todos los clientes sin límite
+    const clients = await this.clientRepository.getClients(0, 0, filters);
+
+    const formatPhone = (phone: string): string => {
+      if (!phone) return "";
+      const cleanPhone = String(phone).trim();
+      if (cleanPhone.startsWith("+598")) return cleanPhone;
+      if (cleanPhone.startsWith("09")) return `+598${cleanPhone.substring(1)}`;
+      return `+598${cleanPhone}`;
+    };
+
+    const header = "to,message";
+    const rows = clients
+      .map((client: any) => {
+        const phone = formatPhone(client.userInfo?.phone);
+        if (!phone) return null;
+        const escapedMessage = message.replace(/"/g, '""');
+        return `"${phone}","${escapedMessage}"`;
+      })
+      .filter((row: any) => row !== null);
+
+    return [header, ...rows].join("\n");
+  }
+
   async getListClients(ids: string[]) {
     try {
       // Inicializamos un array vacío para almacenar los clientes obtenidos

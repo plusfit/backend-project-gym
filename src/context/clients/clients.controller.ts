@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
   Query,
+  Res,
   UseGuards,
 } from "@nestjs/common";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
@@ -26,10 +27,33 @@ import { ValidatePasswordDto } from "./dto/validate-password.dto";
 import { UpdateAvatarDto } from "./dto/update-avatar.dto";
 import { ClientFilters } from "./interfaces/clients.interface";
 
+import { ExportClientsDto } from "./dto/export-clients.dto";
+
 @ApiTags("clients")
 @Controller("clients")
 export class ClientsController {
   constructor(private readonly clientsService: ClientsService) { }
+
+  @Get("export/csv")
+  @ApiOperation({ summary: "Export clients to CSV" })
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
+  async exportCsv(@Query() exportClientsDto: ExportClientsDto, @Res() res: any) {
+    const filters: ClientFilters = {
+      name: exportClientsDto.name,
+      email: exportClientsDto.email,
+      CI: exportClientsDto.CI,
+      role: exportClientsDto.role,
+      withoutPlan: exportClientsDto.withoutPlan,
+      disabled: exportClientsDto.disabled,
+      overdue: exportClientsDto.overdue,
+    };
+    const csv = await this.clientsService.exportClientsCsv(filters, exportClientsDto.message);
+    
+    // Set content type and send raw string to bypass ResponseInterceptor
+    res.type("text/csv").send(csv);
+  }
+
   @Post("list")
   getListClients(@Body() clientsIdsDto: ClientsIdsDto) {
     return this.clientsService.getListClients(clientsIdsDto.clientsIds);
