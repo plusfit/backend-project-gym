@@ -43,8 +43,7 @@ export class ClientsService {
     }
   };
 
-  async findAll(page: number, limit: number, clientFilters: ClientFilters) {
-    const offset = (page - 1) * limit;
+  private buildFilters(clientFilters: ClientFilters): any {
     const { name, email, CI, role, withoutPlan, disabled, overdue } = clientFilters;
     const filters: any = { $or: [] };
 
@@ -77,6 +76,13 @@ export class ClientsService {
       delete filters.$or;
     }
 
+    return filters;
+  }
+
+  async findAll(page: number, limit: number, clientFilters: ClientFilters) {
+    const offset = (page - 1) * limit;
+    const filters = this.buildFilters(clientFilters);
+
     const [data, total] = await Promise.all([
       this.clientRepository.getClients(offset, limit, filters),
       this.clientRepository.countClients(filters),
@@ -86,36 +92,7 @@ export class ClientsService {
   }
 
   async exportClientsCsv(clientFilters: ClientFilters, message: string) {
-    const { name, email, CI, role, withoutPlan, disabled, overdue } = clientFilters;
-    const filters: any = { $or: [] };
-
-    if (role) {
-      filters.role = role;
-    }
-
-    if (name || email || CI) {
-      filters.$or = [];
-      this.addFilter("userInfo.name", name, filters);
-      this.addFilter("email", email, filters);
-      this.addFilter("userInfo.CI", CI, filters);
-    }
-
-    if (withoutPlan) {
-      filters.planId = { $in: [undefined, undefined, ""] };
-    }
-
-    if (disabled !== undefined) {
-      filters.disabled = disabled;
-    }
-
-    if (overdue) {
-      filters.availableDays = 0;
-      filters.disabled = false;
-    }
-
-    if (filters.$or && filters.$or.length === 0) {
-      delete filters.$or;
-    }
+    const filters = this.buildFilters(clientFilters);
 
     // Obtener todos los clientes sin límite
     const clients = await this.clientRepository.getClients(0, 0, filters);

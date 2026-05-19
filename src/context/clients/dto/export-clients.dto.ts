@@ -1,5 +1,5 @@
-import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsOptional, IsString, IsEnum } from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { IsOptional, IsString, IsEnum, IsBooleanString } from "class-validator";
 import { EClientRole } from "@/src/context/shared/enums/clients-role.enum";
 
 export class ExportClientsDto {
@@ -25,11 +25,11 @@ export class ExportClientsDto {
 	role?: EClientRole;
 
 	@IsOptional()
-	@IsString()
+	@IsBooleanString()
 	withoutPlan?: boolean;
 
 	@IsOptional()
-	@IsString()
+	@IsBooleanString()
 	disabled?: boolean;
 
 	@ApiPropertyOptional({
@@ -37,9 +37,10 @@ export class ExportClientsDto {
 		example: true,
 	})
 	@IsOptional()
-	@IsString()
+	@IsBooleanString()
 	overdue?: boolean;
 
+  @ApiProperty({ description: "Mensaje para incluir en el CSV de WhatsApp", example: "Hola! Te recordamos que..." })
   @IsString()
-  message: string;
+  message!: string;
 }
