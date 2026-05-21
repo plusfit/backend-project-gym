@@ -178,11 +178,28 @@ export class ClientsService {
     };
   }
 
+  private toTitleCase(str: string): string {
+    if (!str) return str;
+    return str
+      .toLowerCase()
+      .trim()
+      .split(/\s+/)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  }
+
   async create(createClientDto: CreateClientDto) {
     try {
       // Set default role if not provided
       if (!createClientDto.role) {
         createClientDto.role = EClientRole.CLIENT;
+      }
+
+      // Parse name to Title Case if provided
+      if (createClientDto.userInfo && createClientDto.userInfo.name) {
+        createClientDto.userInfo.name = this.toTitleCase(
+          createClientDto.userInfo.name,
+        );
       }
 
       // Handle password if provided
@@ -210,6 +227,11 @@ export class ClientsService {
 
   update(id: string, updateClientDto: UpdateClientDto) {
     updateClientDto.isOnboardingCompleted = true;
+    if (updateClientDto.userInfo && updateClientDto.userInfo.name) {
+      updateClientDto.userInfo.name = this.toTitleCase(
+        updateClientDto.userInfo.name,
+      );
+    }
     return this.clientRepository.updateClient(id, updateClientDto);
   }
 
@@ -391,6 +413,11 @@ export class ClientsService {
       const client = await this.findOne(clientId);
       if (!client) {
         throw new NotFoundException(`Client with ID ${clientId} not found`);
+      }
+
+      // Convert name to Title Case if present
+      if (userInfo && userInfo.name) {
+        userInfo.name = this.toTitleCase(userInfo.name);
       }
 
       // Merge existing userInfo with new userInfo

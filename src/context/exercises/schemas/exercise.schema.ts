@@ -65,4 +65,17 @@ export class Exercise extends Document {
 }
 
 export const ExerciseSchema = SchemaFactory.createForClass(Exercise);
+
+ExerciseSchema.pre("findOneAndDelete", async function () {
+  const query = this.getQuery();
+  const exerciseId = query._id;
+  if (exerciseId) {
+    const SubRoutineModel = this.model.db.model("SubRoutine");
+    await SubRoutineModel.updateMany(
+      { exercises: exerciseId },
+      { $pull: { exercises: exerciseId } },
+    );
+  }
+});
+
 export type ExerciseDocument = Exercise & Document;

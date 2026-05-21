@@ -77,24 +77,44 @@ export class PlansService {
 			filters,
 		);
 
-		const clientsWithDetails = await Promise.all(
-			clients.data.map(async (client: any) => {
-				const plan = client.planId
-					? await this.plansRepository.findOne(client.planId)
-					: undefined;
+		if (!clients.data || clients.data.length === 0) {
+			return [];
+		}
 
-				const schedules = await this.scheduleRepository.getSchedules();
-				const assignedSchedules = schedules.filter((s: any) =>
-					s.clients.includes(client._id),
-				);
-
-				return {
-					...client,
-					plan,
-					assignedSchedules,
-				};
-			}),
+		// Traer todos los planes en una sola consulta y mapearlos por ID
+		const plans = await this.plansRepository.getPlans(0, 1000, {});
+		const plansMap = new Map<string, any>(
+			plans.map((plan: any) => [plan._id.toString(), plan])
 		);
+
+		// Traer todos los schedules en una sola consulta y armar un mapa por cliente
+		const allSchedules = await this.scheduleRepository.getSchedules();
+		const clientSchedulesMap = new Map<string, any[]>();
+		for (const schedule of allSchedules) {
+			const scheduleClients = schedule.clients || [];
+			for (const clientId of scheduleClients) {
+				const clientIdStr = clientId.toString();
+				const list = clientSchedulesMap.get(clientIdStr) || [];
+				list.push(schedule);
+				clientSchedulesMap.set(clientIdStr, list);
+			}
+		}
+
+		// Resolver los detalles en memoria
+		const clientsWithDetails = clients.data.map((client: any) => {
+			const clientIdStr = client._id.toString();
+			const plan = client.planId
+				? plansMap.get(client.planId.toString())
+				: undefined;
+
+			const assignedSchedules = clientSchedulesMap.get(clientIdStr) || [];
+
+			return {
+				...client,
+				plan,
+				assignedSchedules,
+			};
+		});
 
 		return clientsWithDetails;
 	}
