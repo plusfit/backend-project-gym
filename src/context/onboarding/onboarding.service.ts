@@ -10,6 +10,7 @@ import { ClientsService } from "../clients/clients.service";
 import { NotificationsService } from "../notifications/notifications.service";
 import { NotificationReason, NotificationStatus } from "../notifications/schemas/notification.schema";
 import { Plan } from "../plans/schemas/plan.schema";
+import { toTitleCase } from "../shared/utils/string.utils";
 import { CreateOnboardingDto } from "./dto/create-onboarding.dto";
 import { UpdateOnboardingDto } from "./dto/update-onboarding.dto";
 import { OnboardingRepository } from "./repositories/onboarding.repository";
@@ -158,7 +159,7 @@ export class OnboardingService {
 		const userInfo: any = {};
 
 		if (onboardingData.step1) {
-			userInfo.name = onboardingData.step1.fullName;
+			userInfo.name = toTitleCase(onboardingData.step1.fullName);
 			userInfo.address = onboardingData.step1.address;
 			userInfo.phone = onboardingData.step1.phone;
 			userInfo.medicalSociety = onboardingData.step1.mutual;

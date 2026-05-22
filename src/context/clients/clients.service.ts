@@ -21,7 +21,7 @@ import { NotificationsService } from "../notifications/notifications.service";
 import { NotificationReason, NotificationStatus } from "../notifications/schemas/notification.schema";
 import { CreateClientDto } from "./dto/create-client.dto";
 import { ClientFilters } from "./interfaces/clients.interface";
-import { EClientRole } from "@/src/context/shared/enums/clients-role.enum";
+import { toTitleCase } from "@/src/context/shared/utils/string.utils";
 
 @Injectable()
 export class ClientsService {
@@ -111,7 +111,7 @@ export class ClientsService {
         const phone = formatPhone(client.userInfo?.phone);
         if (!phone) return null;
         const escapedMessage = message.replace(/"/g, '""');
-        return `"${phone}","${escapedMessage}"`;
+        return `${phone},"${escapedMessage}"`;
       })
       .filter((row: any) => row !== null);
 
@@ -178,16 +178,6 @@ export class ClientsService {
     };
   }
 
-  private toTitleCase(str: string): string {
-    if (!str) return str;
-    return str
-      .toLowerCase()
-      .trim()
-      .split(/\s+/)
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-  }
-
   async create(createClientDto: CreateClientDto) {
     try {
       // Set default role if not provided
@@ -197,7 +187,7 @@ export class ClientsService {
 
       // Parse name to Title Case if provided
       if (createClientDto.userInfo && createClientDto.userInfo.name) {
-        createClientDto.userInfo.name = this.toTitleCase(
+        createClientDto.userInfo.name = toTitleCase(
           createClientDto.userInfo.name,
         );
       }
@@ -228,7 +218,7 @@ export class ClientsService {
   update(id: string, updateClientDto: UpdateClientDto) {
     updateClientDto.isOnboardingCompleted = true;
     if (updateClientDto.userInfo && updateClientDto.userInfo.name) {
-      updateClientDto.userInfo.name = this.toTitleCase(
+      updateClientDto.userInfo.name = toTitleCase(
         updateClientDto.userInfo.name,
       );
     }
@@ -417,7 +407,7 @@ export class ClientsService {
 
       // Convert name to Title Case if present
       if (userInfo && userInfo.name) {
-        userInfo.name = this.toTitleCase(userInfo.name);
+        userInfo.name = toTitleCase(userInfo.name);
       }
 
       // Merge existing userInfo with new userInfo

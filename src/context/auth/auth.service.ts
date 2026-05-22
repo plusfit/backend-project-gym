@@ -21,6 +21,7 @@ import { RegisterAuthDto } from "@/src/context/auth/dto/register-auth.dto";
 import { AUTH_REPOSITORY } from "@/src/context/auth/repositories/auth.repository";
 
 import { ClientsService } from "../clients/clients.service";
+import { toTitleCase } from "@/src/context/shared/utils/string.utils";
 import { OnboardingService } from "../onboarding/onboarding.service";
 import {
   InvitationCodeResponse,
@@ -370,7 +371,7 @@ export class AuthService {
         const userInfo = _doc.userInfo || {};
 
         if (googleAuthDto.name) {
-          userInfo.name = googleAuthDto.name;
+          userInfo.name = toTitleCase(googleAuthDto.name);
         }
 
         if (googleAuthDto.avatarUrl) {
