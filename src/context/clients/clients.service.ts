@@ -110,7 +110,16 @@ export class ClientsService {
       .map((client: any) => {
         const phone = formatPhone(client.userInfo?.phone);
         if (!phone) return null;
-        const escapedMessage = message.replace(/"/g, '""');
+        const sanitizeSingleLine = (s: string) => {
+          if (!s) return "";
+          return String(s)
+            .replace(/\r\n|\r|\n/g, " ")
+            .replace(/\s+/g, " ")
+            .trim();
+        };
+
+        const singleLineMessage = sanitizeSingleLine(message);
+        const escapedMessage = singleLineMessage.replace(/"/g, '""');
         return `${phone},"${escapedMessage}"`;
       })
       .filter((row: any) => row !== null);
