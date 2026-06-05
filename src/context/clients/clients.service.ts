@@ -456,10 +456,11 @@ export class ClientsService {
         await Promise.all(updates);
       }
 
-      const client = await this.clientRepository.toggleDisabled(
-        clientId,
+      const client = await this.clientRepository.updateClient(clientId, {
         disabled,
-      );
+        ...(disabled ? { availableDays: 0 } : {}),
+        updatedAt: new Date(),
+      });
       if (!client) {
         throw new NotFoundException(`Client with ID ${clientId} not found`);
       }
