@@ -19,6 +19,7 @@ import { Routine } from "@/src/context/routines/schemas/routine.schema";
 import { SchedulesService } from "../schedules/schedules.service";
 import { NotificationsService } from "../notifications/notifications.service";
 import { NotificationReason, NotificationStatus } from "../notifications/schemas/notification.schema";
+import { EClientRole } from "@/src/context/shared/enums/clients-role.enum";
 import { CreateClientDto } from "./dto/create-client.dto";
 import { ClientFilters } from "./interfaces/clients.interface";
 import { toTitleCase } from "@/src/context/shared/utils/string.utils";
