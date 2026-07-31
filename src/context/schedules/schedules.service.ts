@@ -7,9 +7,9 @@ import {
 
 import { SCHEDULE_REPOSITORY } from "@/src/context/schedules/repositories/mongo-schedule.repository";
 import { Schedule } from "@/src/context/schedules/schemas/schedule.schema";
-
 import { EDay } from "@/src/context/shared/enums/days.enum";
 import { getUruguayTime } from "@/src/context/shared/utils/date.utils";
+
 import { CLIENT_REPOSITORY } from "../clients/repositories/clients.repository";
 import { ConfigService } from "../config/config.service";
 import { UpdateConfigDto } from "../config/dto/update-config.dto";
@@ -177,7 +177,7 @@ export class SchedulesService {
 
 
 		if (isClient) {
-			let canCancel = this.canCancelAppointment(scheduleDay, schedule.startTime);
+			const canCancel = this.canCancelAppointment(scheduleDay, schedule.startTime);
 			if (!canCancel) {
 				console.log(`NO SE PUDO CANCELAR. El usuario ${clientId} intentó cancelar un turno para el día ${schedule.day} a las ${schedule.startTime}:00, pero el límite para cancelar ya pasó.`);
 				throw new BadRequestException(`El límite para cancelar el turno ha pasado. Intente nuevamente a partir del próximo domingo.`);

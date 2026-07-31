@@ -3,7 +3,6 @@ import { MongooseModule } from "@nestjs/mongoose";
 
 import { AppConfigModule } from "@/src/context/config/config.module";
 import { ConfigService } from "@/src/context/config/config.service";
-import { ClientsModule } from "../clients/clients.module";
 import {
 	MongoScheduleRepository,
 	SCHEDULE_REPOSITORY,
@@ -13,6 +12,7 @@ import {
 	ScheduleSchema,
 } from "@/src/context/schedules/schemas/schedule.schema";
 
+import { ClientsModule } from "../clients/clients.module";
 import { SchedulesController } from "./schedules.controller";
 import { SchedulesService } from "./schedules.service";
 

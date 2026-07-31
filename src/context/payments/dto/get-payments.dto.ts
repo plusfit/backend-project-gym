@@ -1,5 +1,5 @@
-import { IsOptional, IsString, IsNumber, IsBoolean, IsDateString, Min } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
+import { IsBoolean, IsDateString, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class GetPaymentsDto {
     @IsOptional()

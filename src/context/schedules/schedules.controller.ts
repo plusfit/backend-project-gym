@@ -23,8 +23,8 @@ import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
 
 import { UpdateConfigDto } from "../config/dto/update-config.dto";
 import { CreateScheduleDto } from "./dto/create-schedule.dto";
-import { UpdateScheduleDto } from "./dto/update-schedule.dto";
 import { ToggleDisabledDto } from "./dto/toggle-disabled.dto";
+import { UpdateScheduleDto } from "./dto/update-schedule.dto";
 import { SchedulesService } from "./schedules.service";
 
 @ApiTags("schedules")
