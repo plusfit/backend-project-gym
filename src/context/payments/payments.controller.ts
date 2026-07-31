@@ -1,24 +1,26 @@
 import {
-    Controller,
-    Get,
-    Post,
-    Patch,
-    Delete,
     Body,
-    Param,
-    Query,
+    Controller,
+    Delete,
+    Get,
     HttpCode,
     HttpStatus,
-    UseGuards,
     Logger,
+    Param,
+    Patch,
+    Post,
+    Query,
+    UseGuards,
 } from '@nestjs/common';
+
 import { Role } from "@/src/context/shared/constants/roles.constant";
 import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
 import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
+
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { GetPaymentsDto } from './dto/get-payments.dto';
-import { UpdatePaymentAmountDto } from './dto/update-payment-amount.dto';
 import { GetPaymentsSummaryDto } from './dto/get-payments-summary.dto';
+import { UpdatePaymentAmountDto } from './dto/update-payment-amount.dto';
 import { PaymentsService } from './payments.service';
 
 @Controller('payments')
@@ -32,7 +34,7 @@ export class PaymentsController {
     @UseGuards(RolesGuard)
     @HttpCode(HttpStatus.CREATED)
     async create(@Body() createPaymentDto: CreatePaymentDto) {
-        let payment = await this.paymentsService.create(createPaymentDto);
+        const payment = await this.paymentsService.create(createPaymentDto);
         return payment;
     }
 

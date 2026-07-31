@@ -88,7 +88,7 @@ export class WhatsAppController {
         console.log("[whatsapp/qr] proxying to:", `${notificationsServiceUrl}/auth/whatsapp/qr`);
 
         return new Observable<MessageEvent>((observer) => {
-            let cancelTokenSource = axios.CancelToken.source();
+            const cancelTokenSource = axios.CancelToken.source();
             let retryTimer: NodeJS.Timeout | null = null;
             let stopped = false;
 

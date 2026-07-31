@@ -11,13 +11,13 @@ import {
 } from "@/src/context/clients/schemas/client.schema";
 import { PlansModule } from "@/src/context/plans/plans.module";
 
-import { SchedulesModule } from "../schedules/schedules.module";
 import { NotificationsModule } from "../notifications/notifications.module";
 import { Routine, RoutineSchema } from "../routines/schemas/routine.schema";
-import { DailyDecrementService } from "./services/daily-decrement.service";
-import { YearlyPointsResetService } from "./services/yearly-points-reset.service";
-import { WeeklyAttendanceResetService } from "./services/weekly-attendance-reset.service";
+import { SchedulesModule } from "../schedules/schedules.module";
 import { AvailableDaysController } from "./available-days.controller";
+import { DailyDecrementService } from "./services/daily-decrement.service";
+import { WeeklyAttendanceResetService } from "./services/weekly-attendance-reset.service";
+import { YearlyPointsResetService } from "./services/yearly-points-reset.service";
 
 @Module({
   imports: [
