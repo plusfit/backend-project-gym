@@ -23,6 +23,11 @@ import { EClientRole } from "@/src/context/shared/enums/clients-role.enum";
 import { CreateClientDto } from "./dto/create-client.dto";
 import { ClientFilters } from "./interfaces/clients.interface";
 import { toTitleCase } from "@/src/context/shared/utils/string.utils";
+import {
+  normalizeWhatsAppMessage,
+  toCsvField,
+  toUruguayE164,
+} from "@/src/context/shared/utils/whatsapp-message.utils";
 
 @Injectable()
 export class ClientsService {
@@ -98,30 +103,20 @@ export class ClientsService {
     // Obtener todos los clientes sin límite
     const clients = await this.clientRepository.getClients(0, 0, filters);
 
-    const formatPhone = (phone: string): string => {
-      if (!phone) return "";
-      const cleanPhone = String(phone).trim();
-      if (cleanPhone.startsWith("+598")) return cleanPhone;
-      if (cleanPhone.startsWith("09")) return `+598${cleanPhone.substring(1)}`;
-      return `+598${cleanPhone}`;
-    };
+    // Every recipient gets the same body, so normalize and quote it once.
+    // The quoting is what lets the message keep its line breaks: a multiline
+    // value is only legal in a CSV while it stays inside a quoted field.
+    const messageField = toCsvField(normalizeWhatsAppMessage(message));
 
     const header = "to,message";
     const rows = clients
       .map((client: any) => {
-        const phone = formatPhone(client.userInfo?.phone);
+        // Numbers that cannot be made E.164 are dropped instead of exported:
+        // the notifications service rejects the whole upload on the first
+        // invalid row, so one bad record would kill the entire campaign.
+        const phone = toUruguayE164(client.userInfo?.phone);
         if (!phone) return null;
-        const sanitizeSingleLine = (s: string) => {
-          if (!s) return "";
-          return String(s)
-            .replace(/\r\n|\r|\n/g, " ")
-            .replace(/\s+/g, " ")
-            .trim();
-        };
-
-        const singleLineMessage = sanitizeSingleLine(message);
-        const escapedMessage = singleLineMessage.replace(/"/g, '""');
-        return `${phone},"${escapedMessage}"`;
+        return `${phone},${messageField}`;
       })
       .filter((row: any) => row !== null);
 
