@@ -7,11 +7,18 @@ import {
     NotFoundException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { InjectModel } from "@nestjs/mongoose";
 import axios from "axios";
 import FormData from "form-data";
+import { Model } from "mongoose";
 
 import { parseCsvRecords } from "@/src/context/shared/utils/csv.utils";
+import {
+    normalizeWhatsAppMessage,
+    toUruguayE164,
+} from "@/src/context/shared/utils/whatsapp-message.utils";
 
+import { BulkSendDto, BulkSendResponse, SkippedRecipient } from "./dto/bulk-send.dto";
 import { BulkStatusResponseDto } from "./dto/bulk-status.dto";
 import { BulkUploadResponseDto } from "./dto/bulk-upload.dto";
 import { CreateNotificationDto } from "./dto/create-notification.dto";
@@ -36,7 +43,114 @@ export class NotificationsService {
         @Inject(NOTIFICATION_REPOSITORY)
         private readonly notificationRepository: any,
         private readonly configService: ConfigService,
+        @InjectModel("Client")
+        private readonly clientModel: Model<any>,
     ) {}
+
+    /**
+     * Sends one message to a list of selected clients without any file.
+     *
+     * This owns the whole resolution step: ids come from the dashboard, phones
+     * come from the database. Clients that cannot be reached are dropped and
+     * reported by name — the notifications service rejects an entire batch on
+     * the first unusable phone, so one bad record would otherwise kill the
+     * whole campaign.
+     */
+    async bulkSend(dto: BulkSendDto): Promise<BulkSendResponse> {
+        const { url, apiKey } = this.requireNotificationsServiceConfig();
+
+        const clients = await this.clientModel
+            .find({ _id: { $in: dto.clientIds } })
+            .exec();
+        const byId = new Map(clients.map((client: any) => [String(client._id), client]));
+
+        const recipients: string[] = [];
+        const skipped: SkippedRecipient[] = [];
+        const seenPhones = new Set<string>();
+
+        for (const clientId of dto.clientIds) {
+            const client = byId.get(clientId);
+
+            if (!client) {
+                skipped.push({ clientId, name: null, reason: "not_found" });
+                continue;
+            }
+
+            const name = client.userInfo?.name || client.email || null;
+            const rawPhone = client.userInfo?.phone;
+
+            if (!rawPhone) {
+                skipped.push({ clientId, name, reason: "no_phone" });
+                continue;
+            }
+
+            const phone = toUruguayE164(rawPhone);
+            if (!phone) {
+                skipped.push({ clientId, name, reason: "invalid_phone" });
+                continue;
+            }
+
+            // Two clients sharing a handset would get the campaign twice.
+            if (seenPhones.has(phone)) {
+                skipped.push({ clientId, name, reason: "duplicate_phone" });
+                continue;
+            }
+
+            seenPhones.add(phone);
+            recipients.push(phone);
+        }
+
+        if (recipients.length === 0) {
+            throw new BadRequestException(
+                "No reachable recipients: every selected client is missing a valid phone",
+            );
+        }
+
+        try {
+            const response = await axios.post(
+                `${url}/notifications/bulk-direct`,
+                { to: recipients, message: normalizeWhatsAppMessage(dto.message) },
+                { headers: { "X-Api-Key": apiKey }, timeout: 30000 },
+            );
+
+            return {
+                batchId: response.data.batchId,
+                total: response.data.total,
+                requested: dto.clientIds.length,
+                skipped,
+            };
+        } catch (error: any) {
+            throw this.toProxyException(error, "Error enqueuing bulk send");
+        }
+    }
+
+    private requireNotificationsServiceConfig() {
+        const url = this.configService.get<string>("NOTIFICATIONS_SERVICE_URL");
+        const apiKey = this.configService.get<string>("NOTIFICATIONS_SERVICE_API_KEY");
+
+        if (!url || !apiKey) {
+            throw new HttpException(
+                "Notifications service not configured",
+                HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+        }
+
+        return { url, apiKey };
+    }
+
+    /**
+     * Keeps the reason the notifications service gave us. axios replaces it
+     * with a generic "Request failed with status code 401", which is what made
+     * an api key scope mismatch undiagnosable from the dashboard.
+     */
+    private toProxyException(error: any, fallback: string) {
+        const message = error.response?.data?.message || error.message || fallback;
+
+        return new HttpException(
+            message,
+            error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+    }
 
     private parseCSV(buffer: Buffer): CsvRow[] {
         // Quote-aware on purpose: a WhatsApp message keeps its line breaks

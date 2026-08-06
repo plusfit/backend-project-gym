@@ -23,9 +23,17 @@ describe("NotificationsService.bulkUpload", () => {
     "https://encarrera.uy/formulario",
   ].join("\n");
 
-  /** Unconfigured on purpose, so parsing is what gets tested. */
+  /**
+   * Unconfigured on purpose, so parsing is what gets tested. The client model
+   * is never touched by this path: bulkUpload reads recipients from the file,
+   * not from the database.
+   */
   function createService() {
-    return new NotificationsService({} as never, { get: () => undefined } as never);
+    return new NotificationsService(
+      {} as never,
+      { get: () => undefined } as never,
+      {} as never,
+    );
   }
 
   function upload(csv: string, originalname = "campania.csv", mimetype = "text/csv") {
