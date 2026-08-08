@@ -25,6 +25,7 @@ import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
 
 import { BulkSendDto } from "./dto/bulk-send.dto";
 import { CreateNotificationDto } from "./dto/create-notification.dto";
+import { TestSendDto } from "./dto/test-send.dto";
 import { UpdateNotificationDto } from "./dto/update-notification.dto";
 import { NotificationsService } from "./notifications.service";
 import { InactivityCheckService } from "./services/inactivity-check.service";
@@ -123,6 +124,18 @@ export class NotificationsController {
     @HttpCode(HttpStatus.ACCEPTED)
     async bulkSend(@Body() bulkSendDto: BulkSendDto) {
         return await this.notificationsService.bulkSend(bulkSendDto);
+    }
+
+    @Post("test-send")
+    @ApiOperation({
+        summary: "Send the campaign body to a single phone as a test",
+    })
+    @ApiResponse({ status: 201, description: "Test message queued" })
+    @ApiResponse({ status: 400, description: "Invalid phone" })
+    @Roles(Role.Admin)
+    @UseGuards(RolesGuard)
+    async testSend(@Body() testSendDto: TestSendDto) {
+        return await this.notificationsService.testSend(testSendDto);
     }
 
     @Get("bulk-status/:batchId")
