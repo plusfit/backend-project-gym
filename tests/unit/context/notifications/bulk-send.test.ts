@@ -68,11 +68,98 @@ describe("NotificationsService.bulkSend", () => {
   }
 
   function postedBody() {
-    return vi.mocked(axios.post).mock.calls[0][1] as { to: string[]; message: string };
+    return vi.mocked(axios.post).mock.calls[0][1] as {
+      to?: string[];
+      message?: string;
+      items?: { to: string; message: string }[];
+    };
   }
 
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  /**
+   * {nombre} personalization. When the template carries the token, the payload
+   * switches to per-recipient items with the name already interpolated — the
+   * notifications service never sees the token or knows any client's name.
+   */
+  describe("personalizing with {nombre}", () => {
+    it("posts per-recipient items with each client's name", async () => {
+      acceptWith("batch-1", 2);
+      const { service } = createService([
+        client(ID_A, "099123456", "Ana Perez"),
+        client(ID_B, "099123457", "Beto Diaz"),
+      ]);
+
+      await service.bulkSend({ clientIds: [ID_A, ID_B], message: "Hola {nombre}!" });
+
+      expect(postedBody().items).toEqual([
+        { to: "+59899123456", message: "Hola Ana Perez!" },
+        { to: "+59899123457", message: "Hola Beto Diaz!" },
+      ]);
+      expect(postedBody().to).toBeUndefined();
+      expect(postedBody().message).toBeUndefined();
+    });
+
+    it("replaces every occurrence of the token", async () => {
+      acceptWith();
+      const { service } = createService([client(ID_A, "099123456", "Ana")]);
+
+      await service.bulkSend({
+        clientIds: [ID_A],
+        message: "{nombre}, tu plan {nombre} vence",
+      });
+
+      expect(postedBody().items?.[0].message).toBe("Ana, tu plan Ana vence");
+    });
+
+    it("falls back to the email when the client has no name", async () => {
+      acceptWith();
+      const noName = {
+        _id: ID_A,
+        email: "ana@mail.com",
+        userInfo: { phone: "099123456" },
+      };
+      const { service } = createService([noName as never]);
+
+      await service.bulkSend({ clientIds: [ID_A], message: "Hola {nombre}" });
+
+      expect(postedBody().items?.[0].message).toBe("Hola ana@mail.com");
+    });
+
+    it("normalizes the template before interpolating", async () => {
+      acceptWith();
+      const { service } = createService([client(ID_A, "099123456", "Ana")]);
+
+      await service.bulkSend({
+        clientIds: [ID_A],
+        message: "Hola {nombre}\r\n-Corremos el sabado",
+      });
+
+      expect(postedBody().items?.[0].message).toBe("Hola Ana\n- Corremos el sabado");
+    });
+
+    it("keeps the shared-message shape when the template has no token", async () => {
+      acceptWith();
+      const { service } = createService([client(ID_A, "099123456")]);
+
+      await service.bulkSend({ clientIds: [ID_A], message: "Hola a todos" });
+
+      expect(postedBody().items).toBeUndefined();
+      expect(postedBody().to).toEqual(["+59899123456"]);
+      expect(postedBody().message).toBe("Hola a todos");
+    });
+
+    /** A "$" in a name must never trigger replace()'s $-pattern expansion. */
+    it("keeps dollar signs in names literal", async () => {
+      acceptWith();
+      const { service } = createService([client(ID_A, "099123456", "Ana $orteo")]);
+
+      await service.bulkSend({ clientIds: [ID_A], message: "Hola {nombre}" });
+
+      expect(postedBody().items?.[0].message).toBe("Hola Ana $orteo");
+    });
   });
 
   describe("resolving the selection into recipients", () => {
@@ -240,7 +327,7 @@ describe("NotificationsService.bulkSend", () => {
 
       await service.bulkSend({ clientIds: [ID_A], message: CAMPAIGN });
 
-      expect(postedBody().message.split("\n")).toHaveLength(3);
+      expect(postedBody().message?.split("\n")).toHaveLength(3);
       expect(postedBody().message).not.toContain("\r");
     });
 

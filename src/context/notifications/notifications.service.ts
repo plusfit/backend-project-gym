@@ -14,11 +14,14 @@ import { Model } from "mongoose";
 
 import { parseCsvRecords } from "@/src/context/shared/utils/csv.utils";
 import {
+    interpolateName,
+    NAME_TOKEN,
     normalizeWhatsAppMessage,
     toUruguayE164,
 } from "@/src/context/shared/utils/whatsapp-message.utils";
 
 import { BulkSendDto, BulkSendResponse, SkippedRecipient } from "./dto/bulk-send.dto";
+import { TestSendDto, TestSendResponse } from "./dto/test-send.dto";
 import { BulkStatusResponseDto } from "./dto/bulk-status.dto";
 import { BulkUploadResponseDto } from "./dto/bulk-upload.dto";
 import { CreateNotificationDto } from "./dto/create-notification.dto";
@@ -64,7 +67,7 @@ export class NotificationsService {
             .exec();
         const byId = new Map(clients.map((client: any) => [String(client._id), client]));
 
-        const recipients: string[] = [];
+        const recipients: { phone: string; name: string }[] = [];
         const skipped: SkippedRecipient[] = [];
         const seenPhones = new Set<string>();
 
@@ -97,7 +100,7 @@ export class NotificationsService {
             }
 
             seenPhones.add(phone);
-            recipients.push(phone);
+            recipients.push({ phone, name: name ?? "" });
         }
 
         if (recipients.length === 0) {
@@ -106,12 +109,24 @@ export class NotificationsService {
             );
         }
 
+        // {nombre} switches the payload to per-recipient items with the name
+        // already interpolated: the notifications service only knows phones,
+        // so names can never be resolved further downstream than here.
+        const template = normalizeWhatsAppMessage(dto.message);
+        const payload = template.includes(NAME_TOKEN)
+            ? {
+                  items: recipients.map(({ phone, name }) => ({
+                      to: phone,
+                      message: interpolateName(template, name),
+                  })),
+              }
+            : { to: recipients.map(({ phone }) => phone), message: template };
+
         try {
-            const response = await axios.post(
-                `${url}/notifications/bulk-direct`,
-                { to: recipients, message: normalizeWhatsAppMessage(dto.message) },
-                { headers: { "X-Api-Key": apiKey }, timeout: 30000 },
-            );
+            const response = await axios.post(`${url}/notifications/bulk-direct`, payload, {
+                headers: { "X-Api-Key": apiKey },
+                timeout: 30000,
+            });
 
             return {
                 batchId: response.data.batchId,
@@ -121,6 +136,42 @@ export class NotificationsService {
             };
         } catch (error: any) {
             throw this.toProxyException(error, "Error enqueuing bulk send");
+        }
+    }
+
+    /**
+     * Sends the campaign body to one phone — the admin's — through the
+     * individual send endpoint. Same normalization as the real bulk, so what
+     * arrives on the test handset is byte-for-byte what clients would get.
+     */
+    async testSend(dto: TestSendDto): Promise<TestSendResponse> {
+        const { url, apiKey } = this.requireNotificationsServiceConfig();
+
+        const phone = toUruguayE164(dto.phone);
+        if (!phone) {
+            throw new BadRequestException(
+                "Invalid phone: expected an Uruguayan mobile number (e.g. 099123456)",
+            );
+        }
+
+        try {
+            const response = await axios.post(
+                `${url}/notifications/send`,
+                {
+                    channel: "whatsapp",
+                    to: phone,
+                    message: normalizeWhatsAppMessage(dto.message),
+                },
+                { headers: { "X-Api-Key": apiKey }, timeout: 15000 },
+            );
+
+            return {
+                jobId: response.data.jobId,
+                status: response.data.status,
+                scheduledFor: response.data.scheduledFor,
+            };
+        } catch (error: any) {
+            throw this.toProxyException(error, "Error sending test message");
         }
     }
 
