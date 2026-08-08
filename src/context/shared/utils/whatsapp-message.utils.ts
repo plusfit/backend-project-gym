@@ -121,3 +121,20 @@ export const toUruguayE164 = (raw: string): string | null => {
 
   return `+${URUGUAY_COUNTRY_CODE}${national}`;
 };
+
+/** The one personalization token the campaign composer understands. */
+export const NAME_TOKEN = "{nombre}";
+
+/**
+ * Replaces every {nombre} token with the recipient's display name.
+ *
+ * Uses split/join instead of String.replace on purpose: a name containing "$&"
+ * or "$'" would trigger replace()'s dollar-pattern expansion and corrupt the
+ * message.
+ *
+ * @param template The campaign body, already normalized
+ * @param name The recipient's display name
+ * @returns The personalized message
+ */
+export const interpolateName = (template: string, name: string): string =>
+  template.split(NAME_TOKEN).join(name);
