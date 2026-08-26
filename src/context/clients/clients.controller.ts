@@ -17,17 +17,16 @@ import { ClientsService } from "@/src/context/clients/clients.service";
 import { GetClientsDto } from "@/src/context/clients/dto/get-clients.dto";
 import { UpdateClientDto } from "@/src/context/clients/dto/update-client.dto";
 import { Role } from "@/src/context/shared/constants/roles.constant";
+import { CurrentUser } from "@/src/context/shared/guards/roles/current-user.decorator";
 import { Roles } from "@/src/context/shared/guards/roles/roles.decorator";
 import { RolesGuard } from "@/src/context/shared/guards/roles/roles.guard";
-import { CurrentUser } from "@/src/context/shared/guards/roles/current-user.decorator";
 
 import { ClientsIdsDto } from "./dto/clients-ids.dto";
 import { CreateClientDto } from "./dto/create-client.dto";
-import { ValidatePasswordDto } from "./dto/validate-password.dto";
-import { UpdateAvatarDto } from "./dto/update-avatar.dto";
-import { ClientFilters } from "./interfaces/clients.interface";
-
 import { ExportClientsDto } from "./dto/export-clients.dto";
+import { UpdateAvatarDto } from "./dto/update-avatar.dto";
+import { ValidatePasswordDto } from "./dto/validate-password.dto";
+import { ClientFilters } from "./interfaces/clients.interface";
 
 @ApiTags("clients")
 @Controller("clients")

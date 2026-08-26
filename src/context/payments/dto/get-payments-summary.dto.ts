@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsDateString } from 'class-validator';
+import { IsDateString,IsNotEmpty } from 'class-validator';
 
 export class GetPaymentsSummaryDto {
     @IsNotEmpty({ message: 'La fecha de inicio es requerida' })

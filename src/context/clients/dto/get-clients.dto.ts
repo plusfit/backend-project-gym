@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsNumber, IsOptional, IsString, Min, IsEnum } from "class-validator";
+import { IsEnum,IsNumber, IsOptional, IsString, Min } from "class-validator";
+
 import { EClientRole } from "@/src/context/shared/enums/clients-role.enum";
 
 export class GetClientsDto {

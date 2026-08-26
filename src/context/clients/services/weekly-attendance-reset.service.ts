@@ -1,7 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { Model } from 'mongoose';
+
 import { ClientDocument } from '../schemas/client.schema';
 
 @Injectable()

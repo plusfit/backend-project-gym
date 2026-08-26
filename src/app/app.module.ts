@@ -6,8 +6,8 @@ import {
 } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { MongooseModule } from "@nestjs/mongoose";
-import { LoggerModule } from "nestjs-pino";
 import { ScheduleModule } from '@nestjs/schedule';
+import { LoggerModule } from "nestjs-pino";
 
 import { AuthModule } from "@/src/context/auth/auth.module";
 import { AuthMiddleware } from "@/src/context/auth/middlewares/auth.middleware";
@@ -17,12 +17,12 @@ import { GymAccessModule } from "@/src/context/gym-access/gym-access.module";
 import { NotificationsModule } from "@/src/context/notifications/notifications.module";
 import { OnboardingModule } from "@/src/context/onboarding/onboarding.module";
 import { OrganizationsModule } from "@/src/context/organizations/organizations.module";
+import { PaymentsModule } from "@/src/context/payments/payments.module";
 import { PlansModule } from "@/src/context/plans/plans.module";
 import { ProductsModule } from "@/src/context/products/products.module";
 import { RewardsModule } from "@/src/context/rewards/rewards.module";
 import { RoutinesModule } from "@/src/context/routines/routines.module";
 import { SchedulesModule } from "@/src/context/schedules/schedules.module";
-import { PaymentsModule } from "@/src/context/payments/payments.module";
 
 import { CorrelationIdMiddleware } from "../app/config/correlation-id/correlation-id.middleware" //"@/app/config/correlation-id/correlation-id.middleware";
 import { HealthModule } from "../app/health/health.module" //@/app/health/health.module";

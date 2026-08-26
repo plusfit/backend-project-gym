@@ -15,19 +15,19 @@ import { Client } from "@/src/context/clients/schemas/client.schema";
 import { PlansService } from "@/src/context/plans/plans.service";
 import { Plan } from "@/src/context/plans/schemas/plan.schema";
 import { Routine } from "@/src/context/routines/schemas/routine.schema";
-
-import { SchedulesService } from "../schedules/schedules.service";
-import { NotificationsService } from "../notifications/notifications.service";
-import { NotificationReason, NotificationStatus } from "../notifications/schemas/notification.schema";
 import { EClientRole } from "@/src/context/shared/enums/clients-role.enum";
-import { CreateClientDto } from "./dto/create-client.dto";
-import { ClientFilters } from "./interfaces/clients.interface";
 import { toTitleCase } from "@/src/context/shared/utils/string.utils";
 import {
   normalizeWhatsAppMessage,
   toCsvField,
   toUruguayE164,
 } from "@/src/context/shared/utils/whatsapp-message.utils";
+
+import { NotificationsService } from "../notifications/notifications.service";
+import { NotificationReason, NotificationStatus } from "../notifications/schemas/notification.schema";
+import { SchedulesService } from "../schedules/schedules.service";
+import { CreateClientDto } from "./dto/create-client.dto";
+import { ClientFilters } from "./interfaces/clients.interface";
 
 @Injectable()
 export class ClientsService {

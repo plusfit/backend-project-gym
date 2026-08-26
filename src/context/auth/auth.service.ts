@@ -6,12 +6,11 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { InjectModel } from "@nestjs/mongoose";
 import axios from "axios";
 import firebaseAdmin from "firebase-admin";
 import jwt from "jsonwebtoken";
 import { Model } from "mongoose";
-import { InjectModel } from "@nestjs/mongoose";
-import { InvitationCode } from "./schemas/invitation-code.schema";
 
 import { GoogleAuthDto } from "@/src/context/auth/dto/google-auth.dto";
 import { InternalRegisterAuthDto } from "@/src/context/auth/dto/internal-register-auth.dto";
@@ -19,16 +18,16 @@ import { LoginAuthDto } from "@/src/context/auth/dto/login-auth.dto";
 import { RefreshTokenAuthDto } from "@/src/context/auth/dto/refresh-token-auth-dto";
 import { RegisterAuthDto } from "@/src/context/auth/dto/register-auth.dto";
 import { AUTH_REPOSITORY } from "@/src/context/auth/repositories/auth.repository";
+import { toTitleCase } from "@/src/context/shared/utils/string.utils";
 
 import { ClientsService } from "../clients/clients.service";
-import { toTitleCase } from "@/src/context/shared/utils/string.utils";
 import { OnboardingService } from "../onboarding/onboarding.service";
 import {
+  AuthErrorResponse,
   InvitationCodeResponse,
   TokenResponse,
-  ValidateInvitationCodeResponse,
-  AuthErrorResponse
-} from "./interfaces/auth.interfaces";
+  ValidateInvitationCodeResponse} from "./interfaces/auth.interfaces";
+import { InvitationCode } from "./schemas/invitation-code.schema";
 
 @Injectable()
 export class AuthService {

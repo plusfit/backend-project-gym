@@ -1,5 +1,5 @@
-import { IsNotEmpty, IsNumber, IsString, IsPositive, IsDateString } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { IsDateString,IsNotEmpty, IsNumber, IsPositive, IsString } from 'class-validator';
 
 export class CreatePaymentDto {
     @IsNotEmpty({ message: 'El amount es requerido' })

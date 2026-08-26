@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsInt, IsMongoId, IsString, IsOptional, IsBoolean } from "class-validator";
+import { IsArray, IsBoolean,IsInt, IsMongoId, IsOptional, IsString } from "class-validator";
 
 export class CreateScheduleDto {
 	@ApiProperty({
