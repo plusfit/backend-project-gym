@@ -1,9 +1,9 @@
 # Skill Registry — backend-project-gym
 
 ## Sources Scanned
-- User skills: `C:\Users\PC FS SOLUCIONES\.gemini\extensions\superpowers\skills\`, `C:\Users\PC FS SOLUCIONES\.agents\skills\`
-- Project skills: none found
-- Project conventions: `GEMINI.md`
+- User skills: `C:\Users\PC FS SOLUCIONES\.config\opencode\skills\`, `C:\Users\PC FS SOLUCIONES\.claude\skills\`
+- Project skills: none found under `.claude/skills`, `.gemini/skills`, `.agent/skills`, `skills/`
+- Project conventions: `C:\Users\PC FS SOLUCIONES\Documents\DEV\plus-fit\CLAUDE.md`
 
 ## Selected Skills (non-SDD)
 | Skill | Trigger (compact) | SKILL.md Path |
@@ -13,16 +13,15 @@
 | api-design-principles | API design/review/standards | `C:\Users\PC FS SOLUCIONES\.agents\skills\api-design-principles\SKILL.md` |
 | error-handling-patterns | implementing error handling patterns | `C:\Users\PC FS SOLUCIONES\.agents\skills\error-handling-patterns\SKILL.md` |
 | best-practices | security/quality modernization | `C:\Users\PC FS SOLUCIONES\.agents\skills\best-practices\SKILL.md` |
-| work-unit-commits | split implementation into reviewable commits | `C:\Users\PC FS SOLUCIONES\.gemini\skills\work-unit-commits\SKILL.md` |
-| verification-before-completion | before claiming work is complete | `C:\Users\PC FS SOLUCIONES\.gemini\extensions\superpowers\skills\verification-before-completion\SKILL.md` |
+| work-unit-commits | split implementation into reviewable commits | `C:\Users\PC FS SOLUCIONES\.config\opencode\skills\work-unit-commits\SKILL.md` |
 
 ## Compact Rules
 
-### Project Conventions (from GEMINI.md)
+### Project Conventions (from CLAUDE.md)
 - Backend is NestJS + MongoDB with context modules under `src/context/`.
 - Respect controller → service → repository → schema module flow.
 - Use Vitest for unit/e2e, ESLint + Prettier + Biome for quality.
-- Strict TDD Mode is active.
+- Prefer specialized phase skills in SDD workflow before implementation.
 
 ### Cross-skill Operational Rules
 - Do not skip requirement clarification before creative changes (brainstorming first).
@@ -31,8 +30,6 @@
 - Keep commits scoped as small reviewable work units.
 
 ## Backend Snapshot
-- Stack: NestJS v10, TypeScript 5.x, Mongoose, Firebase Admin, Fastify adapter.
+- Stack: NestJS v10, TypeScript 5.x, Mongoose, Firebase Admin, Fastify/Express adapters.
 - Test runner: Vitest (`test:unit`, `test:e2e`).
-- Quality: ESLint (`lint`), Prettier, TSC (`npx tsc --noEmit`).
-- Persistence Mode: Engram.
-- Strict TDD: Enabled.
+- Quality: ESLint (`lint`), formatter (`prettier`), no explicit `typecheck` script.
