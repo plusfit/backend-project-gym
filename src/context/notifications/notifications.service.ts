@@ -10,6 +10,8 @@ import { ConfigService } from "@nestjs/config";
 import axios from "axios";
 import FormData from "form-data";
 
+import { parseCsvRecords } from "@/src/context/shared/utils/csv.utils";
+
 import { BulkStatusResponseDto } from "./dto/bulk-status.dto";
 import { BulkUploadResponseDto } from "./dto/bulk-upload.dto";
 import { CreateNotificationDto } from "./dto/create-notification.dto";
@@ -37,44 +39,38 @@ export class NotificationsService {
     ) {}
 
     private parseCSV(buffer: Buffer): CsvRow[] {
-        const content = buffer.toString("utf-8");
-        const lines = content.split("\n").filter((line) => line.trim() !== "");
+        // Quote-aware on purpose: a WhatsApp message keeps its line breaks
+        // inside one quoted field, so splitting on every "\n" would read the
+        // second line of a message as a row with no comma and reject the file.
+        const records = parseCsvRecords(buffer.toString("utf-8"));
 
-        if (lines.length === 0) {
+        if (records.length === 0) {
             throw new BadRequestException("File is empty");
         }
 
-        const header = lines[0].toLowerCase();
-        const hasToColumn = header.includes("to");
-        const hasMessageColumn = header.includes("message");
+        const header = records[0].map((column) => column.trim().toLowerCase());
+        const toIndex = header.indexOf("to");
+        const messageIndex = header.indexOf("message");
 
-        if (!hasToColumn || !hasMessageColumn) {
+        if (toIndex === -1 || messageIndex === -1) {
             throw new BadRequestException(
-                `Missing required column. CSV must have 'to' and 'message' columns. Found: ${header}`,
+                `Missing required column. CSV must have 'to' and 'message' columns. Found: ${header.join(",")}`,
             );
         }
 
-        const rows: CsvRow[] = [];
-        const dataLines = lines.slice(1);
+        return records.slice(1).map((record, index) => {
+            const to = (record[toIndex] ?? "").trim();
+            // The message keeps its own whitespace: it is the body that ships.
+            const message = record[messageIndex] ?? "";
 
-        for (let i = 0; i < dataLines.length; i++) {
-            const line = dataLines[i].trim();
-            if (!line) continue;
-
-            const parts = line.split(",");
-            if (parts.length < 2) {
+            if (!to || !message.trim()) {
                 throw new BadRequestException(
-                    `Invalid row format at line ${i + 2}: expected "phone,message"`,
+                    `Invalid row ${index + 1}: expected a phone and a message`,
                 );
             }
 
-            const to = parts[0].trim();
-            const message = parts.slice(1).join(",").trim();
-
-            rows.push({ to, message });
-        }
-
-        return rows;
+            return { to, message };
+        });
     }
 
     private validatePhoneNumber(phone: string): boolean {
