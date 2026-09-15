@@ -20,6 +20,7 @@ import { OrganizationsModule } from "@/src/context/organizations/organizations.m
 import { PaymentsModule } from "@/src/context/payments/payments.module";
 import { PlansModule } from "@/src/context/plans/plans.module";
 import { ProductsModule } from "@/src/context/products/products.module";
+import { RemindersModule } from "@/src/context/reminders/reminders.module";
 import { RewardsModule } from "@/src/context/rewards/rewards.module";
 import { RoutinesModule } from "@/src/context/routines/routines.module";
 import { SchedulesModule } from "@/src/context/schedules/schedules.module";
@@ -74,6 +75,7 @@ import { AppConfigModule } from "../context/config/config.module";
     AuthModule,
     CategoriesModule,
     GymAccessModule,
+    RemindersModule,
     RewardsModule,
     PaymentsModule,
     NotificationsModule,
