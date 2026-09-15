@@ -4,6 +4,36 @@
 **Mode:** Strict TDD. Every task writes the failing test first.
 **Delivery:** five independent PRs, in order. Each one is deployable on its own.
 
+## Status
+
+| PR | Repo | Branch | State |
+| --- | --- | --- | --- |
+| 1 | `notifications-service` | `feat/push-channel` | Done, 6 commits, not pushed |
+| 2 | `backend-project-gym` | `feat/push-reminders` | Done, 3 commits, not pushed |
+| 3 | `clients-project-gym-v2` | `feat/push-notifications` | Done, 1 commit, not pushed |
+| 4 | `frontend-project-gym-v2` | `feat/reminders-settings` | Done, 1 commit, not pushed |
+| 5 | — | — | Blocked on the Firebase credentials below |
+
+Test counts after the work: notifications-service 173 unit + 11 e2e,
+backend-project-gym 202 unit. Typecheck and build pass in all four repos.
+
+**Deviations from the design, and why**
+
+- Client preferences are a map of opt-outs keyed by rule, not fixed boolean
+  columns. Adding a rule now needs no schema change or migration.
+- Rules declare `requires` so one unavailable data source does not take down a
+  whole cron pass. This came out of a failing test.
+- `BulkService.getBatch` returns `failures[]` alongside the batch, which is what
+  the token cleanup reads; the design only said "expose failureCode".
+
+**Found while implementing, not fixed**
+
+- `backend-project-gym` tracks `.env` in git.
+- `notifications-service` has no ESLint config at the repo root, so `npm run
+  lint` is broken there.
+- Mongoose 9 in `notifications-service` no longer casts a string to ObjectId
+  inside a query filter. Worth auditing other queries that filter by a string id.
+
 ---
 
 ## PR 1 — `notifications-service`: push channel

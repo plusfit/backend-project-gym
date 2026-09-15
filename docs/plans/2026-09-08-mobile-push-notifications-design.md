@@ -83,8 +83,13 @@ Principles:
 
 ```ts
 pushTokens: { token: string; userAgent?: string; createdAt: Date; lastSeenAt: Date }[]
-notificationPreferences: { routineDay: boolean; paymentDue: boolean; pointsNearReward: boolean } // default all true
+notificationPreferences: Record<string, boolean> // opt-outs only; absent means enabled
 ```
+
+`notificationPreferences` stores **opt-outs keyed by rule**, not one boolean column
+per rule. A rule the client never touched is enabled, so adding a rule needs no
+schema change and no migration — which is what section 8 is aiming at. The
+helper `effectivePreferences()` resolves the stored exceptions into a full map.
 
 **Client-facing endpoints** (JWT, own client only)
 
@@ -181,8 +186,13 @@ Strict TDD is active: tests are written before implementation.
 1. Create `<name>.rule.ts` implementing `ReminderRule` (`key`, `evaluate`, `render`, catalog metadata).
 2. Add the key to the `RuleKey` union and register the class in the rules list. The cron and the catalog pick it up.
 3. Add `<name>: { enabled: false, sendHour, ...params }` to the `ReminderSettings` schema with defaults.
-4. Add `<name>: true` to `notificationPreferences` defaults. Existing clients inherit the Mongoose default; no migration.
+4. Nothing to do for client preferences: they are stored as opt-outs by key, so the new rule is enabled by default for everyone.
 5. Write the rule tests first. Deploy with the rule disabled. The admin enables it from the dashboard.
+
+A rule also declares `requires: ReminderDataSource[]` — the shared data it cannot
+decide without. The cron loads each source independently, so if one source is
+unavailable the rules that depend on it are reported as failed while the rest
+still deliver.
 
 No frontend change is required: both UIs render from the catalog.
 
