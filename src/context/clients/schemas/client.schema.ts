@@ -52,6 +52,29 @@ export class UserInfo extends Document {
 	avatarUrl?: string;
 }
 
+/**
+ * One browser or device that accepted push notifications.
+ *
+ * A person can carry several, and a device can change hands, so the token is
+ * what identifies the entry rather than the client.
+ */
+@Schema({ _id: false })
+export class PushToken {
+	@Prop({ required: true, type: String })
+	token!: string;
+
+	@Prop({ type: String })
+	userAgent?: string;
+
+	@Prop({ type: Date, default: Date.now })
+	createdAt?: Date;
+
+	@Prop({ type: Date, default: Date.now })
+	lastSeenAt?: Date;
+}
+
+export const PushTokenSchema = SchemaFactory.createForClass(PushToken);
+
 @Schema({ timestamps: true })
 export class Client extends Document {
 	@Prop({ default: "User", type: String })
@@ -101,6 +124,16 @@ export class Client extends Document {
 
 	@Prop({ type: Number, default: 0 })
 	availableDays?: number; // Days available for gym access (decremented daily)
+
+	@Prop({ type: [PushTokenSchema], default: [] })
+	pushTokens?: PushToken[];
+
+	/**
+	 * Opt-outs by reminder rule key. A rule absent from this map is enabled, so
+	 * adding a new rule needs no migration.
+	 */
+	@Prop({ type: Object, default: {} })
+	notificationPreferences?: Record<string, boolean>;
 }
 
 export const ClientSchema = SchemaFactory.createForClass(Client);

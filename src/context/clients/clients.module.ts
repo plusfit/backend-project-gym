@@ -15,7 +15,9 @@ import { NotificationsModule } from "../notifications/notifications.module";
 import { Routine, RoutineSchema } from "../routines/schemas/routine.schema";
 import { SchedulesModule } from "../schedules/schedules.module";
 import { AvailableDaysController } from "./available-days.controller";
+import { PushTokensController } from "./push-tokens.controller";
 import { DailyDecrementService } from "./services/daily-decrement.service";
+import { PushTokensService } from "./services/push-tokens.service";
 import { WeeklyAttendanceResetService } from "./services/weekly-attendance-reset.service";
 import { YearlyPointsResetService } from "./services/yearly-points-reset.service";
 
@@ -29,9 +31,10 @@ import { YearlyPointsResetService } from "./services/yearly-points-reset.service
       { name: Routine.name, schema: RoutineSchema },
     ]),
   ],
-  controllers: [ClientsController, AvailableDaysController],
+  controllers: [ClientsController, AvailableDaysController, PushTokensController],
   providers: [
     ClientsService,
+    PushTokensService,
     DailyDecrementService,
     YearlyPointsResetService,
     WeeklyAttendanceResetService,
@@ -40,6 +43,6 @@ import { YearlyPointsResetService } from "./services/yearly-points-reset.service
       useClass: MongoClientsRepository,
     },
   ],
-  exports: [MongooseModule, CLIENT_REPOSITORY, ClientsService, DailyDecrementService, YearlyPointsResetService, WeeklyAttendanceResetService],
+  exports: [MongooseModule, CLIENT_REPOSITORY, ClientsService, PushTokensService, DailyDecrementService, YearlyPointsResetService, WeeklyAttendanceResetService],
 })
 export class ClientsModule { }
