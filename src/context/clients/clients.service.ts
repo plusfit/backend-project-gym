@@ -611,9 +611,8 @@ export class ClientsService {
       if (!client) {
         throw new NotFoundException(`Client with ID ${clientId} not found`);
       }
-
-      const currentDays = client.availableDays || 0;
-      const newDays = currentDays + daysToAdd;
+      
+      const newDays = daysToAdd;
 
       const updatedClient = await this.clientRepository.updateClient(clientId, {
         availableDays: newDays,
