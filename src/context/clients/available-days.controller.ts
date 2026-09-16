@@ -92,13 +92,13 @@ export class AvailableDaysController {
 		return this.yearlyPointsResetService.getPointsStats();
 	}
 
-	// @Post(':clientId/manual-decrement')
-	// @ApiOperation({ 
-	// 	summary: 'Manually decrement days for specific client',
-	// 	description: 'Manually decrements available days for a specific client.'
-	// })
-	// @ApiParam({ name: 'clientId', description: 'Client ID to decrement' })
-	// async manualDecrementClient(@Param('clientId') clientId: string) {
-	// 	return this.dailyDecrementService.manualDecrement(clientId);
-	// }
+	@Post(':clientId/manual-decrement')
+	@ApiOperation({ 
+		summary: 'Manually decrement days for specific client',
+		description: 'Manually decrements available days for a specific client.'
+	})
+	@ApiParam({ name: 'clientId', description: 'Client ID to decrement' })
+	async manualDecrementClient(@Param('clientId') clientId: string) {
+		return this.dailyDecrementService.manualDecrement(clientId);
+	}
 }
