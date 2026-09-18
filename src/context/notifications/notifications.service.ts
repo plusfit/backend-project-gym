@@ -24,6 +24,7 @@ import { BulkSendDto, BulkSendResponse, SkippedRecipient } from "./dto/bulk-send
 import { BulkStatusResponseDto } from "./dto/bulk-status.dto";
 import { BulkUploadResponseDto } from "./dto/bulk-upload.dto";
 import { CreateNotificationDto } from "./dto/create-notification.dto";
+import { PushRecipient } from "./dto/push-recipient.dto";
 import { TestSendDto, TestSendResponse } from "./dto/test-send.dto";
 import { UpdateNotificationDto } from "./dto/update-notification.dto";
 import { NOTIFICATION_REPOSITORY } from "./repositories/notifications.repository";
@@ -172,6 +173,54 @@ export class NotificationsService {
             };
         } catch (error: any) {
             throw this.toProxyException(error, "Error sending test message");
+        }
+    }
+
+    /**
+     * Delivers already-rendered push notifications, one per device token.
+     *
+     * Reminders are addressed to devices, not people: the caller has already
+     * expanded each client into their tokens and resolved the copy, so this
+     * method only proxies. Failed tokens come back through the batch status.
+     */
+    async bulkPush(items: PushRecipient[]): Promise<{ batchId: string; total: number }> {
+        const { url, apiKey } = this.requireNotificationsServiceConfig();
+
+        if (items.length === 0) {
+            throw new BadRequestException("No push recipients");
+        }
+
+        try {
+            const response = await axios.post(
+                `${url}/notifications/bulk-direct`,
+                { channel: "push", items },
+                { headers: { "X-Api-Key": apiKey }, timeout: 30000 },
+            );
+
+            return { batchId: response.data.batchId, total: response.data.total };
+        } catch (error: any) {
+            throw this.toProxyException(error, "Error enqueuing push batch");
+        }
+    }
+
+    /**
+     * Device tokens the notifications service could not deliver to.
+     * `UNREGISTERED` means the device is gone and the token should be pruned.
+     */
+    async getBatchFailures(
+        batchId: string,
+    ): Promise<{ to: string; failureCode?: string }[]> {
+        const { url, apiKey } = this.requireNotificationsServiceConfig();
+
+        try {
+            const response = await axios.get(`${url}/notifications/batches/${batchId}`, {
+                headers: { "X-Api-Key": apiKey },
+                timeout: 15000,
+            });
+
+            return response.data?.failures ?? [];
+        } catch (error: any) {
+            throw this.toProxyException(error, "Error reading batch status");
         }
     }
 
