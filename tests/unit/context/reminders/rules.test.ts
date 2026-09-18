@@ -3,11 +3,11 @@ import { describe, expect, it } from "vitest";
 import { REMINDER_RULE_KEYS } from "@/src/context/reminders/rule-keys";
 import { paymentDueRule } from "@/src/context/reminders/rules/payment-due.rule";
 import { pointsNearRewardRule } from "@/src/context/reminders/rules/points-near-reward.rule";
+import { REMINDER_RULES } from "@/src/context/reminders/rules/registry";
 import {
 	ClientContext,
 	RuleContext,
 } from "@/src/context/reminders/rules/reminder-rule";
-import { REMINDER_RULES } from "@/src/context/reminders/rules/registry";
 import { routineDayRule } from "@/src/context/reminders/rules/routine-day.rule";
 
 /**
