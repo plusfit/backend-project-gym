@@ -3,6 +3,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Model } from 'mongoose';
 
+import { EClientRole } from '@/src/context/shared/enums/clients-role.enum';
+
 import { ClientsService } from '../clients.service';
 import { ClientDocument } from '../schemas/client.schema';
 
@@ -39,7 +41,8 @@ export class DailyDecrementService {
 
 			// Find all active clients
 			const activeClients = await this.clientModel.find({
-				disabled: { $ne: true } // Only process active clients
+				disabled: { $ne: true }, // Only process active clients
+				role: { $ne: EClientRole.ADMIN } // Admins never consume available days
 			});
 
 			let decrementedCount = 0;
@@ -96,7 +99,8 @@ export class DailyDecrementService {
 	async manualDecrement(clientId?: string): Promise<{ processed: number; expired: number; autoDisabled: number }> {
 		try {
 			const filter: any = {
-				disabled: { $ne: true }
+				disabled: { $ne: true },
+				role: { $ne: EClientRole.ADMIN }
 			};
 
 			if (clientId) {
